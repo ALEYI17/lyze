@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://chufwnv6d2j5v"]
+
+[node name="Pause_menu" type="Node2D" unique_id=926883414]
+
+[node name="Button_manager" type="Control" parent="." unique_id=814986749]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="Button_manager" unique_id=818488591]
+layout_mode = 0
+offset_left = 506.0
+offset_top = 153.0
+offset_right = 806.0
+offset_bottom = 253.0
+theme_override_font_sizes/font_size = 50
+text = "Pause"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Resume" type="Button" parent="Button_manager" unique_id=1327389494]
+layout_mode = 0
+offset_left = 506.0
+offset_top = 315.0
+offset_right = 806.0
+offset_bottom = 415.0
+theme_override_font_sizes/font_size = 40
+text = "Resume"
+
+[node name="Main_menu" type="Button" parent="Button_manager" unique_id=597679876]
+layout_mode = 0
+offset_left = 506.0
+offset_top = 437.0
+offset_right = 806.0
+offset_bottom = 537.0
+theme_override_font_sizes/font_size = 40
+text = "Main Menu"
