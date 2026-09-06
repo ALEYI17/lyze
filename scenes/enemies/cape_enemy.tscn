@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://dko1h0mh27xot"]
+
+[ext_resource type="Texture2D" uid="uid://bherj2cvvdo05" path="res://assets/Enemies/Enemy1.png" id="1_b2kqa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_u5bk5"]
+size = Vector2(24, 42)
+
+[node name="CapeEnemy" type="CapeEnemy" unique_id=680157961]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=49659703]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("1_b2kqa")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=264923864]
+position = Vector2(1, -8)
+shape = SubResource("RectangleShape2D_u5bk5")
+
+[node name="Timer" type="Timer" parent="." unique_id=1873350624]
+wait_time = 5.0
+autostart = true
