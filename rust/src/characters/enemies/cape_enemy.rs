@@ -24,14 +24,18 @@ struct CapeEnemyState {
 struct ChangeDirectionRequested;
 
 #[derive(Event, Debug, Clone)]
-struct EnteredBody{
+struct EnteredBody {
     node: GodotNodeHandle,
     entity: Option<Entity>,
 }
 
+#[derive(Event, Debug, Clone)]
+struct HurtboxRequest;
+
 fn connect_timeout_signal(
     signal_direction: GodotSignals<ChangeDirectionRequested>,
     signal_enter: GodotSignals<EnteredBody>,
+    signal_hurt: GodotSignals<HurtboxRequest>,
     mut query: Query<&GodotNodeHandle, With<CapeEnemyNode>>,
     mut godot: GodotAccess,
     mut state: ResMut<CapeEnemyState>,
@@ -52,7 +56,17 @@ fn connect_timeout_signal(
             return;
         };
 
-        let Some(hurtbox_node) = body.get_node_or_null("hitbox") else {
+        let Some(hitbox_node) = body.get_node_or_null("hitbox") else {
+            godot_print!("dont get hitbox");
+            return;
+        };
+
+        let Ok(hitbox) = hitbox_node.try_cast::<Area2D>() else {
+            godot_print!("cant cast hitbox");
+            return;
+        };
+
+        let Some(hurtbox_node) = body.get_node_or_null("hurtbox") else {
             godot_print!("dont get hitbox");
             return;
         };
@@ -62,13 +76,25 @@ fn connect_timeout_signal(
             return;
         };
 
+        // add signal to hitbox
         signal_enter.connect(
-            hurtbox.into(),
+            hitbox.into(),
             Area2DSignals::AREA_ENTERED,
             None,
             |_args, node_handle, ent| {
-                Some(EnteredBody { entity: ent, node: node_handle })
+                Some(EnteredBody {
+                    entity: ent,
+                    node: node_handle,
+                })
             },
+        );
+
+        // add signal to hutbox
+        signal_hurt.connect(
+            hurtbox.into(),
+            Area2DSignals::AREA_ENTERED,
+            None,
+            |_args, _node_handle, _ent| Some(HurtboxRequest),
         );
 
         signal_direction.connect(
@@ -92,7 +118,6 @@ fn on_timeout(
             return;
         };
 
-
         let scale = body.get_scale();
         body.set_scale(Vector2::new(-scale.x, scale.y));
     }
@@ -102,7 +127,15 @@ fn on_timeout(
 }
 
 fn on_enter_body(tigger: On<EnteredBody>) {
-    godot_print!("enter body kill player: {:?}, {:?}", tigger.entity, tigger.node);
+    godot_print!(
+        "enter body kill player: {:?}, {:?}",
+        tigger.entity,
+        tigger.node
+    );
+}
+
+fn on_hurt(_trigger: On<HurtboxRequest>) {
+    godot_print!("Caped enemy receive damage");
 }
 
 fn is_not_initialized(state: Res<CapeEnemyState>) -> bool {
@@ -143,7 +176,9 @@ impl Plugin for CapeEnemyPlugin {
             .add_systems(Update, connect_timeout_signal.run_if(is_not_initialized))
             .add_plugins(GodotSignalsPlugin::<ChangeDirectionRequested>::default())
             .add_plugins(GodotSignalsPlugin::<EnteredBody>::default())
+            .add_plugins(GodotSignalsPlugin::<HurtboxRequest>::default())
             .add_observer(on_timeout)
-            .add_observer(on_enter_body);
+            .add_observer(on_enter_body)
+            .add_observer(on_hurt);
     }
 }

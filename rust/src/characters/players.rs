@@ -1,6 +1,9 @@
 use bevy::prelude::*;
-use godot::classes::{CharacterBody2D, Input};
+use godot::classes::{CharacterBody2D, CollisionShape2D, Input};
+use godot::prelude::*;
 use godot_bevy::prelude::*;
+
+use crate::state::GameState;
 
 const SPEED: f32 = 400.0;
 
@@ -12,15 +15,21 @@ const JUMP_VELOCITY: f32 = -500.0;
 #[godot_node(base(CharacterBody2D), class_name(Player2D))]
 pub struct PlayerNode {}
 
-fn find_player(query: Query<(&GodotNodeHandle, &Name), With<PlayerNode>>) {
-    let Ok((handler, name)) = query.single() else {
-        println!("Not found or more than one");
-        return;
-    };
+#[derive(Resource)]
+struct PlayerAttackTimer {
+    cooldown_timer: Timer,
+    active_timer: Timer,
+    is_attacking: bool,
+}
 
-    godot::prelude::godot_print!("Found Player");
-    godot::prelude::godot_print!("Handler: {:?}", handler);
-    godot::prelude::godot_print!("name: {:?}", name);
+impl Default for PlayerAttackTimer {
+    fn default() -> Self {
+        Self {
+            cooldown_timer: Timer::from_seconds(0.5, TimerMode::Once),
+            active_timer: Timer::from_seconds(0.5, TimerMode::Once),
+            is_attacking: false,
+        }
+    }
 }
 
 fn move_player(
@@ -61,11 +70,87 @@ fn move_player(
     }
 }
 
+fn player_attack(
+    query: Query<&GodotNodeHandle, With<PlayerNode>>,
+    mut timer: ResMut<PlayerAttackTimer>,
+    mut godot: GodotAccess,
+) {
+    if let Ok(handle) = query.single() {
+        let Some(body) = godot.try_get::<CharacterBody2D>(*handle) else {
+            return;
+        };
+
+        let input = godot.singleton::<Input>();
+
+        if timer.is_attacking || !timer.cooldown_timer.is_finished() {
+            return;
+        }
+
+        if input.is_action_just_pressed("hit") {
+            let Some(hittbox_node) = body.get_node_or_null("hitbox/CollisionShape2D") else {
+                godot_print!("dont get player hitbox");
+                return;
+            };
+
+            let Ok(mut hitbox) = hittbox_node.try_cast::<CollisionShape2D>() else {
+                godot_print!("cant cast hitbox");
+                return;
+            };
+
+            hitbox.set_disabled(false);
+
+            timer.is_attacking = true;
+            timer.active_timer.reset();
+            timer.cooldown_timer.reset();
+        }
+    }
+}
+
+fn update_attack(
+    query: Query<&GodotNodeHandle, With<PlayerNode>>,
+    mut timer: ResMut<PlayerAttackTimer>,
+    mut godot: GodotAccess,
+    time: Res<Time>,
+) {
+    timer.cooldown_timer.tick(time.delta());
+
+    if !timer.is_attacking {
+        return;
+    }
+
+    timer.active_timer.tick(time.delta());
+
+    if !timer.active_timer.is_finished() {
+        return;
+    }
+
+    let Ok(handle) = query.single() else {
+        return;
+    };
+
+    let Some(body) = godot.try_get::<CharacterBody2D>(*handle) else {
+        return;
+    };
+
+    let Some(hittbox_node) = body.get_node_or_null("hitbox/CollisionShape2D") else {
+        return;
+    };
+
+    let Ok(mut hitbox) = hittbox_node.try_cast::<CollisionShape2D>() else {
+        return;
+    };
+
+    hitbox.set_disabled(true);
+    timer.is_attacking = false;
+}
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, find_player)
-            .add_systems(Update, move_player);
+        app.init_resource::<PlayerAttackTimer>()
+            .add_systems(Update, move_player.run_if(in_state(GameState::InGame)))
+            .add_systems(Update, player_attack.run_if(in_state(GameState::InGame)))
+            .add_systems(Update, update_attack.run_if(in_state(GameState::InGame)));
     }
 }
