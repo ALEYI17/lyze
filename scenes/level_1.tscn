@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://b70a5nansbprs" path="res://assets/tiles/Level.png" id="1_014kd"]
 [ext_resource type="PackedScene" uid="uid://nokxxx4p2x1p" path="res://scenes/player.tscn" id="2_bswci"]
-[ext_resource type="PackedScene" uid="uid://dko1h0mh27xot" path="res://scenes/enemies/cape_enemy.tscn" id="3_rus8k"]
+[ext_resource type="PackedScene" uid="uid://bftyt0tjq0p4n" path="res://scenes/enemies/cape_enemy.tscn" id="3_rus8k"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bswci"]
 texture = ExtResource("1_014kd")
@@ -50,5 +50,5 @@ texture_filter = 1
 position = Vector2(91, 389)
 scale = Vector2(2, 2)
 
-[node name="CapeEnemy" parent="." unique_id=680157961 instance=ExtResource("3_rus8k")]
-position = Vector2(979, 652)
+[node name="CapeEnemy" parent="." unique_id=269238548 instance=ExtResource("3_rus8k")]
+position = Vector2(792, 648)

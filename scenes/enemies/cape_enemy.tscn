@@ -1,21 +1,33 @@
-[gd_scene format=3 uid="uid://dko1h0mh27xot"]
+[gd_scene format=3 uid="uid://bftyt0tjq0p4n"]
 
 [ext_resource type="Texture2D" uid="uid://bherj2cvvdo05" path="res://assets/Enemies/Enemy1.png" id="1_b2kqa"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_u5bk5"]
-size = Vector2(24, 42)
+size = Vector2(16, 21)
 
-[node name="CapeEnemy" type="CapeEnemy" unique_id=680157961]
+[sub_resource type="CircleShape2D" id="CircleShape2D_u5bk5"]
+radius = 3.535534
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=49659703]
-texture_filter = 1
+[node name="CapeEnemy" type="CapeEnemy" unique_id=269238548]
 scale = Vector2(2, 2)
-texture = ExtResource("1_b2kqa")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=264923864]
-position = Vector2(1, -8)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=210371923]
+position = Vector2(2, -3.5)
 shape = SubResource("RectangleShape2D_u5bk5")
 
-[node name="Timer" type="Timer" parent="." unique_id=1873350624]
-wait_time = 5.0
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1266318082]
+texture_filter = 1
+texture = ExtResource("1_b2kqa")
+
+[node name="hitbox" type="Area2D" parent="." unique_id=1577876293]
+position = Vector2(-9.5, 1)
+collision_layer = 8
+collision_mask = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="hitbox" unique_id=1413483378]
+position = Vector2(-1, 0)
+shape = SubResource("CircleShape2D_u5bk5")
+
+[node name="Timer" type="Timer" parent="." unique_id=1806776160]
+wait_time = 2.0
 autostart = true

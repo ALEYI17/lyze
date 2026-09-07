@@ -5,9 +5,16 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_u5bk5"]
 size = Vector2(13, 24)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kddjp"]
+size = Vector2(12, 8)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kh5iw"]
+size = Vector2(13, 19)
+
 [node name="Player2D" type="Player2D" unique_id=1835175786]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=127372499]
+texture_filter = 1
 texture = ExtResource("1_3vyb7")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1822578860]
@@ -15,3 +22,21 @@ position = Vector2(-0.5, -2)
 shape = SubResource("RectangleShape2D_u5bk5")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1896396379]
+
+[node name="hitbox" type="Area2D" parent="." unique_id=901236126]
+position = Vector2(14, 0)
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="hitbox" unique_id=1757411104]
+position = Vector2(3, 0)
+shape = SubResource("RectangleShape2D_kddjp")
+
+[node name="hurtbox" type="Area2D" parent="." unique_id=437184029]
+collision_layer = 4
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="hurtbox" unique_id=1384237709]
+position = Vector2(-0.5, -4.5)
+shape = SubResource("RectangleShape2D_kh5iw")
+debug_color = Color(0.8774744, 0.29814726, 0.44238895, 0.41960785)
