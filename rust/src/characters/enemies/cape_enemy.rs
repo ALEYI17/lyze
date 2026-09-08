@@ -5,11 +5,31 @@ use godot::classes::{Area2D, CharacterBody2D, Timer};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
+use crate::characters::players::{Health, PlayerNode};
 use crate::state::GameState;
 
-#[derive(Component, GodotNode, Default)]
+#[derive(Component, Default, Debug, Clone, Reflect)]
+#[reflect(Component)]
+pub struct CapeEnemyNode;
+
+#[derive(Bundle, GodotNode, Default)]
 #[godot_node(base(CharacterBody2D), class_name(CapeEnemy))]
-pub struct CapeEnemyNode {}
+pub struct CapeEnemyGodotNode {
+    pub enemy: CapeEnemyNode,
+
+    // #[export_fields(value(export_type(f32), default(400.0)))]
+    // pub speed: Speed,
+    //
+    // #[export_fields(value(export_type(f32), default(-500.0)))]
+    // pub jump_velocity: JumpVelocity,
+    //
+    // #[export_fields(value(export_type(f32), default(980.0)))]
+    // pub gravity: Gravity,
+    #[export_fields(value(export_type(f32), default(50.0)))]
+    pub health: Health,
+    // #[export_fields(value(export_type(f32), default(5.0)))]
+    // pub damage: Damage,
+}
 
 const SPEED: f32 = 150.0;
 
@@ -126,7 +146,17 @@ fn on_timeout(
     *direction = *direction * -1.0;
 }
 
-fn on_enter_body(tigger: On<EnteredBody>) {
+fn on_enter_body(
+    tigger: On<EnteredBody>,
+    mut queryp: Query<(&mut Health, &GodotNodeHandle), With<PlayerNode>>,
+) {
+    if let Ok((mut player_health, handle)) = queryp.single_mut() {
+        godot_print!("Health before damage: {}", player_health.0);
+        player_health.0 -= 10.0;
+        godot_print!("Health after damage: {}", player_health.0);
+
+        godot_print!("Handle: {:?}", handle);
+    }
     godot_print!(
         "enter body kill player: {:?}, {:?}",
         tigger.entity,
@@ -134,7 +164,16 @@ fn on_enter_body(tigger: On<EnteredBody>) {
     );
 }
 
-fn on_hurt(_trigger: On<HurtboxRequest>) {
+fn on_hurt(
+    _trigger: On<HurtboxRequest>,
+    mut querye: Query<(&mut Health, &GodotNodeHandle), With<CapeEnemyNode>>,
+) {
+    if let Ok((mut enemy_health, handle)) = querye.single_mut() {
+        godot_print!("Enemy Health before: {}", enemy_health.0);
+        enemy_health.0 -= 10.0;
+        godot_print!("Enemy Health after: {}", enemy_health.0);
+        godot_print!("Enemy Handle: {:?}", handle);
+    }
     godot_print!("Caped enemy receive damage");
 }
 
