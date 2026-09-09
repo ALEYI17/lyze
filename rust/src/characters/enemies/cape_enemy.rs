@@ -1,12 +1,14 @@
-use std::sync::Mutex;
 
 use bevy::prelude::*;
 use godot::classes::{Area2D, CharacterBody2D, Timer};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
-use crate::characters::players::{Health, PlayerNode};
+use crate::characters::players::{Damage, Health, PlayerNode, Speed};
 use crate::state::GameState;
+
+#[derive(Component, Default)]
+pub struct Direction(f32);
 
 #[derive(Component, Default, Debug, Clone, Reflect)]
 #[reflect(Component)]
@@ -17,23 +19,21 @@ pub struct CapeEnemyNode;
 pub struct CapeEnemyGodotNode {
     pub enemy: CapeEnemyNode,
 
-    // #[export_fields(value(export_type(f32), default(400.0)))]
-    // pub speed: Speed,
-    //
-    // #[export_fields(value(export_type(f32), default(-500.0)))]
-    // pub jump_velocity: JumpVelocity,
-    //
+    #[export_fields(value(export_type(f32), default(150.0)))]
+    pub speed: Speed,
+    
     // #[export_fields(value(export_type(f32), default(980.0)))]
     // pub gravity: Gravity,
     #[export_fields(value(export_type(f32), default(50.0)))]
     pub health: Health,
-    // #[export_fields(value(export_type(f32), default(5.0)))]
-    // pub damage: Damage,
+
+    #[export_fields(value(export_type(f32), default(5.0)))]
+    pub damage: Damage,
+    
+    #[export_fields(value(export_type(f32), default(-1.0)))]
+    pub direction: Direction,
 }
 
-const SPEED: f32 = 150.0;
-
-static DIRECTION: Mutex<f32> = Mutex::new(-1.0);
 
 #[derive(Resource, Default)]
 struct CapeEnemyState {
@@ -41,26 +41,30 @@ struct CapeEnemyState {
 }
 
 #[derive(Event, Debug, Clone)]
-struct ChangeDirectionRequested;
+struct ChangeDirectionRequested{
+    entity: Entity
+}
 
 #[derive(Event, Debug, Clone)]
 struct EnteredBody {
     node: GodotNodeHandle,
-    entity: Option<Entity>,
+    entity: Entity,
 }
 
 #[derive(Event, Debug, Clone)]
-struct HurtboxRequest;
+struct HurtboxRequest{
+    entity: Entity
+}
 
 fn connect_timeout_signal(
     signal_direction: GodotSignals<ChangeDirectionRequested>,
     signal_enter: GodotSignals<EnteredBody>,
     signal_hurt: GodotSignals<HurtboxRequest>,
-    mut query: Query<&GodotNodeHandle, With<CapeEnemyNode>>,
+    mut query: Query<(Entity,&GodotNodeHandle), With<CapeEnemyNode>>,
     mut godot: GodotAccess,
     mut state: ResMut<CapeEnemyState>,
 ) {
-    for handle in &mut query {
+    for (entity,handle) in &mut query {
         let Some(body) = godot.try_get::<CharacterBody2D>(*handle) else {
             godot_print!("Dont get body enemy");
             return;
@@ -101,9 +105,9 @@ fn connect_timeout_signal(
             hitbox.into(),
             Area2DSignals::AREA_ENTERED,
             None,
-            |_args, node_handle, ent| {
+            move |_args, node_handle, _ent| {
                 Some(EnteredBody {
-                    entity: ent,
+                    entity: entity,
                     node: node_handle,
                 })
             },
@@ -113,15 +117,19 @@ fn connect_timeout_signal(
         signal_hurt.connect(
             hurtbox.into(),
             Area2DSignals::AREA_ENTERED,
-            None,
-            |_args, _node_handle, _ent| Some(HurtboxRequest),
+             None,
+            move |_args, _node_handle, _ent| {
+                Some(HurtboxRequest { entity })
+            },
         );
 
         signal_direction.connect(
             timer.into(),
             TimerSignals::TIMEOUT,
             None,
-            |_args, _node_handle, _ent| Some(ChangeDirectionRequested),
+            move |_args, _node_handle, _ent| {
+                Some(ChangeDirectionRequested { entity: entity })
+            },
         );
 
         state.initialized = true;
@@ -129,30 +137,36 @@ fn connect_timeout_signal(
 }
 
 fn on_timeout(
-    _tigger: On<ChangeDirectionRequested>,
-    mut query: Query<&GodotNodeHandle, With<CapeEnemyNode>>,
+    tigger: On<ChangeDirectionRequested>,
+    mut query: Query<(&GodotNodeHandle, &mut Direction), With<CapeEnemyNode>>,
     mut godot: GodotAccess,
 ) {
-    for handle in &mut query {
-        let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
-            return;
-        };
 
-        let scale = body.get_scale();
-        body.set_scale(Vector2::new(-scale.x, scale.y));
-    }
+    let Ok((handle, mut direction)) = query.get_mut(tigger.entity) else{
+        return;
+    }; 
 
-    let mut direction = DIRECTION.lock().unwrap();
-    *direction = *direction * -1.0;
+    let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else{
+        return;
+    };
+
+    let scale = body.get_scale();
+    body.set_scale(Vector2::new(-scale.x, scale.y));
+    direction.0 *= -1.0;
 }
 
 fn on_enter_body(
     tigger: On<EnteredBody>,
     mut queryp: Query<(&mut Health, &GodotNodeHandle), With<PlayerNode>>,
+    querye: Query<&Damage, With<CapeEnemyNode>>
 ) {
+    let Ok(damage) = querye.get(tigger.entity) else {
+        return;
+    };
+
     if let Ok((mut player_health, handle)) = queryp.single_mut() {
         godot_print!("Health before damage: {}", player_health.0);
-        player_health.0 -= 10.0;
+        player_health.0 -= damage.0;
         godot_print!("Health after damage: {}", player_health.0);
 
         godot_print!("Handle: {:?}", handle);
@@ -165,12 +179,16 @@ fn on_enter_body(
 }
 
 fn on_hurt(
-    _trigger: On<HurtboxRequest>,
+    trigger: On<HurtboxRequest>,
     mut querye: Query<(&mut Health, &GodotNodeHandle), With<CapeEnemyNode>>,
+    queryp: Query<&Damage, With<PlayerNode>>
 ) {
-    if let Ok((mut enemy_health, handle)) = querye.single_mut() {
+    let Ok(damage) = queryp.single() else{
+        return;
+    };
+    if let Ok((mut enemy_health, handle)) = querye.get_mut(trigger.entity) {
         godot_print!("Enemy Health before: {}", enemy_health.0);
-        enemy_health.0 -= 10.0;
+        enemy_health.0 -= damage.0;
         godot_print!("Enemy Health after: {}", enemy_health.0);
         godot_print!("Enemy Handle: {:?}", handle);
     }
@@ -182,10 +200,10 @@ fn is_not_initialized(state: Res<CapeEnemyState>) -> bool {
 }
 
 fn find_cape_enemy(
-    mut query: Query<&GodotNodeHandle, With<CapeEnemyNode>>,
+    mut query: Query<(&GodotNodeHandle, &Speed, &Direction), With<CapeEnemyNode>>,
     mut godot: GodotAccess,
 ) {
-    for handle in &mut query {
+    for (handle, speed,  direction) in &mut query {
         let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
             godot_print!("dont find enemy");
             return;
@@ -195,10 +213,10 @@ fn find_cape_enemy(
 
         let mut pos = body.get_velocity();
 
-        let direction = DIRECTION.lock().unwrap();
+        //let direction = DIRECTION.lock().unwrap();
 
-        dir += *direction;
-        pos.x = dir * SPEED;
+        dir += direction.0;
+        pos.x = dir * speed.0;
 
         body.set_velocity(pos);
 

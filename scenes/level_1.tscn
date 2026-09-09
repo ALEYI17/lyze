@@ -52,3 +52,6 @@ scale = Vector2(2, 2)
 
 [node name="CapeEnemy" parent="." unique_id=269238548 instance=ExtResource("3_rus8k")]
 position = Vector2(792, 648)
+
+[node name="CapeEnemy2" parent="." unique_id=1008666379 instance=ExtResource("3_rus8k")]
+position = Vector2(-17, 810)

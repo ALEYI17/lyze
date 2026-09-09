@@ -46,8 +46,10 @@ pub struct PlayerGodotNode {
     #[export_fields(value(export_type(f32), default(50.0)))]
     pub health: Health,
 
-    #[export_fields(value(export_type(f32), default(5.0)))]
+    #[export_fields(value(export_type(f32), default(15.0)))]
     pub damage: Damage,
+
+    facing: Facing,
 }
 
 #[derive(Resource)]
@@ -67,12 +69,19 @@ impl Default for PlayerAttackTimer {
     }
 }
 
+#[derive(Component, Default, PartialEq, Eq)]
+enum Facing{
+    #[default]
+    Right,
+    Left
+}
+
 fn move_player(
-    query: Query<(&GodotNodeHandle, &Gravity, &Speed, &JumpVelocity), With<PlayerNode>>,
+    mut query: Query<(&GodotNodeHandle, &Gravity, &Speed, &JumpVelocity, &mut Facing), With<PlayerNode>>,
     mut godot: GodotAccess,
     time: Res<Time>,
 ) {
-    if let Ok((handle, gravity, speed, jump_velocity)) = query.single() {
+    if let Ok((handle, gravity, speed, jump_velocity, mut facing)) = query.single_mut() {
         let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
             return;
         };
@@ -101,6 +110,16 @@ fn move_player(
         }
 
         body.set_velocity(velocity);
+        
+        let scale = body.get_scale();
+        if velocity.x < 0.0 && *facing == Facing::Right{
+            body.set_scale(Vector2::new(-scale.x, scale.y));
+            *facing = Facing::Left;
+        }else if velocity.x > 0.0 && *facing == Facing::Left{
+            body.set_scale(Vector2::new(-scale.x, scale.y));
+            *facing = Facing::Right;
+        }
+        
         body.move_and_slide();
     }
 }
