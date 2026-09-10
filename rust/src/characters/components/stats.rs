@@ -26,4 +26,3 @@ pub struct Damage(pub f32);
 
 #[derive(Component, Default)]
 pub struct Direction(pub f32);
-

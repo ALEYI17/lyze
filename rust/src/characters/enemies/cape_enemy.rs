@@ -1,4 +1,3 @@
-
 use bevy::prelude::*;
 use godot::classes::{Area2D, CharacterBody2D, Timer};
 use godot::prelude::*;
@@ -6,7 +5,6 @@ use godot_bevy::prelude::*;
 
 use crate::characters::components::stats::{Damage, Direction, Health, PlayerNode, Speed};
 use crate::state::GameState;
-
 
 #[derive(Component, Default, Debug, Clone, Reflect)]
 #[reflect(Component)]
@@ -19,19 +17,16 @@ pub struct CapeEnemyGodotNode {
 
     #[export_fields(value(export_type(f32), default(150.0)))]
     pub speed: Speed,
-    
-    // #[export_fields(value(export_type(f32), default(980.0)))]
-    // pub gravity: Gravity,
+
     #[export_fields(value(export_type(f32), default(50.0)))]
     pub health: Health,
 
     #[export_fields(value(export_type(f32), default(5.0)))]
     pub damage: Damage,
-    
+
     #[export_fields(value(export_type(f32), default(-1.0)))]
     pub direction: Direction,
 }
-
 
 #[derive(Resource, Default)]
 struct CapeEnemyState {
@@ -39,30 +34,29 @@ struct CapeEnemyState {
 }
 
 #[derive(Event, Debug, Clone)]
-struct ChangeDirectionRequested{
-    entity: Entity
-}
-
-#[derive(Event, Debug, Clone)]
-struct EnteredBody {
-    node: GodotNodeHandle,
+struct ChangeDirectionRequested {
     entity: Entity,
 }
 
 #[derive(Event, Debug, Clone)]
-struct HurtboxRequest{
-    entity: Entity
+struct EnteredBody {
+    entity: Entity,
+}
+
+#[derive(Event, Debug, Clone)]
+struct HurtboxRequest {
+    entity: Entity,
 }
 
 fn connect_timeout_signal(
     signal_direction: GodotSignals<ChangeDirectionRequested>,
     signal_enter: GodotSignals<EnteredBody>,
     signal_hurt: GodotSignals<HurtboxRequest>,
-    mut query: Query<(Entity,&GodotNodeHandle), With<CapeEnemyNode>>,
+    mut query: Query<(Entity, &GodotNodeHandle), With<CapeEnemyNode>>,
     mut godot: GodotAccess,
     mut state: ResMut<CapeEnemyState>,
 ) {
-    for (entity,handle) in &mut query {
+    for (entity, handle) in &mut query {
         let Some(body) = godot.try_get::<CharacterBody2D>(*handle) else {
             godot_print!("Dont get body enemy");
             return;
@@ -103,31 +97,22 @@ fn connect_timeout_signal(
             hitbox.into(),
             Area2DSignals::AREA_ENTERED,
             None,
-            move |_args, node_handle, _ent| {
-                Some(EnteredBody {
-                    entity: entity,
-                    node: node_handle,
-                })
-            },
+            move |_args, _node_handle, _ent| Some(EnteredBody { entity: entity }),
         );
 
         // add signal to hutbox
         signal_hurt.connect(
             hurtbox.into(),
             Area2DSignals::AREA_ENTERED,
-             None,
-            move |_args, _node_handle, _ent| {
-                Some(HurtboxRequest { entity })
-            },
+            None,
+            move |_args, _node_handle, _ent| Some(HurtboxRequest { entity }),
         );
 
         signal_direction.connect(
             timer.into(),
             TimerSignals::TIMEOUT,
             None,
-            move |_args, _node_handle, _ent| {
-                Some(ChangeDirectionRequested { entity: entity })
-            },
+            move |_args, _node_handle, _ent| Some(ChangeDirectionRequested { entity: entity }),
         );
 
         state.initialized = true;
@@ -139,12 +124,11 @@ fn on_timeout(
     mut query: Query<(&GodotNodeHandle, &mut Direction), With<CapeEnemyNode>>,
     mut godot: GodotAccess,
 ) {
-
-    let Ok((handle, mut direction)) = query.get_mut(tigger.entity) else{
+    let Ok((handle, mut direction)) = query.get_mut(tigger.entity) else {
         return;
-    }; 
+    };
 
-    let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else{
+    let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
         return;
     };
 
@@ -156,7 +140,7 @@ fn on_timeout(
 fn on_enter_body(
     tigger: On<EnteredBody>,
     mut queryp: Query<(&mut Health, &GodotNodeHandle), With<PlayerNode>>,
-    querye: Query<&Damage, With<CapeEnemyNode>>
+    querye: Query<&Damage, With<CapeEnemyNode>>,
 ) {
     let Ok(damage) = querye.get(tigger.entity) else {
         return;
@@ -169,19 +153,14 @@ fn on_enter_body(
 
         godot_print!("Handle: {:?}", handle);
     }
-    godot_print!(
-        "enter body kill player: {:?}, {:?}",
-        tigger.entity,
-        tigger.node
-    );
 }
 
 fn on_hurt(
     trigger: On<HurtboxRequest>,
     mut querye: Query<(&mut Health, &GodotNodeHandle), With<CapeEnemyNode>>,
-    queryp: Query<&Damage, With<PlayerNode>>
+    queryp: Query<&Damage, With<PlayerNode>>,
 ) {
-    let Ok(damage) = queryp.single() else{
+    let Ok(damage) = queryp.single() else {
         return;
     };
     if let Ok((mut enemy_health, handle)) = querye.get_mut(trigger.entity) {
@@ -197,11 +176,15 @@ fn is_not_initialized(state: Res<CapeEnemyState>) -> bool {
     !state.initialized
 }
 
+fn reset_initialization(mut state: ResMut<CapeEnemyState>) {
+    state.initialized = false;
+}
+
 fn find_cape_enemy(
     mut query: Query<(&GodotNodeHandle, &Speed, &Direction), With<CapeEnemyNode>>,
     mut godot: GodotAccess,
 ) {
-    for (handle, speed,  direction) in &mut query {
+    for (handle, speed, direction) in &mut query {
         let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
             godot_print!("dont find enemy");
             return;
@@ -222,13 +205,23 @@ fn find_cape_enemy(
     }
 }
 
+fn kill_enemy(mut commands: Commands, query: Query<(Entity, &Health), With<CapeEnemyNode>>) {
+    for (entity, health) in &query {
+        if health.0 < 0.0 {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
 pub struct CapeEnemyPlugin;
 
 impl Plugin for CapeEnemyPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CapeEnemyState>()
             .add_systems(Update, find_cape_enemy.run_if(in_state(GameState::InGame)))
-            .add_systems(Update, connect_timeout_signal.run_if(is_not_initialized))
+            .add_systems(Update, connect_timeout_signal.run_if(in_state(GameState::InGame)).run_if(is_not_initialized))
+            .add_systems(Update, kill_enemy.run_if(in_state(GameState::InGame)))
+            .add_systems(OnExit(GameState::InGame), reset_initialization)
             .add_plugins(GodotSignalsPlugin::<ChangeDirectionRequested>::default())
             .add_plugins(GodotSignalsPlugin::<EnteredBody>::default())
             .add_plugins(GodotSignalsPlugin::<HurtboxRequest>::default())

@@ -3,9 +3,10 @@ use godot::classes::{CharacterBody2D, CollisionShape2D, Input};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
-use crate::characters::components::stats::{Damage, Gravity, Health, JumpVelocity, PlayerNode, Speed};
+use crate::characters::components::stats::{
+    Damage, Gravity, Health, JumpVelocity, PlayerNode, Speed,
+};
 use crate::state::GameState;
-
 
 #[derive(Bundle, GodotNode, Default)]
 #[godot_node(base(CharacterBody2D), class_name(Player2D))]
@@ -48,14 +49,23 @@ impl Default for PlayerAttackTimer {
 }
 
 #[derive(Component, Default, PartialEq, Eq)]
-enum Facing{
+enum Facing {
     #[default]
     Right,
-    Left
+    Left,
 }
 
 fn move_player(
-    mut query: Query<(&GodotNodeHandle, &Gravity, &Speed, &JumpVelocity, &mut Facing), With<PlayerNode>>,
+    mut query: Query<
+        (
+            &GodotNodeHandle,
+            &Gravity,
+            &Speed,
+            &JumpVelocity,
+            &mut Facing,
+        ),
+        With<PlayerNode>,
+    >,
     mut godot: GodotAccess,
     time: Res<Time>,
 ) {
@@ -88,16 +98,16 @@ fn move_player(
         }
 
         body.set_velocity(velocity);
-        
+
         let scale = body.get_scale();
-        if velocity.x < 0.0 && *facing == Facing::Right{
+        if velocity.x < 0.0 && *facing == Facing::Right {
             body.set_scale(Vector2::new(-scale.x, scale.y));
             *facing = Facing::Left;
-        }else if velocity.x > 0.0 && *facing == Facing::Left{
+        } else if velocity.x > 0.0 && *facing == Facing::Left {
             body.set_scale(Vector2::new(-scale.x, scale.y));
             *facing = Facing::Right;
         }
-        
+
         body.move_and_slide();
     }
 }
@@ -176,6 +186,16 @@ fn update_attack(
     timer.is_attacking = false;
 }
 
+fn kill_player(mut commands: Commands, query: Query<(Entity, &Health), With<PlayerNode>>) {
+    let Ok((entity, health)) = query.single() else {
+        return;
+    };
+
+    if health.0 <= 0.0 {
+        commands.entity(entity).despawn();
+    }
+}
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -183,6 +203,7 @@ impl Plugin for PlayerPlugin {
         app.init_resource::<PlayerAttackTimer>()
             .add_systems(Update, move_player.run_if(in_state(GameState::InGame)))
             .add_systems(Update, player_attack.run_if(in_state(GameState::InGame)))
-            .add_systems(Update, update_attack.run_if(in_state(GameState::InGame)));
+            .add_systems(Update, update_attack.run_if(in_state(GameState::InGame)))
+            .add_systems(Update, kill_player.run_if(in_state(GameState::InGame)));
     }
 }
