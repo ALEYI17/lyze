@@ -4,11 +4,9 @@ use godot::classes::{Area2D, CharacterBody2D, Timer};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
-use crate::characters::players::{Damage, Health, PlayerNode, Speed};
+use crate::characters::components::stats::{Damage, Direction, Health, PlayerNode, Speed};
 use crate::state::GameState;
 
-#[derive(Component, Default)]
-pub struct Direction(f32);
 
 #[derive(Component, Default, Debug, Clone, Reflect)]
 #[reflect(Component)]

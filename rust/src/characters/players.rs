@@ -3,31 +3,9 @@ use godot::classes::{CharacterBody2D, CollisionShape2D, Input};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
+use crate::characters::components::stats::{Damage, Gravity, Health, JumpVelocity, PlayerNode, Speed};
 use crate::state::GameState;
 
-#[derive(Component, Default, Debug, Clone, Reflect)]
-#[reflect(Component)]
-pub struct PlayerNode;
-
-#[derive(Component, Default, Debug, Clone, Reflect)]
-#[reflect(Component)]
-pub struct Speed(pub f32);
-
-#[derive(Component, Default, Debug, Clone, Reflect)]
-#[reflect(Component)]
-pub struct JumpVelocity(pub f32);
-
-#[derive(Component, Default, Debug, Clone, Reflect)]
-#[reflect(Component)]
-pub struct Gravity(pub f32);
-
-#[derive(Component, Default, Debug, Clone, Reflect)]
-#[reflect(Component)]
-pub struct Health(pub f32);
-
-#[derive(Component, Default, Debug, Clone, Reflect)]
-#[reflect(Component)]
-pub struct Damage(pub f32);
 
 #[derive(Bundle, GodotNode, Default)]
 #[godot_node(base(CharacterBody2D), class_name(Player2D))]

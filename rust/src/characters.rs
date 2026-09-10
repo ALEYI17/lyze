@@ -1,5 +1,6 @@
 mod enemies;
 mod players;
+mod components;
 use bevy::prelude::*;
 
 use players::PlayerPlugin;
