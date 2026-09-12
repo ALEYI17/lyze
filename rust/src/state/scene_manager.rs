@@ -22,7 +22,7 @@ fn proccess_scene_operation(
                 scene_tree.get().change_scene_to_file(path);
             }
             SceneOperationMessage::ChangeToPacked { scene } => {
-                if let Some(godot_resource) = assets.get_mut(scene) {
+                if let Some(mut godot_resource) = assets.get_mut(scene) {
                     if let Some(packed_scene) =
                         godot_resource.try_cast::<godot::classes::PackedScene>()
                     {

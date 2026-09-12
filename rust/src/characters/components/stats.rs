@@ -2,10 +2,6 @@ use bevy::prelude::*;
 
 #[derive(Component, Default, Debug, Clone, Reflect)]
 #[reflect(Component)]
-pub struct PlayerNode;
-
-#[derive(Component, Default, Debug, Clone, Reflect)]
-#[reflect(Component)]
 pub struct Speed(pub f32);
 
 #[derive(Component, Default, Debug, Clone, Reflect)]

@@ -82,9 +82,6 @@ fn connect_scene_tree_signal(
     godot_print!("Connected to SceneTree.scene_changed signal");
 }
 
-// fn on_screen_changed(_trigger: On<SceneChanged>) {
-//     godot_print!("Scene changed!");
-// }
 
 fn on_load_level_request(
     trigger: On<LoadSceneMessage>,

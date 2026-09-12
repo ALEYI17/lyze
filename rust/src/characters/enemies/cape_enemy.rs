@@ -3,30 +3,21 @@ use godot::classes::{Area2D, CharacterBody2D, Timer};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
-use crate::characters::components::stats::{Damage, Direction, Health, PlayerNode, Speed};
+use crate::characters::components::stats::{Damage, Direction, Health,Speed};
+use crate::characters::players::PlayerNode;
+use crate::events::damage::DamageEvent;
 use crate::state::GameState;
 
-#[derive(Component, Default, Debug, Clone, Reflect)]
-#[reflect(Component)]
+#[derive(Component, GodotNode, Default)]
+#[gdbevy(base = CharacterBody2D, class_name = CapeEnemy)]
+#[gdbevy(
+    require(speed: Speed, as = f32, default = 150.0),
+    require(health: Health, as = f32, default = 50.0),
+    require(damage: Damage, as = f32, default = 5.0),
+    require(direction: Direction, as = f32, default = -1.0),
+)]
 pub struct CapeEnemyNode;
 
-#[derive(Bundle, GodotNode, Default)]
-#[godot_node(base(CharacterBody2D), class_name(CapeEnemy))]
-pub struct CapeEnemyGodotNode {
-    pub enemy: CapeEnemyNode,
-
-    #[export_fields(value(export_type(f32), default(150.0)))]
-    pub speed: Speed,
-
-    #[export_fields(value(export_type(f32), default(50.0)))]
-    pub health: Health,
-
-    #[export_fields(value(export_type(f32), default(5.0)))]
-    pub damage: Damage,
-
-    #[export_fields(value(export_type(f32), default(-1.0)))]
-    pub direction: Direction,
-}
 
 #[derive(Resource, Default)]
 struct CapeEnemyState {
@@ -41,6 +32,7 @@ struct ChangeDirectionRequested {
 #[derive(Event, Debug, Clone)]
 struct EnteredBody {
     entity: Entity,
+    instance_id: InstanceId,
 }
 
 #[derive(Event, Debug, Clone)]
@@ -97,7 +89,16 @@ fn connect_timeout_signal(
             hitbox.into(),
             Area2DSignals::AREA_ENTERED,
             None,
-            move |_args, _node_handle, _ent| Some(EnteredBody { entity: entity }),
+            move |args, _node_handle, _ent| {
+                let args_invariant = args.get(0).unwrap().to::<Gd<Area2D>>();
+
+                let parent = args_invariant.get_parent()?;
+
+                let parent_handle = GodotNodeHandle::new(parent);
+                let p_id =  parent_handle.instance_id();
+                
+                Some(EnteredBody { entity: entity, instance_id: p_id })
+            } ,
         );
 
         // add signal to hutbox
@@ -139,20 +140,22 @@ fn on_timeout(
 
 fn on_enter_body(
     tigger: On<EnteredBody>,
-    mut queryp: Query<(&mut Health, &GodotNodeHandle), With<PlayerNode>>,
-    querye: Query<&Damage, With<CapeEnemyNode>>,
+    index: Res<NodeEntityIndex>,
+    mut command: Commands,
+    collision: Collisions,
 ) {
-    let Ok(damage) = querye.get(tigger.entity) else {
-        return;
-    };
 
-    if let Ok((mut player_health, handle)) = queryp.single_mut() {
-        godot_print!("Health before damage: {}", player_health.0);
-        player_health.0 -= damage.0;
-        godot_print!("Health after damage: {}", player_health.0);
+    let entiti_area = index.get(tigger.event().instance_id);
+    godot_print!("Area instance id = {:?}, entity = {:?}",tigger.event().instance_id, entiti_area);
 
-        godot_print!("Handle: {:?}", handle);
+    for other in collision.colliding_with(tigger.event().entity){
+        godot_print!("other:{:?}",other);
     }
+    
+    command.trigger(DamageEvent{
+        source: tigger.event().entity,
+        target: entiti_area,
+    });
 }
 
 fn on_hurt(
@@ -212,6 +215,7 @@ fn kill_enemy(mut commands: Commands, query: Query<(Entity, &Health), With<CapeE
         }
     }
 }
+
 
 pub struct CapeEnemyPlugin;
 

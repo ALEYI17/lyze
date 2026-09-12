@@ -4,46 +4,41 @@ use godot::prelude::*;
 use godot_bevy::prelude::*;
 
 use crate::characters::components::stats::{
-    Damage, Gravity, Health, JumpVelocity, PlayerNode, Speed,
+    Damage, Gravity, Health, JumpVelocity, Speed,
 };
 use crate::state::GameState;
 
-#[derive(Bundle, GodotNode, Default)]
-#[godot_node(base(CharacterBody2D), class_name(Player2D))]
-pub struct PlayerGodotNode {
-    pub player: PlayerNode,
+// #[derive(Component, Default, Debug, Clone, Reflect)]
+// #[reflect(Component)]
+// pub struct PlayerNode;
 
-    #[export_fields(value(export_type(f32), default(400.0)))]
-    pub speed: Speed,
+#[derive(Component, GodotNode, Default)]
+#[gdbevy(base = CharacterBody2D, class_name = Player2D)]
+#[gdbevy(
+    require(speed: Speed, as = f32, default = 400.0),
+    require(jump_velocity: JumpVelocity, as = f32, default = -500.0),
+    require(player_gravity: Gravity, as = f32, default = 980.0),
+    require(health: Health, as = f32, default = 50.0),
+    require(damage: Damage, as = f32, default = 15.0),
+)]
+pub struct PlayerNode;
 
-    #[export_fields(value(export_type(f32), default(-500.0)))]
-    pub jump_velocity: JumpVelocity,
-
-    #[export_fields(value(export_type(f32), default(980.0)))]
-    pub gravity: Gravity,
-
-    #[export_fields(value(export_type(f32), default(50.0)))]
-    pub health: Health,
-
-    #[export_fields(value(export_type(f32), default(15.0)))]
-    pub damage: Damage,
-
-    facing: Facing,
-}
 
 #[derive(Resource)]
-struct PlayerAttackTimer {
+struct PlayerResource {
     cooldown_timer: Timer,
     active_timer: Timer,
     is_attacking: bool,
+    facing: Facing,
 }
 
-impl Default for PlayerAttackTimer {
+impl Default for PlayerResource {
     fn default() -> Self {
         Self {
             cooldown_timer: Timer::from_seconds(0.5, TimerMode::Once),
             active_timer: Timer::from_seconds(0.5, TimerMode::Once),
             is_attacking: false,
+            facing: Facing::Right,
         }
     }
 }
@@ -62,14 +57,14 @@ fn move_player(
             &Gravity,
             &Speed,
             &JumpVelocity,
-            &mut Facing,
         ),
         With<PlayerNode>,
     >,
     mut godot: GodotAccess,
     time: Res<Time>,
+    mut facing: ResMut<PlayerResource>
 ) {
-    if let Ok((handle, gravity, speed, jump_velocity, mut facing)) = query.single_mut() {
+    if let Ok((handle, gravity, speed, jump_velocity)) = query.single_mut() {
         let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
             return;
         };
@@ -100,12 +95,12 @@ fn move_player(
         body.set_velocity(velocity);
 
         let scale = body.get_scale();
-        if velocity.x < 0.0 && *facing == Facing::Right {
+        if velocity.x < 0.0 && facing.facing == Facing::Right {
             body.set_scale(Vector2::new(-scale.x, scale.y));
-            *facing = Facing::Left;
-        } else if velocity.x > 0.0 && *facing == Facing::Left {
+            facing.facing = Facing::Left;
+        } else if velocity.x > 0.0 && facing.facing == Facing::Left {
             body.set_scale(Vector2::new(-scale.x, scale.y));
-            *facing = Facing::Right;
+            facing.facing = Facing::Right;
         }
 
         body.move_and_slide();
@@ -114,7 +109,7 @@ fn move_player(
 
 fn player_attack(
     query: Query<&GodotNodeHandle, With<PlayerNode>>,
-    mut timer: ResMut<PlayerAttackTimer>,
+    mut timer: ResMut<PlayerResource>,
     mut godot: GodotAccess,
 ) {
     if let Ok(handle) = query.single() {
@@ -150,7 +145,7 @@ fn player_attack(
 
 fn update_attack(
     query: Query<&GodotNodeHandle, With<PlayerNode>>,
-    mut timer: ResMut<PlayerAttackTimer>,
+    mut timer: ResMut<PlayerResource>,
     mut godot: GodotAccess,
     time: Res<Time>,
 ) {
@@ -200,7 +195,7 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<PlayerAttackTimer>()
+        app.init_resource::<PlayerResource>()
             .add_systems(Update, move_player.run_if(in_state(GameState::InGame)))
             .add_systems(Update, player_attack.run_if(in_state(GameState::InGame)))
             .add_systems(Update, update_attack.run_if(in_state(GameState::InGame)))

@@ -1,4 +1,4 @@
-mod components;
+pub mod components;
 mod enemies;
 mod players;
 use bevy::prelude::*;
