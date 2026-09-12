@@ -1,10 +1,11 @@
 use bevy::prelude::*;
 use godot::prelude::*;
 use crate::characters::components::stats::{Damage, Health};
+
 #[derive(Event)]
 pub struct DamageEvent{
     pub source: Entity,
-    pub target: Option<Entity>,
+    pub target: Entity,
 }
 
 fn on_damage_event(damage_event: On<DamageEvent>, mut query_health: Query<&mut Health>, query_damage: Query<&Damage>){
@@ -12,7 +13,7 @@ fn on_damage_event(damage_event: On<DamageEvent>, mut query_health: Query<&mut H
 
     godot_print!("Source entity: {:?}, Target entity: {:?}", damage_event.source, damage_event.target);
 
-    let Ok(mut health) = query_health.get_mut(damage_event.target.unwrap()) else {
+    let Ok(mut health) = query_health.get_mut(damage_event.target) else {
         return;
     };
 

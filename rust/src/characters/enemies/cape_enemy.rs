@@ -4,8 +4,7 @@ use godot::prelude::*;
 use godot_bevy::prelude::*;
 
 use crate::characters::components::stats::{Damage, Direction, Health,Speed};
-use crate::characters::players::PlayerNode;
-use crate::events::damage::DamageEvent;
+use crate::events::damage::{DamageEvent};
 use crate::state::GameState;
 
 #[derive(Component, GodotNode, Default)]
@@ -38,6 +37,7 @@ struct EnteredBody {
 #[derive(Event, Debug, Clone)]
 struct HurtboxRequest {
     entity: Entity,
+    instance_id: InstanceId,
 }
 
 fn connect_timeout_signal(
@@ -90,12 +90,7 @@ fn connect_timeout_signal(
             Area2DSignals::AREA_ENTERED,
             None,
             move |args, _node_handle, _ent| {
-                let args_invariant = args.get(0).unwrap().to::<Gd<Area2D>>();
-
-                let parent = args_invariant.get_parent()?;
-
-                let parent_handle = GodotNodeHandle::new(parent);
-                let p_id =  parent_handle.instance_id();
+                let p_id = get_parent_instance_id(args)?;
                 
                 Some(EnteredBody { entity: entity, instance_id: p_id })
             } ,
@@ -106,7 +101,11 @@ fn connect_timeout_signal(
             hurtbox.into(),
             Area2DSignals::AREA_ENTERED,
             None,
-            move |_args, _node_handle, _ent| Some(HurtboxRequest { entity }),
+            move |args, _node_handle, _ent| {
+                let p_id = get_parent_instance_id(args)?;
+
+                Some(HurtboxRequest { entity, instance_id: p_id })
+            },
         );
 
         signal_direction.connect(
@@ -118,6 +117,16 @@ fn connect_timeout_signal(
 
         state.initialized = true;
     }
+}
+
+fn get_parent_instance_id(args: &[Variant]) -> Option<InstanceId>{
+    let area = args.get(0)?;
+    let area = area.try_to::<Gd<Area2D>>().ok()?;
+    let parent = area.get_parent()?;
+
+    let body_handle = GodotNodeHandle::new(parent);
+
+    Some(body_handle.instance_id())
 }
 
 fn on_timeout(
@@ -139,40 +148,46 @@ fn on_timeout(
 }
 
 fn on_enter_body(
-    tigger: On<EnteredBody>,
+    trigger: On<EnteredBody>,
     index: Res<NodeEntityIndex>,
     mut command: Commands,
     collision: Collisions,
 ) {
 
-    let entiti_area = index.get(tigger.event().instance_id);
-    godot_print!("Area instance id = {:?}, entity = {:?}",tigger.event().instance_id, entiti_area);
+    let Some(entity_area) = index.get(trigger.event().instance_id) else{
+        return;
+    };
+    godot_print!("Area instance id = {:?}, entity = {:?}",trigger.event().instance_id, entity_area);
 
-    for other in collision.colliding_with(tigger.event().entity){
+    for other in collision.colliding_with(trigger.event().entity){
         godot_print!("other:{:?}",other);
     }
     
     command.trigger(DamageEvent{
-        source: tigger.event().entity,
-        target: entiti_area,
+        source: trigger.event().entity,
+        target: entity_area,
     });
 }
 
 fn on_hurt(
     trigger: On<HurtboxRequest>,
-    mut querye: Query<(&mut Health, &GodotNodeHandle), With<CapeEnemyNode>>,
-    queryp: Query<&Damage, With<PlayerNode>>,
+    index: Res<NodeEntityIndex>,
+    mut command: Commands,
+    collision: Collisions,
 ) {
-    let Ok(damage) = queryp.single() else {
+    let Some(entity_area) = index.get(trigger.event().instance_id)else{
         return;
     };
-    if let Ok((mut enemy_health, handle)) = querye.get_mut(trigger.entity) {
-        godot_print!("Enemy Health before: {}", enemy_health.0);
-        enemy_health.0 -= damage.0;
-        godot_print!("Enemy Health after: {}", enemy_health.0);
-        godot_print!("Enemy Handle: {:?}", handle);
+    godot_print!("Area instance id = {:?}, entity = {:?}",trigger.event().instance_id, entity_area);
+
+    for other in collision.colliding_with(trigger.event().entity){
+        godot_print!("other:{:?}",other);
     }
-    godot_print!("Caped enemy receive damage");
+    
+    command.trigger(DamageEvent{
+        target: trigger.event().entity,
+        source: entity_area, 
+    }); 
 }
 
 fn is_not_initialized(state: Res<CapeEnemyState>) -> bool {
