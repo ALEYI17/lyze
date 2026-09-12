@@ -125,8 +125,7 @@ fn on_quit(trigger: On<QuitGameEvent>, state: Res<State<GameState>>, mut godot: 
     }
 
     godot_print!("Press quit in MainMenu");
-    if let Some(button) = godot.try_get::<Button>(trigger.event().source)
-    {
+    if let Some(button) = godot.try_get::<Button>(trigger.event().source) {
         button.get_tree().quit();
     }
 }

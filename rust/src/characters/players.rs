@@ -3,9 +3,7 @@ use godot::classes::{CharacterBody2D, CollisionShape2D, Input};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
-use crate::characters::components::stats::{
-    Damage, Gravity, Health, JumpVelocity, Speed,
-};
+use crate::characters::components::stats::{Damage, Gravity, Health, JumpVelocity, Speed};
 use crate::state::GameState;
 
 // #[derive(Component, Default, Debug, Clone, Reflect)]
@@ -23,13 +21,11 @@ use crate::state::GameState;
 )]
 pub struct PlayerNode;
 
-
 #[derive(Resource)]
 struct PlayerResource {
     cooldown_timer: Timer,
     active_timer: Timer,
     is_attacking: bool,
-    facing: Facing,
 }
 
 impl Default for PlayerResource {
@@ -38,7 +34,6 @@ impl Default for PlayerResource {
             cooldown_timer: Timer::from_seconds(0.5, TimerMode::Once),
             active_timer: Timer::from_seconds(0.5, TimerMode::Once),
             is_attacking: false,
-            facing: Facing::Right,
         }
     }
 }
@@ -51,20 +46,11 @@ enum Facing {
 }
 
 fn move_player(
-    mut query: Query<
-        (
-            &GodotNodeHandle,
-            &Gravity,
-            &Speed,
-            &JumpVelocity,
-        ),
-        With<PlayerNode>,
-    >,
+    mut query: Query<(&GodotNodeHandle, &Gravity, &Speed, &JumpVelocity, &mut Facing), With<PlayerNode>>,
     mut godot: GodotAccess,
     time: Res<Time>,
-    mut facing: ResMut<PlayerResource>
 ) {
-    if let Ok((handle, gravity, speed, jump_velocity)) = query.single_mut() {
+    if let Ok((handle, gravity, speed, jump_velocity, mut facing)) = query.single_mut() {
         let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
             return;
         };
@@ -95,12 +81,12 @@ fn move_player(
         body.set_velocity(velocity);
 
         let scale = body.get_scale();
-        if velocity.x < 0.0 && facing.facing == Facing::Right {
+        if velocity.x < 0.0 && *facing == Facing::Right {
             body.set_scale(Vector2::new(-scale.x, scale.y));
-            facing.facing = Facing::Left;
-        } else if velocity.x > 0.0 && facing.facing == Facing::Left {
+            *facing = Facing::Left;
+        } else if velocity.x > 0.0 && *facing == Facing::Left {
             body.set_scale(Vector2::new(-scale.x, scale.y));
-            facing.facing = Facing::Right;
+            *facing = Facing::Right;
         }
 
         body.move_and_slide();
@@ -191,6 +177,25 @@ fn kill_player(mut commands: Commands, query: Query<(Entity, &Health), With<Play
     }
 }
 
+fn reset_player(
+    mut query: Query<(Entity, &GodotNodeHandle), (With<PlayerNode>, Without<Facing>)>,
+    mut godot: GodotAccess,
+    app_state: ResMut<PreviousState<GameState>>,
+    mut commands: Commands,
+) {
+    if *app_state.get() == GameState::MainMenu {
+        let Ok((entity, handle)) = query.single_mut() else {
+            return;
+        };
+
+        let Some(_body) = godot.try_get::<CharacterBody2D>(*handle) else {
+            return;
+        };
+
+        commands.entity(entity).insert(Facing::default());
+    }
+}
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -199,6 +204,7 @@ impl Plugin for PlayerPlugin {
             .add_systems(Update, move_player.run_if(in_state(GameState::InGame)))
             .add_systems(Update, player_attack.run_if(in_state(GameState::InGame)))
             .add_systems(Update, update_attack.run_if(in_state(GameState::InGame)))
-            .add_systems(Update, kill_player.run_if(in_state(GameState::InGame)));
+            .add_systems(Update, kill_player.run_if(in_state(GameState::InGame)))
+            .add_systems(Update, reset_player.run_if(in_state(GameState::InGame)));
     }
 }

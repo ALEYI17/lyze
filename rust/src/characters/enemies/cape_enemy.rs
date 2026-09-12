@@ -3,8 +3,8 @@ use godot::classes::{Area2D, CharacterBody2D, Timer};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
-use crate::characters::components::stats::{Damage, Direction, Health,Speed};
-use crate::events::damage::{DamageEvent};
+use crate::characters::components::stats::{Damage, Direction, Health, Speed};
+use crate::events::damage::DamageEvent;
 use crate::state::GameState;
 
 #[derive(Component, GodotNode, Default)]
@@ -14,14 +14,12 @@ use crate::state::GameState;
     require(health: Health, as = f32, default = 50.0),
     require(damage: Damage, as = f32, default = 5.0),
     require(direction: Direction, as = f32, default = -1.0),
+    require(initialized:CapeEnemyInitialized, as = bool, default = false),
 )]
 pub struct CapeEnemyNode;
 
-
-#[derive(Resource, Default)]
-struct CapeEnemyState {
-    pub initialized: bool,
-}
+#[derive(Component, Default)]
+struct CapeEnemyInitialized(bool);
 
 #[derive(Event, Debug, Clone)]
 struct ChangeDirectionRequested {
@@ -40,86 +38,93 @@ struct HurtboxRequest {
     instance_id: InstanceId,
 }
 
-fn connect_timeout_signal(
+fn connect_signals(
     signal_direction: GodotSignals<ChangeDirectionRequested>,
     signal_enter: GodotSignals<EnteredBody>,
     signal_hurt: GodotSignals<HurtboxRequest>,
-    mut query: Query<(Entity, &GodotNodeHandle), With<CapeEnemyNode>>,
+    mut query: Query<(Entity, &GodotNodeHandle, &mut CapeEnemyInitialized), With<CapeEnemyNode>>,
     mut godot: GodotAccess,
-    mut state: ResMut<CapeEnemyState>,
 ) {
-    for (entity, handle) in &mut query {
-        let Some(body) = godot.try_get::<CharacterBody2D>(*handle) else {
-            godot_print!("Dont get body enemy");
-            return;
-        };
+    for (entity, handle, mut initialized) in &mut query {
+        if !initialized.0 {
+            let Some(body) = godot.try_get::<CharacterBody2D>(*handle) else {
+                godot_print!("Dont get body enemy");
+                return;
+            };
 
-        let Some(timer_node) = body.get_node_or_null("Timer") else {
-            godot_print!("Dont get timer");
-            return;
-        };
+            let Some(timer_node) = body.get_node_or_null("Timer") else {
+                godot_print!("Dont get timer");
+                return;
+            };
 
-        let Ok(timer) = timer_node.try_cast::<Timer>() else {
-            godot_print!("Cant cast");
-            return;
-        };
+            let Ok(timer) = timer_node.try_cast::<Timer>() else {
+                godot_print!("Cant cast");
+                return;
+            };
 
-        let Some(hitbox_node) = body.get_node_or_null("hitbox") else {
-            godot_print!("dont get hitbox");
-            return;
-        };
+            let Some(hitbox_node) = body.get_node_or_null("hitbox") else {
+                godot_print!("dont get hitbox");
+                return;
+            };
 
-        let Ok(hitbox) = hitbox_node.try_cast::<Area2D>() else {
-            godot_print!("cant cast hitbox");
-            return;
-        };
+            let Ok(hitbox) = hitbox_node.try_cast::<Area2D>() else {
+                godot_print!("cant cast hitbox");
+                return;
+            };
 
-        let Some(hurtbox_node) = body.get_node_or_null("hurtbox") else {
-            godot_print!("dont get hitbox");
-            return;
-        };
+            let Some(hurtbox_node) = body.get_node_or_null("hurtbox") else {
+                godot_print!("dont get hitbox");
+                return;
+            };
 
-        let Ok(hurtbox) = hurtbox_node.try_cast::<Area2D>() else {
-            godot_print!("cant cast hitbox");
-            return;
-        };
+            let Ok(hurtbox) = hurtbox_node.try_cast::<Area2D>() else {
+                godot_print!("cant cast hitbox");
+                return;
+            };
 
-        // add signal to hitbox
-        signal_enter.connect(
-            hitbox.into(),
-            Area2DSignals::AREA_ENTERED,
-            None,
-            move |args, _node_handle, _ent| {
-                let p_id = get_parent_instance_id(args)?;
-                
-                Some(EnteredBody { entity: entity, instance_id: p_id })
-            } ,
-        );
+            // add signal to hitbox
+            signal_enter.connect(
+                hitbox.into(),
+                Area2DSignals::AREA_ENTERED,
+                None,
+                move |args, _node_handle, _ent| {
+                    let p_id = get_parent_instance_id(args)?;
 
-        // add signal to hutbox
-        signal_hurt.connect(
-            hurtbox.into(),
-            Area2DSignals::AREA_ENTERED,
-            None,
-            move |args, _node_handle, _ent| {
-                let p_id = get_parent_instance_id(args)?;
+                    Some(EnteredBody {
+                        entity: entity,
+                        instance_id: p_id,
+                    })
+                },
+            );
 
-                Some(HurtboxRequest { entity, instance_id: p_id })
-            },
-        );
+            // add signal to hutbox
+            signal_hurt.connect(
+                hurtbox.into(),
+                Area2DSignals::AREA_ENTERED,
+                None,
+                move |args, _node_handle, _ent| {
+                    let p_id = get_parent_instance_id(args)?;
 
-        signal_direction.connect(
-            timer.into(),
-            TimerSignals::TIMEOUT,
-            None,
-            move |_args, _node_handle, _ent| Some(ChangeDirectionRequested { entity: entity }),
-        );
+                    Some(HurtboxRequest {
+                        entity,
+                        instance_id: p_id,
+                    })
+                },
+            );
 
-        state.initialized = true;
+            signal_direction.connect(
+                timer.into(),
+                TimerSignals::TIMEOUT,
+                None,
+                move |_args, _node_handle, _ent| Some(ChangeDirectionRequested { entity: entity }),
+            );
+
+            initialized.0 = true;
+        }
     }
 }
 
-fn get_parent_instance_id(args: &[Variant]) -> Option<InstanceId>{
+fn get_parent_instance_id(args: &[Variant]) -> Option<InstanceId> {
     let area = args.get(0)?;
     let area = area.try_to::<Gd<Area2D>>().ok()?;
     let parent = area.get_parent()?;
@@ -153,17 +158,20 @@ fn on_enter_body(
     mut command: Commands,
     collision: Collisions,
 ) {
-
-    let Some(entity_area) = index.get(trigger.event().instance_id) else{
+    let Some(entity_area) = index.get(trigger.event().instance_id) else {
         return;
     };
-    godot_print!("Area instance id = {:?}, entity = {:?}",trigger.event().instance_id, entity_area);
+    godot_print!(
+        "Area instance id = {:?}, entity = {:?}",
+        trigger.event().instance_id,
+        entity_area
+    );
 
-    for other in collision.colliding_with(trigger.event().entity){
-        godot_print!("other:{:?}",other);
+    for other in collision.colliding_with(trigger.event().entity) {
+        godot_print!("other:{:?}", other);
     }
-    
-    command.trigger(DamageEvent{
+
+    command.trigger(DamageEvent {
         source: trigger.event().entity,
         target: entity_area,
     });
@@ -175,27 +183,23 @@ fn on_hurt(
     mut command: Commands,
     collision: Collisions,
 ) {
-    let Some(entity_area) = index.get(trigger.event().instance_id)else{
+    let Some(entity_area) = index.get(trigger.event().instance_id) else {
         return;
     };
-    godot_print!("Area instance id = {:?}, entity = {:?}",trigger.event().instance_id, entity_area);
+    godot_print!(
+        "Area instance id = {:?}, entity = {:?}",
+        trigger.event().instance_id,
+        entity_area
+    );
 
-    for other in collision.colliding_with(trigger.event().entity){
-        godot_print!("other:{:?}",other);
+    for other in collision.colliding_with(trigger.event().entity) {
+        godot_print!("other:{:?}", other);
     }
-    
-    command.trigger(DamageEvent{
+
+    command.trigger(DamageEvent {
         target: trigger.event().entity,
-        source: entity_area, 
-    }); 
-}
-
-fn is_not_initialized(state: Res<CapeEnemyState>) -> bool {
-    !state.initialized
-}
-
-fn reset_initialization(mut state: ResMut<CapeEnemyState>) {
-    state.initialized = false;
+        source: entity_area,
+    });
 }
 
 fn find_cape_enemy(
@@ -231,16 +235,13 @@ fn kill_enemy(mut commands: Commands, query: Query<(Entity, &Health), With<CapeE
     }
 }
 
-
 pub struct CapeEnemyPlugin;
 
 impl Plugin for CapeEnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<CapeEnemyState>()
-            .add_systems(Update, find_cape_enemy.run_if(in_state(GameState::InGame)))
-            .add_systems(Update, connect_timeout_signal.run_if(in_state(GameState::InGame)).run_if(is_not_initialized))
+        app.add_systems(Update, find_cape_enemy.run_if(in_state(GameState::InGame)))
+            .add_systems(Update, connect_signals.run_if(in_state(GameState::InGame)))
             .add_systems(Update, kill_enemy.run_if(in_state(GameState::InGame)))
-            .add_systems(OnExit(GameState::InGame), reset_initialization)
             .add_plugins(GodotSignalsPlugin::<ChangeDirectionRequested>::default())
             .add_plugins(GodotSignalsPlugin::<EnteredBody>::default())
             .add_plugins(GodotSignalsPlugin::<HurtboxRequest>::default())

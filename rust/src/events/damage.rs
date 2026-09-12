@@ -1,17 +1,25 @@
+use crate::characters::components::stats::{Damage, Health};
 use bevy::prelude::*;
 use godot::prelude::*;
-use crate::characters::components::stats::{Damage, Health};
 
 #[derive(Event)]
-pub struct DamageEvent{
+pub struct DamageEvent {
     pub source: Entity,
     pub target: Entity,
 }
 
-fn on_damage_event(damage_event: On<DamageEvent>, mut query_health: Query<&mut Health>, query_damage: Query<&Damage>){
+fn on_damage_event(
+    damage_event: On<DamageEvent>,
+    mut query_health: Query<&mut Health>,
+    query_damage: Query<&Damage>,
+) {
     godot_print!("Get event");
 
-    godot_print!("Source entity: {:?}, Target entity: {:?}", damage_event.source, damage_event.target);
+    godot_print!(
+        "Source entity: {:?}, Target entity: {:?}",
+        damage_event.source,
+        damage_event.target
+    );
 
     let Ok(mut health) = query_health.get_mut(damage_event.target) else {
         return;
@@ -28,8 +36,8 @@ fn on_damage_event(damage_event: On<DamageEvent>, mut query_health: Query<&mut H
 
 pub struct DamagePlugin;
 
-impl Plugin for DamagePlugin{
+impl Plugin for DamagePlugin {
     fn build(&self, app: &mut App) {
-            app.add_observer(on_damage_event);
+        app.add_observer(on_damage_event);
     }
 }

@@ -8,20 +8,23 @@ use crate::state::state_manager::{LoadSceneMessage, SceneState};
 
 #[derive(Resource, Default)]
 pub struct PauseMenuAssets {
+    pub pause_menu: Option<GodotNodeHandle>,
     pub resume_button: Option<GodotNodeHandle>,
     pub main_menu_button: Option<GodotNodeHandle>,
     pub initialized: bool,
     pub signal_connected: bool,
+    pub menu_entered: bool,
 }
 
 #[derive(NodeTreeView)]
 pub struct PauseMenuUi {
-    // Todo
-    #[node("/root/Pause_menu/Button_manager/Resume")]
+    #[node("/root/Node2D/Pause_menu")]
+    pub pause_menu: GodotNodeHandle,
+
+    #[node("/root/Node2D/Pause_menu/Button_manager/Resume")]
     pub resume_button: GodotNodeHandle,
 
-    // Todo
-    #[node("/root/Pause_menu/Button_manager/Main_menu")]
+    #[node("/root/Node2D/Pause_menu/Button_manager/Main_menu")]
     pub main_menu_button: GodotNodeHandle,
 }
 
@@ -29,7 +32,6 @@ fn toggle_pause_menu(
     mut godot: GodotAccess,
     state: Res<State<GameState>>,
     mut app_state: ResMut<NextState<GameState>>,
-    mut commands: Commands,
 ) {
     let input = godot.singleton::<Input>();
 
@@ -40,17 +42,16 @@ fn toggle_pause_menu(
         }
 
         app_state.set(GameState::PauseMenu);
-        commands.trigger(LoadSceneMessage {
-            scene_state: SceneState::Pause,
-        });
     }
 }
 
 fn reset_menu_assets(mut menu_assets: ResMut<PauseMenuAssets>) {
+    menu_assets.pause_menu = None;
     menu_assets.resume_button = None;
     menu_assets.main_menu_button = None;
     menu_assets.initialized = false;
     menu_assets.signal_connected = false;
+    menu_assets.menu_entered = false;
 }
 
 fn initialized_pause_menu(mut menu_assets: ResMut<PauseMenuAssets>, mut scene_tree: SceneTreeRef) {
@@ -58,6 +59,7 @@ fn initialized_pause_menu(mut menu_assets: ResMut<PauseMenuAssets>, mut scene_tr
         match PauseMenuUi::from_node(root) {
             Ok(menu_ui) => {
                 godot_print!("Found menu node");
+                menu_assets.pause_menu = Some(menu_ui.pause_menu);
                 menu_assets.resume_button = Some(menu_ui.resume_button);
                 menu_assets.main_menu_button = Some(menu_ui.main_menu_button);
                 menu_assets.initialized = true;
@@ -67,14 +69,6 @@ fn initialized_pause_menu(mut menu_assets: ResMut<PauseMenuAssets>, mut scene_tr
     } else {
         godot_print!("Main Menu scene not avaible");
     }
-}
-
-fn pause_menu_not_initialized(menu_assets: Res<PauseMenuAssets>) -> bool {
-    !menu_assets.initialized
-}
-
-fn pause_menu_initialized_but_signals_not_connected(menu_assets: Res<PauseMenuAssets>) -> bool {
-    menu_assets.initialized && !menu_assets.signal_connected
 }
 
 #[derive(Event, Debug, Clone)]
@@ -114,11 +108,30 @@ fn connect_button(
     }
 }
 
+fn enter_pause_menu(mut godot: GodotAccess, mut pause_resource: ResMut<PauseMenuAssets>) {
+    let Some(handle) = pause_resource.pause_menu else {
+        godot_print!("Can not find pause menu handle");
+        return;
+    };
+
+    let Some(mut node) = godot.try_get::<Node2D>(handle) else {
+        godot_print!("Can not find node for pause menu");
+        return;
+    };
+
+    node.set_visible(true);
+
+    node.get_tree().set_pause(true);
+
+    pause_resource.menu_entered = true;
+}
+
 fn on_resume_game(
     _trigger: On<ResumeGameEvent>,
     state: Res<State<GameState>>,
     mut app_state: ResMut<NextState<GameState>>,
-    mut commands: Commands,
+    pause_resource: ResMut<PauseMenuAssets>,
+    mut godot: GodotAccess,
 ) {
     if *state.get() != GameState::PauseMenu {
         godot_print!("Press but not Pause");
@@ -128,9 +141,20 @@ fn on_resume_game(
     godot_print!("Press start in Pause menu");
 
     app_state.set(GameState::InGame);
-    commands.trigger(LoadSceneMessage {
-        scene_state: SceneState::InGame,
-    });
+
+    let Some(handle) = pause_resource.pause_menu else {
+        godot_print!("Can not find pause menu handle");
+        return;
+    };
+
+    let Some(mut node) = godot.try_get::<Node2D>(handle) else {
+        godot_print!("Can not find node for pause menu");
+        return;
+    };
+
+    node.set_visible(false);
+
+    node.get_tree().set_pause(false);
 }
 
 fn on_return_main_menu(
@@ -138,6 +162,8 @@ fn on_return_main_menu(
     state: Res<State<GameState>>,
     mut app_state: ResMut<NextState<GameState>>,
     mut commands: Commands,
+    pause_resource: ResMut<PauseMenuAssets>,
+    mut godot: GodotAccess,
 ) {
     if *state.get() != GameState::PauseMenu {
         godot_print!("Press but not PauseMenu");
@@ -147,9 +173,36 @@ fn on_return_main_menu(
     godot_print!("Press quit in PauseMenu");
 
     app_state.set(GameState::MainMenu);
+
+    let Some(handle) = pause_resource.pause_menu else {
+        godot_print!("Can not find pause menu handle");
+        return;
+    };
+
+    let Some(mut node) = godot.try_get::<Node2D>(handle) else {
+        godot_print!("Can not find node for pause menu");
+        return;
+    };
+
+    node.set_visible(false);
+
+    node.get_tree().set_pause(false);
+
     commands.trigger(LoadSceneMessage {
         scene_state: SceneState::MainMenu,
     });
+}
+
+fn pause_menu_not_initialized(menu_assets: Res<PauseMenuAssets>) -> bool {
+    !menu_assets.initialized
+}
+
+fn pause_menu_initialized_but_signals_not_connected(menu_assets: Res<PauseMenuAssets>) -> bool {
+    menu_assets.initialized && !menu_assets.signal_connected
+}
+
+fn not_entered_menu(menu_assets: Res<PauseMenuAssets>) -> bool {
+    menu_assets.initialized && menu_assets.signal_connected && !menu_assets.menu_entered
 }
 
 pub struct PauseMenuPlugin;
@@ -165,6 +218,7 @@ impl Plugin for PauseMenuPlugin {
                 (
                     initialized_pause_menu.run_if(pause_menu_not_initialized),
                     connect_button.run_if(pause_menu_initialized_but_signals_not_connected),
+                    enter_pause_menu.run_if(not_entered_menu),
                 )
                     .run_if(in_state(GameState::PauseMenu)),
             )

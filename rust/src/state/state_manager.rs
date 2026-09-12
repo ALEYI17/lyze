@@ -16,7 +16,6 @@ pub enum SceneState {
     #[default]
     MainMenu,
     InGame,
-    Pause,
 }
 
 impl SceneState {
@@ -24,7 +23,6 @@ impl SceneState {
         match self {
             SceneState::MainMenu => "scenes/ui/main_menu.tscn",
             SceneState::InGame => "scenes/main.tscn",
-            SceneState::Pause => "scenes/ui/pause_menu.tscn",
         }
     }
 }
@@ -82,7 +80,6 @@ fn connect_scene_tree_signal(
     godot_print!("Connected to SceneTree.scene_changed signal");
 }
 
-
 fn on_load_level_request(
     trigger: On<LoadSceneMessage>,
     mut loading_state: ResMut<SceneLoadingState>,
@@ -126,7 +123,6 @@ fn emit_level_loaded_event_when_scene_ready(
         let expected_path = match scene_state {
             SceneState::MainMenu => "root/ui/main_menu",
             SceneState::InGame => "root/main",
-            SceneState::Pause => "root/ui/pause_menu",
         };
         for event in scene_tree_events.read() {
             if let SceneTreeMessageType::NodeAdded = event.message_type

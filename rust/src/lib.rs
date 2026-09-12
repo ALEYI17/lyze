@@ -2,9 +2,9 @@ use bevy::{prelude::*, state::app::StatesPlugin};
 use godot_bevy::prelude::*;
 
 mod characters;
+mod events;
 mod state;
 mod ui;
-mod events;
 
 use crate::characters::CharactersPlugin;
 
@@ -17,5 +17,4 @@ fn build_app(app: &mut App) {
         .add_plugins(ui::UiPlugin)
         .add_plugins(events::EventPlugins)
         .add_plugins(GodotCollisionsPlugin);
-
 }
