@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use godot::classes::Input;
+use godot::classes::{CanvasLayer, Input};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
@@ -114,7 +114,7 @@ fn enter_pause_menu(mut godot: GodotAccess, mut pause_resource: ResMut<PauseMenu
         return;
     };
 
-    let Some(mut node) = godot.try_get::<Node2D>(handle) else {
+    let Some(mut node) = godot.try_get::<CanvasLayer>(handle) else {
         godot_print!("Can not find node for pause menu");
         return;
     };
@@ -147,7 +147,7 @@ fn on_resume_game(
         return;
     };
 
-    let Some(mut node) = godot.try_get::<Node2D>(handle) else {
+    let Some(mut node) = godot.try_get::<CanvasLayer>(handle) else {
         godot_print!("Can not find node for pause menu");
         return;
     };
@@ -179,7 +179,7 @@ fn on_return_main_menu(
         return;
     };
 
-    let Some(mut node) = godot.try_get::<Node2D>(handle) else {
+    let Some(mut node) = godot.try_get::<CanvasLayer>(handle) else {
         godot_print!("Can not find node for pause menu");
         return;
     };

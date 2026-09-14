@@ -1,7 +1,11 @@
 [gd_scene format=3 uid="uid://jvwf0fmwfcco"]
 
+[ext_resource type="PackedScene" uid="uid://chufwnv6d2j5v" path="res://scenes/ui/pause_menu.tscn" id="2_0wfyh"]
 [ext_resource type="PackedScene" uid="uid://ddfe2vxpqsapd" path="res://scenes/level_1.tscn" id="3_sugp2"]
 
 [node name="Node2D" type="Node2D" unique_id=909264715]
 
 [node name="Level1" parent="." unique_id=917997265 instance=ExtResource("3_sugp2")]
+
+[node name="Pause_menu" parent="." unique_id=926883414 instance=ExtResource("2_0wfyh")]
+visible = false

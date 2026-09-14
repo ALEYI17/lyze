@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://chufwnv6d2j5v"]
 
-[node name="Pause_menu" type="Node2D" unique_id=926883414]
+[node name="Pause_menu" type="CanvasLayer" unique_id=1547655908]
+process_mode = 3
 
 [node name="Button_manager" type="Control" parent="." unique_id=814986749]
 layout_mode = 3
