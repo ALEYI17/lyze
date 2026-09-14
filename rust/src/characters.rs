@@ -1,6 +1,6 @@
 pub mod components;
 mod enemies;
-mod players;
+pub mod players;
 use bevy::prelude::*;
 
 use players::PlayerPlugin;
