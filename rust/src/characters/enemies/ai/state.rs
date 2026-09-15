@@ -10,6 +10,24 @@ pub enum EnemyState {
     Attack,
 }
 
+impl EnemyState{
+    pub fn is_patrolling(&self) -> bool {
+        matches!(self, EnemyState::Patrol)
+    }
+
+    pub fn is_chasing(&self) -> bool {
+        matches!(self, EnemyState::Chase)
+    }
+
+    pub fn is_attacking(&self) -> bool {
+        matches!(self, EnemyState::Attack)
+    }
+
+    pub fn change_to(&mut self, new_state: EnemyState) {
+        *self = new_state;
+    }
+}
+
 #[derive(Component)]
 pub struct PatrolTimer(pub Timer);
 

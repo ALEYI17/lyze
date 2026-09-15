@@ -4,7 +4,7 @@ use godot::classes::{Area2D, CharacterBody2D};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
-use crate::characters::components::stats::{Damage, Direction, Health, Speed};
+use crate::characters::components::stats::{Damage, Direction, Gravity, Health, Speed};
 use crate::characters::enemies::ai::state::{EnemyState, PatrolInterval, PatrolTimer};
 use crate::events::damage::DamageEvent;
 use crate::state::GameState;
@@ -16,6 +16,7 @@ use crate::state::GameState;
     require(health: Health, as = f32, default = 50.0),
     require(damage: Damage, as = f32, default = 5.0),
     require(direction: Direction, as = f32, default = -1.0),
+    require(enemy_gravity: Gravity, as = f32, default = 980.0),
     require(initialized:CapeEnemyInitialized, as = bool, default = false),
     require(patrol_interval: PatrolInterval, as = f32, default = 3.0),
 )]
@@ -138,7 +139,7 @@ fn on_timeout(
 ) {
 
     for (handle,mut direction,mut  timer, state) in query{
-        if *state != EnemyState::Patrol{
+        if !state.is_patrolling(){
             continue;
         }
 
@@ -207,10 +208,10 @@ fn on_hurt(
 }
 
 fn find_cape_enemy(
-    mut query: Query<(&GodotNodeHandle, &Speed, &Direction), With<CapeEnemyNode>>,
+    mut query: Query<(&GodotNodeHandle, &Speed, &Direction, &Gravity), With<CapeEnemyNode>>,
     mut godot: GodotAccess,
 ) {
-    for (handle, speed, direction) in &mut query {
+    for (handle, speed, direction, gravity) in &mut query {
         let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
             godot_print!("dont find enemy");
             return;
@@ -220,7 +221,9 @@ fn find_cape_enemy(
 
         let mut pos = body.get_velocity();
 
-        //let direction = DIRECTION.lock().unwrap();
+        if !body.is_on_floor(){
+            pos.y = gravity.0;
+        }
 
         dir += direction.0;
         pos.x = dir * speed.0;
