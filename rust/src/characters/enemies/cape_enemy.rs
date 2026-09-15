@@ -1,9 +1,11 @@
 use bevy::prelude::*;
-use godot::classes::{Area2D, CharacterBody2D, Timer};
+use bevy::time::Timer;
+use godot::classes::{Area2D, CharacterBody2D};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
 use crate::characters::components::stats::{Damage, Direction, Health, Speed};
+use crate::characters::enemies::ai::state::{EnemyState, PatrolInterval, PatrolTimer};
 use crate::events::damage::DamageEvent;
 use crate::state::GameState;
 
@@ -15,16 +17,12 @@ use crate::state::GameState;
     require(damage: Damage, as = f32, default = 5.0),
     require(direction: Direction, as = f32, default = -1.0),
     require(initialized:CapeEnemyInitialized, as = bool, default = false),
+    require(patrol_interval: PatrolInterval, as = f32, default = 3.0),
 )]
 pub struct CapeEnemyNode;
 
 #[derive(Component, Default)]
 struct CapeEnemyInitialized(bool);
-
-#[derive(Event, Debug, Clone)]
-struct ChangeDirectionRequested {
-    entity: Entity,
-}
 
 #[derive(Event, Debug, Clone)]
 struct EnteredBody {
@@ -38,27 +36,25 @@ struct HurtboxRequest {
     instance_id: InstanceId,
 }
 
-fn connect_signals(
-    signal_direction: GodotSignals<ChangeDirectionRequested>,
+fn initialize_cape_enemy(
     signal_enter: GodotSignals<EnteredBody>,
     signal_hurt: GodotSignals<HurtboxRequest>,
-    mut query: Query<(Entity, &GodotNodeHandle, &mut CapeEnemyInitialized), With<CapeEnemyNode>>,
+    mut query: Query<
+        (
+            Entity,
+            &GodotNodeHandle,
+            &mut CapeEnemyInitialized,
+            &PatrolInterval,
+        ),
+        With<CapeEnemyNode>,
+    >,
     mut godot: GodotAccess,
+    mut commands: Commands,
 ) {
-    for (entity, handle, mut initialized) in &mut query {
+    for (entity, handle, mut initialized, patrol_interval) in &mut query {
         if !initialized.0 {
             let Some(body) = godot.try_get::<CharacterBody2D>(*handle) else {
                 godot_print!("Dont get body enemy");
-                return;
-            };
-
-            let Some(timer_node) = body.get_node_or_null("Timer") else {
-                godot_print!("Dont get timer");
-                return;
-            };
-
-            let Ok(timer) = timer_node.try_cast::<Timer>() else {
-                godot_print!("Cant cast");
                 return;
             };
 
@@ -112,12 +108,13 @@ fn connect_signals(
                 },
             );
 
-            signal_direction.connect(
-                timer.into(),
-                TimerSignals::TIMEOUT,
-                None,
-                move |_args, _node_handle, _ent| Some(ChangeDirectionRequested { entity: entity }),
-            );
+            commands.entity(entity).insert((
+                EnemyState::Patrol,
+                PatrolTimer(Timer::from_seconds(
+                    patrol_interval.0,
+                    TimerMode::Repeating,
+                )),
+            ));
 
             initialized.0 = true;
         }
@@ -135,21 +132,28 @@ fn get_parent_instance_id(args: &[Variant]) -> Option<InstanceId> {
 }
 
 fn on_timeout(
-    tigger: On<ChangeDirectionRequested>,
-    mut query: Query<(&GodotNodeHandle, &mut Direction), With<CapeEnemyNode>>,
+    time: Res<Time>,
+    query: Query<(&GodotNodeHandle, &mut Direction, &mut PatrolTimer, &EnemyState), With<CapeEnemyNode>>,
     mut godot: GodotAccess,
 ) {
-    let Ok((handle, mut direction)) = query.get_mut(tigger.entity) else {
-        return;
-    };
 
-    let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
-        return;
-    };
+    for (handle,mut direction,mut  timer, state) in query{
+        if *state != EnemyState::Patrol{
+            continue;
+        }
 
-    let scale = body.get_scale();
-    body.set_scale(Vector2::new(-scale.x, scale.y));
-    direction.0 *= -1.0;
+        timer.0.tick(time.delta());
+        if !timer.0.just_finished(){
+            continue;
+        }
+        let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
+            continue;
+        };
+        let scale = body.get_scale();
+        body.set_scale(Vector2::new(-scale.x, scale.y));
+        direction.0 *= -1.0;
+    }
+    
 }
 
 fn on_enter_body(
@@ -240,12 +244,14 @@ pub struct CapeEnemyPlugin;
 impl Plugin for CapeEnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, find_cape_enemy.run_if(in_state(GameState::InGame)))
-            .add_systems(Update, connect_signals.run_if(in_state(GameState::InGame)))
+            .add_systems(
+                Update,
+                initialize_cape_enemy.run_if(in_state(GameState::InGame)),
+            )
             .add_systems(Update, kill_enemy.run_if(in_state(GameState::InGame)))
-            .add_plugins(GodotSignalsPlugin::<ChangeDirectionRequested>::default())
             .add_plugins(GodotSignalsPlugin::<EnteredBody>::default())
             .add_plugins(GodotSignalsPlugin::<HurtboxRequest>::default())
-            .add_observer(on_timeout)
+            .add_systems(Update, on_timeout.run_if(in_state(GameState::InGame)))
             .add_observer(on_enter_body)
             .add_observer(on_hurt);
     }

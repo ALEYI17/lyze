@@ -1,6 +1,6 @@
+mod hud;
 mod main_menu;
 mod pause_menu;
-mod hud;
 
 use bevy::prelude::*;
 

@@ -46,7 +46,16 @@ enum Facing {
 }
 
 fn move_player(
-    mut query: Query<(&GodotNodeHandle, &Gravity, &Speed, &JumpVelocity, &mut Facing), With<PlayerNode>>,
+    mut query: Query<
+        (
+            &GodotNodeHandle,
+            &Gravity,
+            &Speed,
+            &JumpVelocity,
+            &mut Facing,
+        ),
+        With<PlayerNode>,
+    >,
     mut godot: GodotAccess,
     time: Res<Time>,
 ) {

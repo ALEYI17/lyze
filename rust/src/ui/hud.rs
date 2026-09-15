@@ -1,8 +1,8 @@
+use crate::characters::players::PlayerNode;
 use bevy::prelude::*;
 use godot::classes::Label;
-use godot_bevy::prelude::*;
 use godot::prelude::*;
-use crate::characters::players::PlayerNode;
+use godot_bevy::prelude::*;
 
 use crate::characters::components::stats::Health;
 use crate::state::GameState;
@@ -18,13 +18,13 @@ struct HudUi {
     pub health: GodotNodeHandle,
 }
 
-fn reset_hud_assets(mut hud_assets: ResMut<HudAssets>){
+fn reset_hud_assets(mut hud_assets: ResMut<HudAssets>) {
     hud_assets.player_health = None;
     hud_assets.initialized = false;
 }
 
 fn initialized_hud(mut hud_assets: ResMut<HudAssets>, mut scene_tree: SceneTreeRef) {
-    if let Some(root) = scene_tree.get().get_root(){
+    if let Some(root) = scene_tree.get().get_root() {
         match HudUi::from_node(root) {
             Ok(hud_ui) => {
                 godot_print!("Found hud");
@@ -33,13 +33,16 @@ fn initialized_hud(mut hud_assets: ResMut<HudAssets>, mut scene_tree: SceneTreeR
             }
             Err(_) => {}
         }
-    }else {
+    } else {
         godot_print!("Not found hud");
     }
 }
 
-fn set_player_health(hud_assets: ResMut<HudAssets>, query: Query<&Health, With<PlayerNode>>, mut godot: GodotAccess) {
-
+fn set_player_health(
+    hud_assets: ResMut<HudAssets>,
+    query: Query<&Health, With<PlayerNode>>,
+    mut godot: GodotAccess,
+) {
     let Ok(health) = query.single() else {
         return;
     };
@@ -49,7 +52,7 @@ fn set_player_health(hud_assets: ResMut<HudAssets>, query: Query<&Health, With<P
         return;
     };
 
-    let Some(mut node) = godot.try_get::<Label>(health_label) else{
+    let Some(mut node) = godot.try_get::<Label>(health_label) else {
         godot_print!("Can not parse health label");
         return;
     };
@@ -58,7 +61,7 @@ fn set_player_health(hud_assets: ResMut<HudAssets>, query: Query<&Health, With<P
     node.set_text(&text);
 }
 
-fn hud_is_not_initialized(hud_assets: Res<HudAssets>) -> bool{
+fn hud_is_not_initialized(hud_assets: Res<HudAssets>) -> bool {
     !hud_assets.initialized
 }
 

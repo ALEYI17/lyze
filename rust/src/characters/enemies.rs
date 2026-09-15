@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+mod ai;
 mod cape_enemy;
 
 pub struct EnemiesPlugin;
