@@ -10,7 +10,7 @@ pub enum EnemyState {
     Attack,
 }
 
-impl EnemyState{
+impl EnemyState {
     pub fn is_patrolling(&self) -> bool {
         matches!(self, EnemyState::Patrol)
     }

@@ -23,7 +23,7 @@ texture_filter = 1
 texture = ExtResource("1_b2kqa")
 
 [node name="hurtbox" type="Area2D" parent="." unique_id=2103044566]
-collision_layer = 4
+collision_layer = 16
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="hurtbox" unique_id=1380210581]
@@ -39,3 +39,9 @@ collision_mask = 4
 [node name="CollisionShape2D" type="CollisionShape2D" parent="hitbox" unique_id=1413483378]
 position = Vector2(-1, 0)
 shape = SubResource("CircleShape2D_u5bk5")
+
+[node name="RayCast2D" type="RayCast2D" parent="." unique_id=1338913157]
+target_position = Vector2(-36.5, 0)
+collision_mask = 4
+collide_with_areas = true
+collide_with_bodies = false

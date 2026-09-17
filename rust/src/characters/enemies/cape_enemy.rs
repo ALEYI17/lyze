@@ -1,11 +1,12 @@
 use bevy::prelude::*;
 use bevy::time::Timer;
-use godot::classes::{Area2D, CharacterBody2D};
+use godot::classes::{Area2D, CharacterBody2D, RayCast2D};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
 use crate::characters::components::stats::{Damage, Direction, Gravity, Health, Speed};
 use crate::characters::enemies::ai::state::{EnemyState, PatrolInterval, PatrolTimer};
+use crate::characters::players::PlayerNode;
 use crate::events::damage::DamageEvent;
 use crate::state::GameState;
 
@@ -111,10 +112,7 @@ fn initialize_cape_enemy(
 
             commands.entity(entity).insert((
                 EnemyState::Patrol,
-                PatrolTimer(Timer::from_seconds(
-                    patrol_interval.0,
-                    TimerMode::Repeating,
-                )),
+                PatrolTimer(Timer::from_seconds(patrol_interval.0, TimerMode::Repeating)),
             ));
 
             initialized.0 = true;
@@ -134,17 +132,24 @@ fn get_parent_instance_id(args: &[Variant]) -> Option<InstanceId> {
 
 fn on_timeout(
     time: Res<Time>,
-    query: Query<(&GodotNodeHandle, &mut Direction, &mut PatrolTimer, &EnemyState), With<CapeEnemyNode>>,
+    query: Query<
+        (
+            &GodotNodeHandle,
+            &mut Direction,
+            &mut PatrolTimer,
+            &EnemyState,
+        ),
+        With<CapeEnemyNode>,
+    >,
     mut godot: GodotAccess,
 ) {
-
-    for (handle,mut direction,mut  timer, state) in query{
-        if !state.is_patrolling(){
+    for (handle, mut direction, mut timer, state) in query {
+        if !state.is_patrolling() {
             continue;
         }
 
         timer.0.tick(time.delta());
-        if !timer.0.just_finished(){
+        if !timer.0.just_finished() {
             continue;
         }
         let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
@@ -154,7 +159,6 @@ fn on_timeout(
         body.set_scale(Vector2::new(-scale.x, scale.y));
         direction.0 *= -1.0;
     }
-    
 }
 
 fn on_enter_body(
@@ -207,11 +211,17 @@ fn on_hurt(
     });
 }
 
-fn find_cape_enemy(
-    mut query: Query<(&GodotNodeHandle, &Speed, &Direction, &Gravity), With<CapeEnemyNode>>,
+fn patrol_cape_enemy(
+    mut query: Query<
+        (&GodotNodeHandle, &Speed, &Direction, &Gravity, &EnemyState),
+        With<CapeEnemyNode>,
+    >,
     mut godot: GodotAccess,
 ) {
-    for (handle, speed, direction, gravity) in &mut query {
+    for (handle, speed, direction, gravity, state) in &mut query {
+        if !state.is_patrolling() {
+            continue;
+        }
         let Some(mut body) = godot.try_get::<CharacterBody2D>(*handle) else {
             godot_print!("dont find enemy");
             return;
@@ -221,7 +231,7 @@ fn find_cape_enemy(
 
         let mut pos = body.get_velocity();
 
-        if !body.is_on_floor(){
+        if !body.is_on_floor() {
             pos.y = gravity.0;
         }
 
@@ -231,6 +241,79 @@ fn find_cape_enemy(
         body.set_velocity(pos);
 
         body.move_and_slide();
+    }
+}
+
+fn find_player_with_raycast(
+    mut query: Query<(&GodotNodeHandle, &mut EnemyState), With<CapeEnemyNode>>,
+    mut godot: GodotAccess,
+) {
+    for (handle, mut state) in &mut query {
+        let Some(body) = godot.try_get::<CharacterBody2D>(*handle) else {
+            godot_print!("Dont get body enemy");
+            continue;
+        };
+
+        let Some(raycast_node) = body.get_node_or_null("RayCast2D") else {
+            godot_print!("dont get raycast");
+            continue;
+        };
+
+        let Ok(raycast_1) = raycast_node.try_cast::<RayCast2D>() else {
+            godot_print!("cant cast raycast");
+            continue;
+        };
+
+        if raycast_1.is_colliding() {
+            state.change_to(EnemyState::Chase);
+        }
+    }
+}
+
+fn chase_cape_enemy(
+    mut query_enemy: Query<(&GodotNodeHandle, &EnemyState, &Speed, &Gravity, &mut Direction), With<CapeEnemyNode>>,
+    query_player: Query<&GodotNodeHandle, With<PlayerNode>>,
+    mut godot: GodotAccess,
+) {
+    for(handle, state, speed, gravity,mut direction) in &mut query_enemy{
+        if !state.is_chasing(){
+            continue;
+        }
+
+        let Ok(player_handle) = query_player.single() else{
+            return;
+        };
+
+        let Some(mut enemy_body) = godot.try_get::<CharacterBody2D>(*handle) else {
+            return;
+        };
+
+        let Some(player_body) = godot.try_get::<CharacterBody2D>(*player_handle) else{
+            return;
+        };
+
+        let enemy_position = enemy_body.get_position();
+
+        let player_position = player_body.get_position();
+
+        let mut velocity = enemy_body.get_velocity();
+        let new_direction = (player_position.x - enemy_position.x).signum();
+
+        if new_direction != 0.0 && new_direction != direction.0{
+             let scale = enemy_body.get_scale();
+             enemy_body.set_scale(Vector2::new(-scale.x, scale.y));
+             direction.0 = new_direction;
+        } 
+
+        if !enemy_body.is_on_floor(){
+            velocity.y = gravity.0;
+        }
+
+
+        velocity.x = direction.0 * speed.0;
+        
+        enemy_body.set_velocity(velocity);
+        enemy_body.move_and_slide();
     }
 }
 
@@ -246,16 +329,24 @@ pub struct CapeEnemyPlugin;
 
 impl Plugin for CapeEnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, find_cape_enemy.run_if(in_state(GameState::InGame)))
-            .add_systems(
-                Update,
-                initialize_cape_enemy.run_if(in_state(GameState::InGame)),
-            )
-            .add_systems(Update, kill_enemy.run_if(in_state(GameState::InGame)))
-            .add_plugins(GodotSignalsPlugin::<EnteredBody>::default())
-            .add_plugins(GodotSignalsPlugin::<HurtboxRequest>::default())
-            .add_systems(Update, on_timeout.run_if(in_state(GameState::InGame)))
-            .add_observer(on_enter_body)
-            .add_observer(on_hurt);
+        app.add_systems(
+            Update,
+            patrol_cape_enemy.run_if(in_state(GameState::InGame)),
+        )
+        .add_systems(
+            Update,
+            initialize_cape_enemy.run_if(in_state(GameState::InGame)),
+        )
+        .add_systems(Update, kill_enemy.run_if(in_state(GameState::InGame)))
+        .add_plugins(GodotSignalsPlugin::<EnteredBody>::default())
+        .add_plugins(GodotSignalsPlugin::<HurtboxRequest>::default())
+        .add_systems(Update, on_timeout.run_if(in_state(GameState::InGame)))
+        .add_systems(Update, chase_cape_enemy.run_if(in_state(GameState::InGame)))
+        .add_systems(
+            Update,
+            find_player_with_raycast.run_if(in_state(GameState::InGame)),
+        )
+        .add_observer(on_enter_body)
+        .add_observer(on_hurt);
     }
 }
