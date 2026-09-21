@@ -4,9 +4,7 @@ use bevy::prelude::*;
 pub enum EnemyState {
     #[default]
     Patrol,
-    #[allow(dead_code)]
     Chase,
-    #[allow(dead_code)]
     Attack,
 }
 
@@ -33,3 +31,15 @@ pub struct PatrolTimer(pub Timer);
 
 #[derive(Component)]
 pub struct PatrolInterval(pub f32);
+
+#[derive(Component)]
+pub struct AttackTimer(pub Timer);
+
+#[derive(Component)]
+pub struct AttackInterval(pub f32);
+
+#[derive(Component)]
+pub struct AttackCooldownInterval(pub f32);
+
+#[derive(Component)]
+pub struct AttackCooldownTimer(pub Timer);
