@@ -16,6 +16,7 @@ pub enum SceneState {
     #[default]
     MainMenu,
     InGame,
+    InGameIsometric,
 }
 
 impl SceneState {
@@ -23,6 +24,7 @@ impl SceneState {
         match self {
             SceneState::MainMenu => "scenes/ui/main_menu.tscn",
             SceneState::InGame => "scenes/main.tscn",
+            SceneState::InGameIsometric => "scenes/3d/main_isometric.tscn",
         }
     }
 }
@@ -123,6 +125,7 @@ fn emit_level_loaded_event_when_scene_ready(
         let expected_path = match scene_state {
             SceneState::MainMenu => "root/ui/main_menu",
             SceneState::InGame => "root/main",
+            SceneState::InGameIsometric => "root/3d/main_isometric",
         };
         for event in scene_tree_events.read() {
             if let SceneTreeMessageType::NodeAdded = event.message_type

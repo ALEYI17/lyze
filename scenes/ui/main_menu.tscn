@@ -36,3 +36,12 @@ offset_right = 806.0
 offset_bottom = 537.0
 theme_override_font_sizes/font_size = 40
 text = "Exit"
+
+[node name="2_5D" type="Button" parent="Button_manager" unique_id=751995514]
+layout_mode = 0
+offset_left = 506.0
+offset_top = 563.0
+offset_right = 806.0
+offset_bottom = 663.0
+theme_override_font_sizes/font_size = 40
+text = "2.5D"

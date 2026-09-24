@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://cbq7n8itqhh75"]
+
+[ext_resource type="PackedScene" uid="uid://bhpeqm6h5nfi7" path="res://scenes/3d/first_map.tscn" id="1_luxtp"]
+[ext_resource type="PackedScene" uid="uid://c81wegri1vcnr" path="res://scenes/3d/player_3d.tscn" id="2_2nldp"]
+
+[node name="main_isometric" type="Node3D" unique_id=1895004924]
+
+[node name="Player3D" parent="." unique_id=383785677 instance=ExtResource("2_2nldp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4110746, 1.1084285, 5.353391)
+
+[node name="FirstMap" parent="." unique_id=491776442 instance=ExtResource("1_luxtp")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=972145743]
+transform = Transform3D(0.0042845597, -0.7917198, 0.61086947, 0.0055528823, 0.6108845, 0.7917003, -0.99997544, -9.313227e-10, 0.007013698, 10.150911, 7.8697157, 0)
+shadow_enabled = true

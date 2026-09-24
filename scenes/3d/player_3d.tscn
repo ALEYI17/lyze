@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://c81wegri1vcnr"]
+
+[ext_resource type="Texture2D" uid="uid://cmpn71d7mldmb" path="res://assets/player/player.png" id="1_vt4iu"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kddjp"]
+
+[node name="Player3D" type="Player3D" unique_id=383785677]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=480554217]
+shape = SubResource("BoxShape3D_kddjp")
+
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=643905280]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
+billboard = 1
+shaded = true
+alpha_cut = 1
+texture_filter = 0
+texture = ExtResource("1_vt4iu")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1099500216]
+transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 8.228067, 12.086471)
+projection = 1
+size = 8.0

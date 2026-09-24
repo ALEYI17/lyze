@@ -10,24 +10,27 @@ use crate::state::state_manager::{LoadSceneMessage, SceneState};
 pub struct MenuAssets {
     pub start_button: Option<GodotNodeHandle>,
     pub quit_button: Option<GodotNodeHandle>,
+    pub two_point_five: Option<GodotNodeHandle>,
     pub initialized: bool,
     pub signal_connected: bool,
 }
 
 #[derive(NodeTreeView)]
 pub struct MainMenuUi {
-    // Todo
     #[node("/root/Main_menu/Button_manager/Start")]
     pub start_button: GodotNodeHandle,
 
-    // Todo
     #[node("/root/Main_menu/Button_manager/Exit")]
     pub quit_button: GodotNodeHandle,
+
+    #[node("/root/Main_menu/Button_manager/2_5D")]
+    pub two_pint_five_button: GodotNodeHandle,
 }
 
 fn reset_menu_assets(mut menu_assets: ResMut<MenuAssets>) {
     menu_assets.start_button = None;
     menu_assets.quit_button = None;
+    menu_assets.two_point_five = None;
     menu_assets.initialized = false;
     menu_assets.signal_connected = false;
 }
@@ -39,6 +42,7 @@ fn initialized_main_menu(mut menu_assets: ResMut<MenuAssets>, mut scene_tree: Sc
                 godot_print!("Found menu node");
                 menu_assets.start_button = Some(menu_ui.start_button);
                 menu_assets.quit_button = Some(menu_ui.quit_button);
+                menu_assets.two_point_five = Some(menu_ui.two_pint_five_button);
                 menu_assets.initialized = true;
             }
             Err(_) => {}
@@ -64,10 +68,14 @@ struct QuitGameEvent {
     source: GodotNodeHandle,
 }
 
+#[derive(Event, Debug, Clone)]
+struct StartGameIsometric;
+
 fn connect_button(
     mut menu_assets: ResMut<MenuAssets>,
     signals_start: GodotSignals<StartGameEvent>,
     signals_quit: GodotSignals<QuitGameEvent>,
+    signals_isometric: GodotSignals<StartGameIsometric>,
 ) {
     if menu_assets.start_button.is_some()
         && menu_assets.quit_button.is_some()
@@ -93,6 +101,15 @@ fn connect_button(
                         source: node_handle,
                     })
                 },
+            );
+        }
+        if let Some(two_five_handle) = menu_assets.two_point_five {
+            godot_print!("Connect 2.5");
+            signals_isometric.connect(
+                two_five_handle,
+                BaseButtonSignals::PRESSED,
+                None,
+                |_args, _node_handle, _ent| Some(StartGameIsometric),
             );
         }
         menu_assets.signal_connected = true;
@@ -130,6 +147,13 @@ fn on_quit(trigger: On<QuitGameEvent>, state: Res<State<GameState>>, mut godot: 
     }
 }
 
+fn on_game_start_isometric(_trigger: On<StartGameIsometric>, mut commands: Commands) {
+    godot_print!("Press 2.5D");
+    commands.trigger(LoadSceneMessage {
+        scene_state: SceneState::InGameIsometric,
+    });
+}
+
 pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
@@ -147,6 +171,7 @@ impl Plugin for MainMenuPlugin {
                     .run_if(in_state(GameState::MainMenu)),
             )
             .add_observer(on_start_game)
-            .add_observer(on_quit);
+            .add_observer(on_quit)
+            .add_observer(on_game_start_isometric);
     }
 }
