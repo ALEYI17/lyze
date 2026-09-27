@@ -1,14 +1,14 @@
 use bevy::prelude::*;
 use godot::{
     classes::{
-        Area3D, CanvasLayer, Input, Label, Label3D,
+        Area3D, CanvasLayer, Input, Label3D,
         class_macros::private::virtuals::ZipReader::{Array, GString},
     },
     global::godot_print,
 };
 use godot_bevy::prelude::*;
 
-use crate::ui::dialogue_hud::DialogueHudNode;
+use crate::ui::dialogue_hud::{DialogueHudNode, get_speaker_label, get_text_label};
 
 #[derive(Component, GodotNode, Default)]
 #[gdbevy(base = Area3D, class_name = GirlNpc)]
@@ -190,19 +190,11 @@ fn start_interaction(
         return;
     }
 
-    let Some(speaker_handle) = canvas.get_node_or_null("speaker") else {
+    let Some(mut speaker) = get_speaker_label(&canvas) else {
         return;
     };
 
-    let Some(text_handle) = canvas.get_node_or_null("Text") else {
-        return;
-    };
-
-    let Ok(mut speaker) = speaker_handle.try_cast::<Label>() else {
-        return;
-    };
-
-    let Ok(mut text) = text_handle.try_cast::<Label>() else {
+    let Some(mut text) = get_text_label(&canvas) else {
         return;
     };
 
