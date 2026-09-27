@@ -16,7 +16,7 @@ pub struct Player3DNode;
 fn move_player_3d_node(
     query: Query<(&GodotNodeHandle, &Speed, &JumpVelocity, &Gravity), With<Player3DNode>>,
     mut godot: GodotAccess,
-    time: Res<Time>
+    time: Res<Time>,
 ) {
     let Ok((node_handle, speed, jump_velocity, gravity)) = query.single() else {
         return;
@@ -54,7 +54,7 @@ fn move_player_3d_node(
         velocity.y -= gravity.0 * time.delta_secs();
     }
 
-    if body.is_on_floor() && input.is_action_just_pressed("jump"){
+    if body.is_on_floor() && input.is_action_just_pressed("jump") {
         velocity.y = jump_velocity.0;
     }
 

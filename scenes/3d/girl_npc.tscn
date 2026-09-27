@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://dycrpavd0cpf6"]
+
+[ext_resource type="Texture2D" uid="uid://e0ce85fmj1r7" path="res://assets/npc/girl_npc.png" id="1_dkyrr"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_u5bk5"]
+
+[node name="GirlNpc" type="GirlNpc" unique_id=1025273568]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=926242448]
+shape = SubResource("BoxShape3D_u5bk5")
+
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=790806098]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
+billboard = 1
+shaded = true
+alpha_cut = 1
+texture_filter = 0
+texture = ExtResource("1_dkyrr")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=375527262]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.67022824, 0)
+visible = false
+text = "E talk"
+uppercase = true

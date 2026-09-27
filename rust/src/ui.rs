@@ -1,3 +1,4 @@
+pub mod dialogue_hud;
 mod hud;
 mod main_menu;
 mod pause_menu;

@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://bm1mq2osfbow4"]
+
+[node name="DialogueHud" type="DialogueHud" unique_id=173181493]
+
+[node name="Panel" type="Panel" parent="." unique_id=1673595861]
+offset_left = 4.0
+offset_top = 509.0
+offset_right = 1277.0
+offset_bottom = 719.0
+
+[node name="speaker" type="Label" parent="." unique_id=1015495002]
+offset_left = 1048.0
+offset_top = 512.0
+offset_right = 1272.0
+offset_bottom = 561.0
+
+[node name="Text" type="Label" parent="." unique_id=780966290]
+offset_left = 7.0
+offset_top = 601.0
+offset_right = 1276.0
+offset_bottom = 714.0
