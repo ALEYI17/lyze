@@ -1,30 +1,24 @@
 use bevy::prelude::*;
 use godot::{
     classes::{
-        Area3D, CanvasLayer, Input, Label3D,
-        class_macros::private::virtuals::ZipReader::{Array, GString},
+        Area3D, Input, Label3D,
+        class_macros::private::virtuals::{
+            Xrvrs::Gd,
+            ZipReader::{Array, GString},
+        },
     },
     global::godot_print,
 };
 use godot_bevy::prelude::*;
 
-use crate::ui::dialogue_hud::{DialogueHudNode, get_speaker_label, get_text_label};
+use crate::{
+    state::GameState,
+    ui::dialogue_hud::{
+        DialogueHudNode, get_custom_canvas_layer, get_speaker_label, get_text_label,
+    },
+};
 
-#[derive(Component, GodotNode, Default)]
-#[gdbevy(base = Area3D, class_name = GirlNpc)]
-#[gdbevy(require(initialized:NpcInitialized, as = bool, default = false))]
-#[gdbevy(require(npc_name:Name, as = GString, with = from_godot_string ,default = GString::from("girl")))]
-#[gdbevy(require(npc_dialogue:DialogueText, as = Array<GString>, with = from_godot_array ,default = Array::new()))]
-pub struct GirlNpcNode;
-
-#[derive(Event, Debug, Clone)]
-struct EnterDialogueZone {
-    entity: Option<Entity>,
-}
-
-#[derive(Event, Debug, Clone)]
-struct ExitDialogueZone;
-
+// Components
 #[derive(Component, Default)]
 struct NpcInitialized(bool);
 
@@ -34,6 +28,26 @@ pub struct Name(pub String);
 #[derive(Component)]
 pub struct DialogueText(pub Vec<String>);
 
+// Custom Node
+#[derive(Component, GodotNode, Default)]
+#[gdbevy(base = Area3D, class_name = GirlNpc)]
+#[gdbevy(require(initialized:NpcInitialized, as = bool, default = false))]
+#[gdbevy(require(npc_name:Name, as = GString, with = from_godot_string ,default = GString::from("girl")))]
+#[gdbevy(require(npc_dialogue:DialogueText, as = Array<GString>, with = from_godot_array ,default = Array::new()))]
+pub struct GirlNpcNode;
+
+//Events
+#[derive(Event, Debug, Clone)]
+struct EnterDialogueZone {
+    entity: Option<Entity>,
+}
+
+#[derive(Event, Debug, Clone)]
+struct ExitDialogueZone {
+    entity: Option<Entity>,
+}
+
+// resources
 #[derive(Resource, Default)]
 struct CurrentInteraction {
     npc: Option<Entity>,
@@ -55,6 +69,26 @@ fn from_godot_array(value: Array<GString>) -> Vec<String> {
     result
 }
 
+fn get_interacion_label(area: &Gd<Area3D>) -> Option<Gd<Label3D>> {
+    let Some(label_handle) = area.get_node_or_null("Label3D") else {
+        return None;
+    };
+
+    let Ok(label) = label_handle.try_cast::<Label3D>() else {
+        return None;
+    };
+
+    Some(label)
+}
+
+fn get_custom_area_3d(handle: &GodotNodeHandle, godot: &mut GodotAccess) -> Option<Gd<Area3D>> {
+    let Some(area) = godot.try_get::<Area3D>(*handle) else {
+        godot_print!("Cannot cast girl npc");
+        return None;
+    };
+    Some(area)
+}
+
 fn initialized_girl_npc(
     query: Query<(Entity, &GodotNodeHandle, &mut NpcInitialized), With<GirlNpcNode>>,
     mut godot: GodotAccess,
@@ -65,7 +99,8 @@ fn initialized_girl_npc(
         if initialized.0 {
             continue;
         }
-        let Some(area) = godot.try_get::<Area3D>(*handle) else {
+
+        let Some(area) = get_custom_area_3d(handle, &mut godot) else {
             godot_print!("Cannot cast girl npc");
             return;
         };
@@ -81,7 +116,7 @@ fn initialized_girl_npc(
             area.into(),
             Area3DSignals::BODY_EXITED,
             Some(entity),
-            |_args, _node_handle, _ent| Some(ExitDialogueZone),
+            |_args, _node_handle, ent| Some(ExitDialogueZone { entity: ent }),
         );
 
         initialized.0 = true;
@@ -94,23 +129,19 @@ fn on_dialogue_enter(
     mut godot: GodotAccess,
     mut interaction: ResMut<CurrentInteraction>,
 ) {
-    let Some(entity) = trigger.event().entity else{
+    let Some(entity) = trigger.event().entity else {
         return;
     };
 
     let Ok(handle) = query.get(entity) else {
         return;
     };
-    
-    let Some(area) = godot.try_get::<Area3D>(*handle) else {
+
+    let Some(area) = get_custom_area_3d(handle, &mut godot) else {
         return;
     };
 
-    let Some(label_handle) = area.get_node_or_null("Label3D") else {
-        return;
-    };
-
-    let Ok(mut label) = label_handle.try_cast::<Label3D>() else {
+    let Some(mut label) = get_interacion_label(&area) else {
         return;
     };
 
@@ -125,25 +156,36 @@ fn on_dialogue_enter(
 }
 
 fn on_dialogue_exit(
-    _trigger: On<ExitDialogueZone>,
+    trigger: On<ExitDialogueZone>,
     query: Query<&GodotNodeHandle, With<GirlNpcNode>>,
     mut godot: GodotAccess,
+    mut interaction: ResMut<CurrentInteraction>,
 ) {
-    for handle in query {
-        let Some(area) = godot.try_get::<Area3D>(*handle) else {
-            continue;
-        };
+    let Some(entity) = trigger.event().entity else {
+        return;
+    };
 
-        let Some(label_handle) = area.get_node_or_null("Label3D") else {
-            continue;
-        };
+    let Ok(handle) = query.get(entity) else {
+        return;
+    };
 
-        let Ok(mut label) = label_handle.try_cast::<Label3D>() else {
-            continue;
-        };
+    let Some(area) = get_custom_area_3d(handle, &mut godot) else {
+        return;
+    };
 
-        label.set_visible(false);
+    let Some(label_handle) = area.get_node_or_null("Label3D") else {
+        return;
+    };
+
+    let Ok(mut label) = label_handle.try_cast::<Label3D>() else {
+        return;
+    };
+
+    if !interaction.in_interaction {
+        interaction.npc = None;
+        interaction.current_line = 0;
     }
+    label.set_visible(false);
 }
 
 fn start_interaction(
@@ -158,7 +200,7 @@ fn start_interaction(
         return;
     };
 
-    let Some(mut canvas) = godot.try_get::<CanvasLayer>(*handle) else {
+    let Some(mut canvas) = get_custom_canvas_layer(handle, &mut godot) else {
         return;
     };
 
@@ -214,8 +256,14 @@ pub struct GirlNpcPlugin;
 impl Plugin for GirlNpcPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CurrentInteraction>()
-            .add_systems(Update, initialized_girl_npc)
-            .add_systems(Update, start_interaction)
+            .add_systems(
+                Update,
+                initialized_girl_npc.run_if(in_state(GameState::Ingame3D)),
+            )
+            .add_systems(
+                Update,
+                start_interaction.run_if(in_state(GameState::Ingame3D)),
+            )
             .add_observer(on_dialogue_enter)
             .add_observer(on_dialogue_exit);
     }

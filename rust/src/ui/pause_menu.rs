@@ -18,13 +18,13 @@ pub struct PauseMenuAssets {
 
 #[derive(NodeTreeView)]
 pub struct PauseMenuUi {
-    #[node("/root/Node2D/Pause_menu")]
+    #[node("/root/main_isometric/Pause_menu")]
     pub pause_menu: GodotNodeHandle,
 
-    #[node("/root/Node2D/Pause_menu/Button_manager/Resume")]
+    #[node("/root/main_isometric/Pause_menu/Button_manager/Resume")]
     pub resume_button: GodotNodeHandle,
 
-    #[node("/root/Node2D/Pause_menu/Button_manager/Main_menu")]
+    #[node("/root/main_isometric/Pause_menu/Button_manager/Main_menu")]
     pub main_menu_button: GodotNodeHandle,
 }
 
@@ -36,7 +36,8 @@ fn toggle_pause_menu(
     let input = godot.singleton::<Input>();
 
     if input.is_action_pressed("pause") {
-        if *state.get() != GameState::InGame {
+        let actual_state = state.get();
+        if  !matches!(actual_state, GameState::InGame | GameState::Ingame3D){
             godot_print!("Press but not Ingame");
             return;
         }
@@ -140,7 +141,7 @@ fn on_resume_game(
 
     godot_print!("Press start in Pause menu");
 
-    app_state.set(GameState::InGame);
+    app_state.set(GameState::Ingame3D);
 
     let Some(handle) = pause_resource.pause_menu else {
         godot_print!("Can not find pause menu handle");
@@ -224,7 +225,7 @@ impl Plugin for PauseMenuPlugin {
             )
             .add_systems(
                 Update,
-                toggle_pause_menu.run_if(in_state(GameState::InGame)),
+                toggle_pause_menu.run_if(in_state(GameState::Ingame3D)),
             )
             .add_observer(on_resume_game)
             .add_observer(on_return_main_menu);

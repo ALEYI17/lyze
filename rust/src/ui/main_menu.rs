@@ -147,8 +147,17 @@ fn on_quit(trigger: On<QuitGameEvent>, state: Res<State<GameState>>, mut godot: 
     }
 }
 
-fn on_game_start_isometric(_trigger: On<StartGameIsometric>, mut commands: Commands) {
+fn on_game_start_isometric(
+    _trigger: On<StartGameIsometric>,
+    state: Res<State<GameState>>,
+    mut commands: Commands,
+    mut app_state: ResMut<NextState<GameState>>,
+) {
+    if *state.get() != GameState::MainMenu {
+        return;
+    }
     godot_print!("Press 2.5D");
+    app_state.set(GameState::Ingame3D);
     commands.trigger(LoadSceneMessage {
         scene_state: SceneState::InGameIsometric,
     });

@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://c81wegri1vcnr" path="res://scenes/3d/player_3d.tscn" id="2_2nldp"]
 [ext_resource type="PackedScene" uid="uid://dycrpavd0cpf6" path="res://scenes/3d/girl_npc.tscn" id="3_756dp"]
 [ext_resource type="PackedScene" uid="uid://bm1mq2osfbow4" path="res://scenes/ui/dialogue_hud.tscn" id="4_a55pu"]
+[ext_resource type="PackedScene" uid="uid://chufwnv6d2j5v" path="res://scenes/ui/pause_menu.tscn" id="5_f8di4"]
 
 [node name="main_isometric" type="Node3D" unique_id=1895004924]
 
@@ -27,3 +28,6 @@ visible = false
 [node name="GirlNpc2" parent="." unique_id=1600391451 instance=ExtResource("3_756dp")]
 npc_dialogue = Array[String](["Hola ", "Adri", "soy ", "un", "npc"])
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0186825, -3.1569061)
+
+[node name="Pause_menu" parent="." unique_id=1547655908 instance=ExtResource("5_f8di4")]
+visible = false

@@ -6,8 +6,16 @@ use godot_bevy::prelude::*;
 #[gdbevy(base = CanvasLayer, class_name = DialogueHud)]
 pub struct DialogueHudNode;
 
-pub fn get_speaker_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>>{
-
+pub fn get_custom_canvas_layer(
+    handle: &GodotNodeHandle,
+    godot: &mut GodotAccess,
+) -> Option<Gd<CanvasLayer>> {
+    let Some(canvas) = godot.try_get::<CanvasLayer>(*handle) else {
+        return None;
+    };
+    Some(canvas)
+}
+pub fn get_speaker_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
     let Some(speaker_handle) = canvas.get_node_or_null("Panel/speaker") else {
         return None;
     };
@@ -19,8 +27,7 @@ pub fn get_speaker_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>>{
     Some(speaker)
 }
 
-pub fn get_text_label(canvas: &Gd<CanvasLayer> ) -> Option<Gd<Label>>{
-
+pub fn get_text_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
     let Some(speaker_handle) = canvas.get_node_or_null("Panel/Text") else {
         return None;
     };

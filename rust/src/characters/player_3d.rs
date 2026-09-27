@@ -1,8 +1,11 @@
 use bevy::prelude::*;
-use godot::classes::{CharacterBody3D, Input};
+use godot::classes::{CharacterBody3D, Input, class_macros::private::virtuals::Xrvrs::Gd};
 use godot_bevy::prelude::*;
 
-use crate::characters::components::stats::{Gravity, JumpVelocity, Speed};
+use crate::{
+    characters::components::stats::{Gravity, JumpVelocity, Speed},
+    state::GameState,
+};
 
 #[derive(Component, GodotNode, Default)]
 #[gdbevy(base = CharacterBody3D, class_name = Player3D)]
@@ -13,6 +16,16 @@ use crate::characters::components::stats::{Gravity, JumpVelocity, Speed};
 )]
 pub struct Player3DNode;
 
+fn get_custom_character_body_3d(
+    handle: &GodotNodeHandle,
+    godot: &mut GodotAccess,
+) -> Option<Gd<CharacterBody3D>> {
+    let Some(body) = godot.try_get::<CharacterBody3D>(*handle) else {
+        return None;
+    };
+    Some(body)
+}
+
 fn move_player_3d_node(
     query: Query<(&GodotNodeHandle, &Speed, &JumpVelocity, &Gravity), With<Player3DNode>>,
     mut godot: GodotAccess,
@@ -22,7 +35,7 @@ fn move_player_3d_node(
         return;
     };
 
-    let Some(mut body) = godot.try_get::<CharacterBody3D>(*node_handle) else {
+    let Some(mut body) = get_custom_character_body_3d(node_handle, &mut godot) else {
         return;
     };
 
@@ -70,6 +83,9 @@ pub struct Player3DPlugin;
 
 impl Plugin for Player3DPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, move_player_3d_node);
+        app.add_systems(
+            Update,
+            move_player_3d_node.run_if(in_state(GameState::Ingame3D)),
+        );
     }
 }
