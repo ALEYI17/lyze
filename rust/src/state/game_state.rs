@@ -6,6 +6,7 @@ pub enum GameState {
     MainMenu,
     InGame,
     Ingame3D,
+    InCombat,
     PauseMenu,
 }
 

@@ -3,7 +3,7 @@ use godot::classes::{CharacterBody3D, Input, class_macros::private::virtuals::Xr
 use godot_bevy::prelude::*;
 
 use crate::{
-    characters::components::stats::{Gravity, JumpVelocity, Speed},
+    characters::components::stats::{Damage, Gravity, Health, JumpVelocity, Speed},
     state::GameState,
 };
 
@@ -13,6 +13,8 @@ use crate::{
     require(speed: Speed, as = f32, default = 10.0),
     require(jump_velocity: JumpVelocity, as = f32, default = 20.0),
     require(player_gravity: Gravity, as = f32, default = 98.0),
+    require(health: Health, as = f32, default = 50.0),
+    require(damage: Damage, as = f32, default = 15.0),
 )]
 pub struct Player3DNode;
 

@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://c6yxa7whisfrg"]
+
+[ext_resource type="Texture2D" uid="uid://bherj2cvvdo05" path="res://assets/Enemies/Enemy1.png" id="1_00paa"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_u5bk5"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kddjp"]
+size = Vector3(4.5, 1, 4.5)
+
+[node name="CapeEnemy3d" type="CapeEnemy3D" unique_id=247171508]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1221596812]
+shape = SubResource("BoxShape3D_u5bk5")
+
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=1100491143]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
+billboard = 1
+shaded = true
+alpha_cut = 1
+texture_filter = 0
+texture = ExtResource("1_00paa")
+
+[node name="combat_area" type="Area3D" parent="." unique_id=1420064286]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="combat_area" unique_id=3657535]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.030670166, 0, -0.4283142)
+shape = SubResource("BoxShape3D_kddjp")
+debug_color = Color(0.874801, 0.31862077, 0.3581168, 0.41960785)

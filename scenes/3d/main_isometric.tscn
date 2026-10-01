@@ -5,6 +5,8 @@
 [ext_resource type="PackedScene" uid="uid://dycrpavd0cpf6" path="res://scenes/3d/girl_npc.tscn" id="3_756dp"]
 [ext_resource type="PackedScene" uid="uid://bm1mq2osfbow4" path="res://scenes/ui/dialogue_hud.tscn" id="4_a55pu"]
 [ext_resource type="PackedScene" uid="uid://chufwnv6d2j5v" path="res://scenes/ui/pause_menu.tscn" id="5_f8di4"]
+[ext_resource type="PackedScene" uid="uid://c6yxa7whisfrg" path="res://scenes/enemies/cape_enemy_3d.tscn" id="6_lc0ey"]
+[ext_resource type="PackedScene" uid="uid://byfq4cwb7wawl" path="res://scenes/ui/combat_hud.tscn" id="7_cg2mx"]
 
 [node name="main_isometric" type="Node3D" unique_id=1895004924]
 
@@ -30,4 +32,11 @@ npc_dialogue = Array[String](["Hola ", "Adri", "soy ", "un", "npc"])
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0186825, -3.1569061)
 
 [node name="Pause_menu" parent="." unique_id=1547655908 instance=ExtResource("5_f8di4")]
+visible = false
+
+[node name="CapeEnemy3d" parent="." unique_id=247171508 instance=ExtResource("6_lc0ey")]
+health = 75.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.331245, 1.5140269, 9.90103)
+
+[node name="CombatHud" parent="." unique_id=288455881 instance=ExtResource("7_cg2mx")]
 visible = false

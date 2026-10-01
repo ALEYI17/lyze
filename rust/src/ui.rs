@@ -1,3 +1,4 @@
+pub mod combat_hud;
 pub mod dialogue_hud;
 mod hud;
 mod main_menu;
@@ -11,6 +12,7 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(main_menu::MainMenuPlugin)
             .add_plugins(pause_menu::PauseMenuPlugin)
-            .add_plugins(hud::HudPlugin);
+            .add_plugins(hud::HudPlugin)
+            .add_plugins(combat_hud::CombatHudPlugin);
     }
 }

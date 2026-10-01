@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://byfq4cwb7wawl"]
+
+[node name="CombatHud" type="CombatHud" unique_id=288455881]
+
+[node name="Control" type="Control" parent="." unique_id=1273471873]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="attack_1" type="Button" parent="Control" unique_id=732887277]
+layout_mode = 0
+offset_left = 547.0
+offset_top = 606.0
+offset_right = 651.0
+offset_bottom = 655.0
+text = "Attack 1"

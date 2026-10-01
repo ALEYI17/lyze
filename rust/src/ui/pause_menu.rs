@@ -37,7 +37,7 @@ fn toggle_pause_menu(
 
     if input.is_action_pressed("pause") {
         let actual_state = state.get();
-        if  !matches!(actual_state, GameState::InGame | GameState::Ingame3D){
+        if !matches!(actual_state, GameState::InGame | GameState::Ingame3D) {
             godot_print!("Press but not Ingame");
             return;
         }
