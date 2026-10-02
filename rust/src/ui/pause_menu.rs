@@ -63,9 +63,7 @@ fn initialized_pause_menu(mut menu_assets: ResMut<PauseMenuAssets>, mut scene_tr
             menu_assets.resume_button = Some(menu_ui.resume_button);
             menu_assets.main_menu_button = Some(menu_ui.main_menu_button);
             menu_assets.initialized = true;
-
         }
-        
     } else {
         godot_print!("Main Menu scene not avaible");
     }

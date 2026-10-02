@@ -3,6 +3,7 @@ use godot::classes::{CanvasLayer, class_macros::private::virtuals::Xrvrs::Gd};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
+use crate::events::combat::NextTurn;
 use crate::{
     events::{combat::CombatResource, damage::DamageEvent},
     state::GameState,
@@ -51,11 +52,10 @@ fn initialized_combat_hud(
     mut scene_tree: SceneTreeRef,
 ) {
     if let Some(root) = scene_tree.get().get_root() {
-        if let Ok(menu_ui) = CombatHUdUi::from_node(root){
+        if let Ok(menu_ui) = CombatHUdUi::from_node(root) {
             combat_assets.combat_hud = Some(menu_ui.combat_hud);
             combat_assets.attack_button = Some(menu_ui.attack_button);
             combat_assets.initialized = true;
-
         }
     } else {
         godot_print!("Main Menu scene not avaible");
@@ -85,9 +85,13 @@ fn connect_button(
 
 fn on_attack_button(
     _trigger: On<AttackEvent>,
-    combat_resource: Res<CombatResource>,
+    combat_resource: ResMut<CombatResource>,
     mut commands: Commands,
 ) {
+    let Some(current_entity) = combat_resource.current_entity() else {
+        return;
+    };
+
     let Some(enemy) = combat_resource.enemy else {
         return;
     };
@@ -96,10 +100,17 @@ fn on_attack_button(
         return;
     };
 
+    if player != current_entity {
+        godot_print!("Not your turn");
+        return;
+    }
+
     commands.trigger(DamageEvent {
         source: player,
         target: enemy,
     });
+
+    commands.trigger(NextTurn);
 }
 
 fn enter_combat_hud(

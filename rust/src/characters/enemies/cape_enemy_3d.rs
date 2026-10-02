@@ -14,7 +14,10 @@ use crate::{
         components::stats::{Damage, Gravity, Health, Speed},
         player_3d::Player3DNode,
     },
-    events::combat::{DiedInCombat, EnterCombatEvent},
+    events::{
+        combat::{CombatResource, DiedInCombat, EnterCombatEvent, NextTurn, TurnStarted},
+        damage::DamageEvent,
+    },
     state::GameState,
 };
 
@@ -101,10 +104,37 @@ fn on_area_enter(
     });
 }
 
+fn on_enemy_turn(
+    trigger: On<TurnStarted>,
+    query: Query<&GodotNodeHandle, With<CapeEnemyNode3D>>,
+    mut commands: Commands,
+    combat_resource: Res<CombatResource>,
+) {
+
+    godot_print!("Receive event");
+    let entity = trigger.event().entity;
+
+    let Ok(handle) = query.get(entity) else {
+        return;
+    };
+
+    let Some(player) = combat_resource.player else {
+        return;
+    };
+
+    godot_print!("Enemy entity:{}, handle: {:?}", entity, handle);
+    commands.trigger(DamageEvent {
+        source: entity,
+        target: player,
+    });
+
+    commands.trigger(NextTurn);
+}
+
 fn kill_enemy_3d(mut commands: Commands, query: Query<(Entity, &Health), With<CapeEnemyNode3D>>) {
     for (entity, health) in &query {
         if health.0 <= 0.0 {
-            commands.trigger(DiedInCombat{entity});
+            commands.trigger(DiedInCombat { entity });
             commands.entity(entity).despawn();
         }
     }
@@ -119,6 +149,7 @@ impl Plugin for CapeEnemy3DPlugin {
             initialized_cape_enemy.run_if(in_state(GameState::Ingame3D)),
         )
         .add_systems(Update, kill_enemy_3d.run_if(in_state(GameState::InCombat)))
-        .add_observer(on_area_enter);
+        .add_observer(on_area_enter)
+        .add_observer(on_enemy_turn);
     }
 }

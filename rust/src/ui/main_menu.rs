@@ -37,14 +37,13 @@ fn reset_menu_assets(mut menu_assets: ResMut<MenuAssets>) {
 
 fn initialized_main_menu(mut menu_assets: ResMut<MenuAssets>, mut scene_tree: SceneTreeRef) {
     if let Some(root) = scene_tree.get().get_root() {
-        if let Ok(menu_ui) = MainMenuUi::from_node(root){
+        if let Ok(menu_ui) = MainMenuUi::from_node(root) {
             godot_print!("Found menu node");
             menu_assets.start_button = Some(menu_ui.start_button);
             menu_assets.quit_button = Some(menu_ui.quit_button);
             menu_assets.two_point_five = Some(menu_ui.two_pint_five_button);
             menu_assets.initialized = true;
         }
-        
     } else {
         godot_print!("Main Menu scene not avaible");
     }
