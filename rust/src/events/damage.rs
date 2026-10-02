@@ -30,7 +30,7 @@ fn on_damage_event(
     };
 
     godot_print!("Target health: {}", health.0);
-    health.0 = health.0 - damage.0;
+    health.0 -= damage.0;
     godot_print!("Target health after: {}", health.0);
 }
 

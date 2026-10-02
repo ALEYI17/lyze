@@ -57,16 +57,15 @@ fn reset_menu_assets(mut menu_assets: ResMut<PauseMenuAssets>) {
 
 fn initialized_pause_menu(mut menu_assets: ResMut<PauseMenuAssets>, mut scene_tree: SceneTreeRef) {
     if let Some(root) = scene_tree.get().get_root() {
-        match PauseMenuUi::from_node(root) {
-            Ok(menu_ui) => {
-                godot_print!("Found menu node");
-                menu_assets.pause_menu = Some(menu_ui.pause_menu);
-                menu_assets.resume_button = Some(menu_ui.resume_button);
-                menu_assets.main_menu_button = Some(menu_ui.main_menu_button);
-                menu_assets.initialized = true;
-            }
-            Err(_) => {}
+        if let Ok(menu_ui) = PauseMenuUi::from_node(root) {
+            godot_print!("Found menu node");
+            menu_assets.pause_menu = Some(menu_ui.pause_menu);
+            menu_assets.resume_button = Some(menu_ui.resume_button);
+            menu_assets.main_menu_button = Some(menu_ui.main_menu_button);
+            menu_assets.initialized = true;
+
         }
+        
     } else {
         godot_print!("Main Menu scene not avaible");
     }

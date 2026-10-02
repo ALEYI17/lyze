@@ -22,9 +22,7 @@ fn get_custom_character_body_3d(
     handle: &GodotNodeHandle,
     godot: &mut GodotAccess,
 ) -> Option<Gd<CharacterBody3D>> {
-    let Some(body) = godot.try_get::<CharacterBody3D>(*handle) else {
-        return None;
-    };
+    let body = godot.try_get::<CharacterBody3D>(*handle)?;
     Some(body)
 }
 

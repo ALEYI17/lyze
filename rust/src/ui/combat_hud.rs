@@ -34,9 +34,7 @@ fn get_custom_canvas_layer(
     handle: &GodotNodeHandle,
     godot: &mut GodotAccess,
 ) -> Option<Gd<CanvasLayer>> {
-    let Some(canvas) = godot.try_get::<CanvasLayer>(*handle) else {
-        return None;
-    };
+    let canvas = godot.try_get::<CanvasLayer>(*handle)?;
     Some(canvas)
 }
 
@@ -53,13 +51,11 @@ fn initialized_combat_hud(
     mut scene_tree: SceneTreeRef,
 ) {
     if let Some(root) = scene_tree.get().get_root() {
-        match CombatHUdUi::from_node(root) {
-            Ok(menu_ui) => {
-                combat_assets.combat_hud = Some(menu_ui.combat_hud);
-                combat_assets.attack_button = Some(menu_ui.attack_button);
-                combat_assets.initialized = true;
-            }
-            Err(_) => {}
+        if let Ok(menu_ui) = CombatHUdUi::from_node(root){
+            combat_assets.combat_hud = Some(menu_ui.combat_hud);
+            combat_assets.attack_button = Some(menu_ui.attack_button);
+            combat_assets.initialized = true;
+
         }
     } else {
         godot_print!("Main Menu scene not avaible");

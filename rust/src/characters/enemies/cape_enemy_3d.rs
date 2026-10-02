@@ -33,16 +33,12 @@ fn get_custom_character_body_3d(
     handle: &GodotNodeHandle,
     godot: &mut GodotAccess,
 ) -> Option<Gd<CharacterBody3D>> {
-    let Some(body) = godot.try_get::<CharacterBody3D>(*handle) else {
-        return None;
-    };
+    let body = godot.try_get::<CharacterBody3D>(*handle)?;
     Some(body)
 }
 
 fn get_combat_area_node(body: &Gd<CharacterBody3D>) -> Option<Gd<Area3D>> {
-    let Some(area_handle) = body.get_node_or_null("combat_area") else {
-        return None;
-    };
+    let area_handle = body.get_node_or_null("combat_area")?;
 
     let Ok(area) = area_handle.try_cast::<Area3D>() else {
         return None;

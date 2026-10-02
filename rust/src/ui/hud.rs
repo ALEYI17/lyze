@@ -25,13 +25,10 @@ fn reset_hud_assets(mut hud_assets: ResMut<HudAssets>) {
 
 fn initialized_hud(mut hud_assets: ResMut<HudAssets>, mut scene_tree: SceneTreeRef) {
     if let Some(root) = scene_tree.get().get_root() {
-        match HudUi::from_node(root) {
-            Ok(hud_ui) => {
-                godot_print!("Found hud");
-                hud_assets.player_health = Some(hud_ui.health);
-                hud_assets.initialized = true;
-            }
-            Err(_) => {}
+        if let Ok(hud_ui) = HudUi::from_node(root) {
+            godot_print!("Found hud");
+            hud_assets.player_health = Some(hud_ui.health);
+            hud_assets.initialized = true;
         }
     } else {
         godot_print!("Not found hud");
@@ -57,7 +54,7 @@ fn set_player_health(
         return;
     };
 
-    let text = format!("Health: {}", &health.0);
+    let text = format!("Health: {}", health.0);
     node.set_text(&text);
 }
 

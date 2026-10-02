@@ -100,7 +100,7 @@ fn initialize_cape_enemy(
                     let p_id = get_parent_instance_id(args)?;
 
                     Some(EnteredBody {
-                        entity: entity,
+                        entity,
                         instance_id: p_id,
                     })
                 },
@@ -134,7 +134,7 @@ fn initialize_cape_enemy(
 }
 
 fn get_parent_instance_id(args: &[Variant]) -> Option<InstanceId> {
-    let area = args.get(0)?;
+    let area = args.first()?;
     let area = area.try_to::<Gd<Area2D>>().ok()?;
     let parent = area.get_parent()?;
 

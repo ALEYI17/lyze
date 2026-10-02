@@ -10,15 +10,11 @@ pub fn get_custom_canvas_layer(
     handle: &GodotNodeHandle,
     godot: &mut GodotAccess,
 ) -> Option<Gd<CanvasLayer>> {
-    let Some(canvas) = godot.try_get::<CanvasLayer>(*handle) else {
-        return None;
-    };
+    let canvas = godot.try_get::<CanvasLayer>(*handle)?;
     Some(canvas)
 }
 pub fn get_speaker_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
-    let Some(speaker_handle) = canvas.get_node_or_null("Panel/speaker") else {
-        return None;
-    };
+    let speaker_handle = canvas.get_node_or_null("Panel/speaker")?;
 
     let Ok(speaker) = speaker_handle.try_cast::<Label>() else {
         return None;
@@ -28,9 +24,7 @@ pub fn get_speaker_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
 }
 
 pub fn get_text_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
-    let Some(speaker_handle) = canvas.get_node_or_null("Panel/Text") else {
-        return None;
-    };
+    let speaker_handle = canvas.get_node_or_null("Panel/Text")?;
 
     let Ok(speaker) = speaker_handle.try_cast::<Label>() else {
         return None;

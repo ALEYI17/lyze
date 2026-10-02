@@ -70,9 +70,7 @@ fn from_godot_array(value: Array<GString>) -> Vec<String> {
 }
 
 fn get_interacion_label(area: &Gd<Area3D>) -> Option<Gd<Label3D>> {
-    let Some(label_handle) = area.get_node_or_null("Label3D") else {
-        return None;
-    };
+    let label_handle = area.get_node_or_null("Label3D")?;
 
     let Ok(label) = label_handle.try_cast::<Label3D>() else {
         return None;
