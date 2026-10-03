@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://chufwnv6d2j5v" path="res://scenes/ui/pause_menu.tscn" id="5_f8di4"]
 [ext_resource type="PackedScene" uid="uid://c6yxa7whisfrg" path="res://scenes/enemies/cape_enemy_3d.tscn" id="6_lc0ey"]
 [ext_resource type="PackedScene" uid="uid://byfq4cwb7wawl" path="res://scenes/ui/combat_hud.tscn" id="7_cg2mx"]
+[ext_resource type="PackedScene" uid="uid://daxh1s0qboux8" path="res://scenes/enemies/enemy_Encounter.tscn" id="8_5cho4"]
+[ext_resource type="PackedScene" uid="uid://cf0lhf2dibm1w" path="res://scenes/ui/HUD.tscn" id="9_yq26l"]
 
 [node name="main_isometric" type="Node3D" unique_id=1895004924]
 
@@ -34,9 +36,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0186825, -3.1569061)
 [node name="Pause_menu" parent="." unique_id=1547655908 instance=ExtResource("5_f8di4")]
 visible = false
 
-[node name="CapeEnemy3d" parent="." unique_id=247171508 instance=ExtResource("6_lc0ey")]
-health = 75.0
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.331245, 1.5140269, 9.90103)
-
 [node name="CombatHud" parent="." unique_id=288455881 instance=ExtResource("7_cg2mx")]
 visible = false
+
+[node name="EnemyEncounter" parent="." unique_id=697673259 instance=ExtResource("8_5cho4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.07051, 1.6226668, 0)
+
+[node name="CollisionShape3D" parent="EnemyEncounter" index="0" unique_id=2134172080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.035919905, 0)
+
+[node name="CapeEnemy3d" parent="EnemyEncounter" unique_id=492072302 instance=ExtResource("6_lc0ey")]
+
+[node name="CapeEnemy3d2" parent="EnemyEncounter" unique_id=247171508 instance=ExtResource("6_lc0ey")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.5720358)
+
+[node name="Hud" parent="." unique_id=2131845399 instance=ExtResource("9_yq26l")]
+
+[editable path="EnemyEncounter"]

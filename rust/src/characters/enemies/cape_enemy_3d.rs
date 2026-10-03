@@ -1,21 +1,20 @@
 use bevy::prelude::*;
 use godot::{
-    classes::{Area3D, CharacterBody3D},
+    classes::{CharacterBody3D, Label3D},
     prelude::*,
 };
 use godot_bevy::{
-    interop::{Area3DSignals, GodotAccess, GodotNodeHandle},
-    plugins::signals::GodotSignals,
+    interop::{GodotAccess, GodotNodeHandle},
     prelude::GodotNode,
 };
 
 use crate::{
     characters::{
-        components::stats::{Damage, Gravity, Health, Speed},
-        player_3d::Player3DNode,
+        components::stats::{Alive, Damage, Gravity, Health, Speed},
+        player_3d::get_custom_character_body_3d,
     },
     events::{
-        combat::{CombatResource, DiedInCombat, EnterCombatEvent, NextTurn, TurnStarted},
+        combat::{CombatResource, DiedInCombat, NextTurn, TurnStarted},
         damage::DamageEvent,
     },
     state::GameState,
@@ -28,95 +27,37 @@ use crate::{
     require(health: Health, as = f32, default = 50.0),
     require(damage: Damage, as = f32, default = 5.0),
     require(enemy_gravity: Gravity, as = f32, default = 980.0),
-    require(enemy_initialized: Initialized, as = bool, default = false),
+    require(alive: Alive, as = bool, default = true),
 )]
 pub struct CapeEnemyNode3D;
 
-fn get_custom_character_body_3d(
-    handle: &GodotNodeHandle,
-    godot: &mut GodotAccess,
-) -> Option<Gd<CharacterBody3D>> {
-    let body = godot.try_get::<CharacterBody3D>(*handle)?;
-    Some(body)
-}
+fn get_health_in_label(body: &Gd<CharacterBody3D>) -> Option<Gd<Label3D>> {
+    let label_node = body.get_node_or_null("Label3D")?;
 
-fn get_combat_area_node(body: &Gd<CharacterBody3D>) -> Option<Gd<Area3D>> {
-    let area_handle = body.get_node_or_null("combat_area")?;
-
-    let Ok(area) = area_handle.try_cast::<Area3D>() else {
+    let Ok(label) = label_node.try_cast::<Label3D>() else {
         return None;
     };
 
-    Some(area)
-}
-
-#[derive(Component)]
-struct Initialized(bool);
-
-#[derive(Event, Debug, Clone)]
-struct EntereArea {
-    entity: Option<Entity>,
-}
-
-fn initialized_cape_enemy(
-    query: Query<(Entity, &GodotNodeHandle, &Initialized), With<CapeEnemyNode3D>>,
-    signal_enter: GodotSignals<EntereArea>,
-    mut godot: GodotAccess,
-) {
-    for (entity, handle, initialized) in query {
-        if initialized.0 {
-            return;
-        }
-
-        let Some(body) = get_custom_character_body_3d(handle, &mut godot) else {
-            return;
-        };
-
-        let Some(hitbox) = get_combat_area_node(&body) else {
-            return;
-        };
-
-        signal_enter.connect(
-            hitbox.into(),
-            Area3DSignals::BODY_ENTERED,
-            Some(entity),
-            |_args, _node_handle, ent| Some(EntereArea { entity: ent }),
-        );
-    }
-}
-
-fn on_area_enter(
-    trigger: On<EntereArea>,
-    mut commands: Commands,
-    player_query: Query<Entity, With<Player3DNode>>,
-) {
-    let Some(entity) = trigger.event().entity else {
-        return;
-    };
-
-    let Ok(entity_player) = player_query.single() else {
-        return;
-    };
-
-    commands.trigger(EnterCombatEvent {
-        enemy: entity,
-        player: entity_player,
-    });
+    Some(label)
 }
 
 fn on_enemy_turn(
     trigger: On<TurnStarted>,
-    query: Query<&GodotNodeHandle, With<CapeEnemyNode3D>>,
+    query: Query<(&GodotNodeHandle, &Alive), With<CapeEnemyNode3D>>,
     mut commands: Commands,
     combat_resource: Res<CombatResource>,
 ) {
-
     godot_print!("Receive event");
     let entity = trigger.event().entity;
 
-    let Ok(handle) = query.get(entity) else {
+    let Ok((handle, alive)) = query.get(entity) else {
         return;
     };
+
+    if !alive.0 {
+        commands.trigger(NextTurn);
+        return;
+    }
 
     let Some(player) = combat_resource.player else {
         return;
@@ -131,11 +72,38 @@ fn on_enemy_turn(
     commands.trigger(NextTurn);
 }
 
-fn kill_enemy_3d(mut commands: Commands, query: Query<(Entity, &Health), With<CapeEnemyNode3D>>) {
-    for (entity, health) in &query {
-        if health.0 <= 0.0 {
+fn update_health_label(
+    query: Query<(&GodotNodeHandle, &Health), With<CapeEnemyNode3D>>,
+    mut godot: GodotAccess,
+) {
+    for (handle, health) in query {
+        let Some(body) = get_custom_character_body_3d(handle, &mut godot) else {
+            continue;
+        };
+
+        let Some(mut label) = get_health_in_label(&body) else {
+            continue;
+        };
+
+        let text = format!("{}", health.0);
+        label.set_text(&text);
+    }
+}
+
+fn kill_enemy_3d(
+    mut commands: Commands,
+    query: Query<(Entity, &GodotNodeHandle, &Health, &mut Alive), With<CapeEnemyNode3D>>,
+    mut godot: GodotAccess,
+) {
+    for (entity, handle, health, mut alive) in query {
+        if health.0 <= 0.0 && alive.0 {
+            let Some(mut body) = get_custom_character_body_3d(handle, &mut godot) else {
+                continue;
+            };
+
+            body.set_visible(false);
             commands.trigger(DiedInCombat { entity });
-            commands.entity(entity).despawn();
+            alive.0 = false;
         }
     }
 }
@@ -144,12 +112,11 @@ pub struct CapeEnemy3DPlugin;
 
 impl Plugin for CapeEnemy3DPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            initialized_cape_enemy.run_if(in_state(GameState::Ingame3D)),
-        )
-        .add_systems(Update, kill_enemy_3d.run_if(in_state(GameState::InCombat)))
-        .add_observer(on_area_enter)
-        .add_observer(on_enemy_turn);
+        app.add_systems(Update, kill_enemy_3d.run_if(in_state(GameState::InCombat)))
+            .add_systems(
+                Update,
+                update_health_label.run_if(in_state(GameState::InCombat)),
+            )
+            .add_observer(on_enemy_turn);
     }
 }

@@ -4,6 +4,7 @@ use godot_bevy::prelude::*;
 
 use crate::{
     characters::components::stats::{Damage, Gravity, Health, JumpVelocity, Speed},
+    events::combat::DiedInCombat,
     state::GameState,
 };
 
@@ -18,7 +19,7 @@ use crate::{
 )]
 pub struct Player3DNode;
 
-fn get_custom_character_body_3d(
+pub fn get_custom_character_body_3d(
     handle: &GodotNodeHandle,
     godot: &mut GodotAccess,
 ) -> Option<Gd<CharacterBody3D>> {
@@ -79,6 +80,15 @@ fn move_player_3d_node(
     body.move_and_slide();
 }
 
+fn kill_player(query: Query<(Entity, &Health), With<Player3DNode>>, mut commands: Commands) {
+    let Ok((entity, health)) = query.single() else {
+        return;
+    };
+
+    if health.0 <= 0.0 {
+        commands.trigger(DiedInCombat { entity });
+    }
+}
 pub struct Player3DPlugin;
 
 impl Plugin for Player3DPlugin {
@@ -86,6 +96,7 @@ impl Plugin for Player3DPlugin {
         app.add_systems(
             Update,
             move_player_3d_node.run_if(in_state(GameState::Ingame3D)),
-        );
+        )
+        .add_systems(Update, kill_player.run_if(in_state(GameState::InCombat)));
     }
 }

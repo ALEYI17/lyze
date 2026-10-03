@@ -5,6 +5,7 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_kddjp"]
 
 [node name="Player3D" type="Player3D" unique_id=383785677]
+collision_layer = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=480554217]
 shape = SubResource("BoxShape3D_kddjp")

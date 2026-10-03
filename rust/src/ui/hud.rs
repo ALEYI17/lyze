@@ -1,4 +1,4 @@
-use crate::characters::players::PlayerNode;
+use crate::characters::player_3d::Player3DNode;
 use bevy::prelude::*;
 use godot::classes::Label;
 use godot::prelude::*;
@@ -14,7 +14,7 @@ struct HudAssets {
 
 #[derive(NodeTreeView)]
 struct HudUi {
-    #[node("/root/Node2D/Hud/Control/player_healt")]
+    #[node("/root/main_isometric/Hud/Control/player_healt")]
     pub health: GodotNodeHandle,
 }
 
@@ -37,7 +37,7 @@ fn initialized_hud(mut hud_assets: ResMut<HudAssets>, mut scene_tree: SceneTreeR
 
 fn set_player_health(
     hud_assets: ResMut<HudAssets>,
-    query: Query<&Health, With<PlayerNode>>,
+    query: Query<&Health, With<Player3DNode>>,
     mut godot: GodotAccess,
 ) {
     let Ok(health) = query.single() else {
