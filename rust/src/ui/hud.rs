@@ -69,6 +69,6 @@ impl Plugin for HudPlugin {
         app.init_resource::<HudAssets>()
             .add_systems(Update, set_player_health)
             .add_systems(Update, initialized_hud.run_if(hud_is_not_initialized))
-            .add_systems(OnEnter(GameState::InGame), reset_hud_assets);
+            .add_systems(OnEnter(GameState::Ingame3D), reset_hud_assets);
     }
 }

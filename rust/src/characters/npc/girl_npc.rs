@@ -12,9 +12,11 @@ use godot::{
 use godot_bevy::prelude::*;
 
 use crate::{
-    characters::components::stats::Initialized, state::GameState, ui::dialogue_hud::{
+    characters::components::stats::Initialized,
+    state::GameState,
+    ui::dialogue_hud::{
         DialogueHudNode, get_custom_canvas_layer, get_speaker_label, get_text_label,
-    }
+    },
 };
 
 // Components
@@ -260,7 +262,9 @@ impl Plugin for GirlNpcPlugin {
             )
             .add_systems(
                 Update,
-                start_interaction.run_if(in_state(GameState::Ingame3D).or(in_state(GameState::Indialogue))),
+                start_interaction.run_if(
+                    in_state(GameState::Ingame3D).or_eager(in_state(GameState::Indialogue)),
+                ),
             )
             .add_observer(on_dialogue_enter)
             .add_observer(on_dialogue_exit);

@@ -4,7 +4,7 @@ use godot::prelude::*;
 use godot_bevy::prelude::*;
 
 use crate::characters::components::stats::Alive;
-use crate::events::combat::NextTurn;
+use crate::events::combat::{CombatTarget, NextTurn};
 use crate::{
     events::{combat::CombatResource, damage::DamageEvent},
     state::GameState,
@@ -88,18 +88,14 @@ fn on_attack_button(
     _trigger: On<AttackEvent>,
     combat_resource: ResMut<CombatResource>,
     mut commands: Commands,
-    alive_query: Query<&Alive>,
+    _alive_query: Query<&Alive>,
+    target: Res<CombatTarget>,
 ) {
     let Some(current_entity) = combat_resource.current_entity() else {
         return;
     };
 
-    let Some(&enemy) = combat_resource
-        .enemy
-        .iter()
-        .find(|&&entity| alive_query.get(entity).is_ok_and(|alive| alive.0))
-    else {
-        godot_print!("No alive enemies");
+    let Some(enemy) = target.target else {
         return;
     };
 

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use godot::{
-    classes::{CharacterBody3D, Label3D},
+    classes::{CharacterBody3D, Label3D, Sprite3D},
     prelude::*,
 };
 use godot_bevy::{
@@ -14,7 +14,7 @@ use crate::{
         player_3d::get_custom_character_body_3d,
     },
     events::{
-        combat::{CombatResource, DiedInCombat, NextTurn, TurnStarted},
+        combat::{CombatResource, CombatTarget, DiedInCombat, NextTurn, TurnStarted},
         damage::DamageEvent,
     },
     state::GameState,
@@ -39,6 +39,24 @@ fn get_health_in_label(body: &Gd<CharacterBody3D>) -> Option<Gd<Label3D>> {
     };
 
     Some(label)
+}
+
+pub fn get_sprite(body: Gd<CharacterBody3D>) -> Option<Gd<Sprite3D>> {
+    let sprite_handle = body.get_node_or_null("Sprite3D")?;
+
+    let Ok(sprite) = sprite_handle.try_cast::<Sprite3D>() else {
+        return None;
+    };
+
+    Some(sprite)
+}
+
+pub fn set_shader_true(sprite: &mut Gd<Sprite3D>) {
+    sprite.set_instance_shader_parameter("effect_enabled", &true.to_variant());
+}
+
+pub fn set_shader_false(sprite: &mut Gd<Sprite3D>) {
+    sprite.set_instance_shader_parameter("effect_enabled", &false.to_variant());
 }
 
 fn on_enemy_turn(
@@ -108,6 +126,32 @@ fn kill_enemy_3d(
     }
 }
 
+fn is_target(
+    target: Res<CombatTarget>,
+    query: Query<(Entity, &GodotNodeHandle), With<CapeEnemyNode3D>>,
+    mut godot: GodotAccess,
+) {
+    for (entity, handle) in query {
+        let Some(target) = target.target else {
+            return;
+        };
+
+        let Some(body) = get_custom_character_body_3d(handle, &mut godot) else {
+            return;
+        };
+
+        let Some(mut sprite) = get_sprite(body) else {
+            return;
+        };
+
+        if entity == target {
+            set_shader_true(&mut sprite);
+        } else {
+            set_shader_false(&mut sprite);
+        }
+    }
+}
+
 pub struct CapeEnemy3DPlugin;
 
 impl Plugin for CapeEnemy3DPlugin {
@@ -117,6 +161,7 @@ impl Plugin for CapeEnemy3DPlugin {
                 Update,
                 update_health_label.run_if(in_state(GameState::InCombat)),
             )
+            .add_systems(Update, is_target.run_if(in_state(GameState::InCombat)))
             .add_observer(on_enemy_turn);
     }
 }

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use godot::prelude::*;
+use godot::{classes::Input, prelude::*};
+use godot_bevy::interop::GodotAccess;
 
 use crate::{characters::components::stats::Alive, state::GameState};
 
@@ -25,6 +26,12 @@ pub struct DiedInCombat {
 #[derive(Event)]
 struct EndCombat {
     win: bool,
+}
+
+#[derive(Resource, Default)]
+pub struct CombatTarget {
+    pub target: Option<Entity>,
+    index: usize,
 }
 
 #[derive(Resource, Default)]
@@ -130,6 +137,7 @@ fn on_end_combat(
     mut app_state: ResMut<NextState<GameState>>,
     mut commands: Commands,
     mut combat_resource: ResMut<CombatResource>,
+    mut target: ResMut<CombatTarget>,
 ) {
     if trigger.event().win {
         for enemy in &combat_resource.enemy {
@@ -145,6 +153,8 @@ fn on_end_combat(
         combat_resource.encounter = None;
         combat_resource.turn_order.clear();
         combat_resource.current_turn = 0;
+
+        target.target = None;
         app_state.set(GameState::Ingame3D);
     } else {
         let Some(player) = combat_resource.player else {
@@ -155,14 +165,72 @@ fn on_end_combat(
     }
 }
 
+fn select_target(
+    combat_resource: Res<CombatResource>,
+    mut target: ResMut<CombatTarget>,
+    mut godot: GodotAccess,
+    query_alive: Query<&Alive>,
+) {
+    let alive_entities: Vec<Entity> = combat_resource
+        .turn_order
+        .iter()
+        .filter(|entity| {
+            query_alive
+                .get(**entity)
+                .is_ok_and(|alive| alive.0)
+        })
+        .copied()
+        .collect();
+
+    if alive_entities.is_empty(){
+        return;
+    }
+
+    if target.target.is_none() {
+        let Some(first) = alive_entities.first().copied() else {
+            return;
+        };
+
+        target.target = Some(first);
+        target.index = 0;
+
+        godot_print!(
+            "Actual target: {:?}, actual index: {}",
+            target.target,
+            target.index
+        );
+    }
+
+    let input = godot.singleton::<Input>();
+
+    if input.is_action_just_pressed("move_right") {
+        let actual_index = (target.index + 1) % alive_entities.len();
+
+        let Some(next_entity) = alive_entities.get(actual_index).copied() else {
+            return;
+        };
+
+        target.target = Some(next_entity);
+        target.index = actual_index;
+
+        godot_print!(
+            "Actual target: {:?}, actual index: {}",
+            target.target,
+            target.index
+        );
+    }
+}
+
 pub struct CombatPlugin;
 
 impl Plugin for CombatPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CombatResource>()
+            .init_resource::<CombatTarget>()
             .add_observer(on_died_in_combat)
             .add_observer(on_enter_combat)
             .add_observer(on_next_turn)
-            .add_observer(on_end_combat);
+            .add_observer(on_end_combat)
+            .add_systems(Update, select_target.run_if(in_state(GameState::InCombat)));
     }
 }

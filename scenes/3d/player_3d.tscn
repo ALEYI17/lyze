@@ -1,8 +1,15 @@
 [gd_scene format=3 uid="uid://c81wegri1vcnr"]
 
+[ext_resource type="Shader" uid="uid://jk05luuwh64i" path="res://scenes/enemies/cape_enemy_3d.gdshader" id="1_j808m"]
 [ext_resource type="Texture2D" uid="uid://cmpn71d7mldmb" path="res://assets/player/player.png" id="1_vt4iu"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_kddjp"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_krpui"]
+render_priority = 0
+shader = ExtResource("1_j808m")
+shader_parameter/use_billboard = false
+shader_parameter/albedo_texture = ExtResource("1_vt4iu")
 
 [node name="Player3D" type="Player3D" unique_id=383785677]
 collision_layer = 2
@@ -12,6 +19,7 @@ shape = SubResource("BoxShape3D_kddjp")
 
 [node name="Sprite3D" type="Sprite3D" parent="." unique_id=643905280]
 transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
+material_override = SubResource("ShaderMaterial_krpui")
 billboard = 1
 shaded = true
 alpha_cut = 1

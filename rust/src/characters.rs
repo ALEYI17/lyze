@@ -1,5 +1,5 @@
 pub mod components;
-mod enemies;
+pub mod enemies;
 mod npc;
 pub mod player_3d;
 pub mod players;

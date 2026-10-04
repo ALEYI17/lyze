@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 mod ai;
 mod cape_enemy;
-mod cape_enemy_3d;
-mod enemy_encounter;
+pub mod cape_enemy_3d;
+pub mod enemy_encounter;
 
 pub struct EnemiesPlugin;
 

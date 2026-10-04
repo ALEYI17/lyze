@@ -8,7 +8,7 @@ pub enum GameState {
     Ingame3D,
     InCombat,
     PauseMenu,
-    Indialogue
+    Indialogue,
 }
 
 pub struct GameStatePlugin;

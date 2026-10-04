@@ -1,8 +1,15 @@
 [gd_scene format=3 uid="uid://c6yxa7whisfrg"]
 
 [ext_resource type="Texture2D" uid="uid://bherj2cvvdo05" path="res://assets/Enemies/Enemy1.png" id="1_00paa"]
+[ext_resource type="Shader" uid="uid://jk05luuwh64i" path="res://scenes/enemies/cape_enemy_3d.gdshader" id="1_inyef"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_u5bk5"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_r2k8o"]
+render_priority = 0
+shader = ExtResource("1_inyef")
+shader_parameter/use_billboard = false
+shader_parameter/albedo_texture = ExtResource("1_00paa")
 
 [node name="CapeEnemy3d" type="CapeEnemy3D" unique_id=247171508]
 
@@ -11,8 +18,7 @@ shape = SubResource("BoxShape3D_u5bk5")
 
 [node name="Sprite3D" type="Sprite3D" parent="." unique_id=1100491143]
 transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
-billboard = 1
-shaded = true
+material_override = SubResource("ShaderMaterial_r2k8o")
 alpha_cut = 1
 texture_filter = 0
 texture = ExtResource("1_00paa")

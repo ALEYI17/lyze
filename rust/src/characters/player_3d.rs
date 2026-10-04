@@ -3,8 +3,11 @@ use godot::classes::{CharacterBody3D, Input, class_macros::private::virtuals::Xr
 use godot_bevy::prelude::*;
 
 use crate::{
-    characters::components::stats::{Damage, Gravity, Health, JumpVelocity, Speed},
-    events::combat::DiedInCombat,
+    characters::{
+        components::stats::{Alive, Damage, Gravity, Health, JumpVelocity, Speed},
+        enemies::cape_enemy_3d::{get_sprite, set_shader_false, set_shader_true},
+    },
+    events::combat::{CombatTarget, DiedInCombat},
     state::GameState,
 };
 
@@ -16,6 +19,7 @@ use crate::{
     require(player_gravity: Gravity, as = f32, default = 98.0),
     require(health: Health, as = f32, default = 50.0),
     require(damage: Damage, as = f32, default = 15.0),
+    require(alive: Alive, as = bool, default = true),
 )]
 pub struct Player3DNode;
 
@@ -89,6 +93,35 @@ fn kill_player(query: Query<(Entity, &Health), With<Player3DNode>>, mut commands
         commands.trigger(DiedInCombat { entity });
     }
 }
+
+fn is_target(
+    target: Res<CombatTarget>,
+    query: Query<(Entity, &GodotNodeHandle), With<Player3DNode>>,
+    mut godot: GodotAccess,
+) {
+    let Ok((entity, handle)) = query.single() else {
+        return;
+    };
+
+    let Some(target) = target.target else {
+        return;
+    };
+
+    let Some(body) = get_custom_character_body_3d(handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut sprite) = get_sprite(body) else {
+        return;
+    };
+
+    if entity == target {
+        set_shader_true(&mut sprite);
+    } else {
+        set_shader_false(&mut sprite);
+    }
+}
+
 pub struct Player3DPlugin;
 
 impl Plugin for Player3DPlugin {
@@ -97,6 +130,7 @@ impl Plugin for Player3DPlugin {
             Update,
             move_player_3d_node.run_if(in_state(GameState::Ingame3D)),
         )
+        .add_systems(Update, is_target.run_if(in_state(GameState::InCombat)))
         .add_systems(Update, kill_player.run_if(in_state(GameState::InCombat)));
     }
 }
