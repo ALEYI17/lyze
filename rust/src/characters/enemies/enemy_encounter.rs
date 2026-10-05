@@ -1,6 +1,6 @@
 use bevy::{platform::collections::HashMap, prelude::*};
 use godot::{
-    classes::{Area3D, class_macros::private::virtuals::Xrvrs::Gd},
+    classes::{Area3D, Marker3D, class_macros::private::virtuals::Xrvrs::Gd},
     global::godot_print,
 };
 use godot_bevy::prelude::*;
@@ -30,9 +30,19 @@ pub struct EnemyEncounterRegistry {
     pub encounters: HashMap<Entity, Vec<Entity>>,
 }
 
-fn get_custom_area_3d(handle: &GodotNodeHandle, godot: &mut GodotAccess) -> Option<Gd<Area3D>> {
+pub fn get_custom_area_3d(handle: &GodotNodeHandle, godot: &mut GodotAccess) -> Option<Gd<Area3D>> {
     let area = godot.try_get::<Area3D>(*handle)?;
     Some(area)
+}
+
+pub fn get_player_starting_position(area: &Gd<Area3D>) -> Option<Gd<Marker3D>> {
+    let marker_handle = area.get_node_or_null("player_position")?;
+
+    let Ok(marker) = marker_handle.try_cast::<Marker3D>() else {
+        return None;
+    };
+
+    Some(marker)
 }
 
 fn get_childs_enemies(encounter: &Gd<Area3D>, index: &Res<NodeEntityIndex>) -> Vec<Entity> {

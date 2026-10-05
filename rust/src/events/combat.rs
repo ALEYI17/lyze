@@ -1,8 +1,17 @@
 use bevy::prelude::*;
 use godot::{classes::Input, prelude::*};
-use godot_bevy::interop::GodotAccess;
+use godot_bevy::interop::{GodotAccess, GodotNodeHandle};
 
-use crate::{characters::components::stats::Alive, state::GameState};
+use crate::{
+    characters::{
+        components::stats::Alive,
+        enemies::enemy_encounter::{
+            EnemyEncounterNode, get_custom_area_3d, get_player_starting_position,
+        },
+        player_3d::{Player3DNode, get_custom_character_body_3d},
+    },
+    state::GameState,
+};
 
 #[derive(Event)]
 pub struct EnterCombatEvent {
@@ -91,6 +100,37 @@ fn on_enter_combat(
     app_state.set(GameState::InCombat);
 }
 
+fn on_enter_combat_positions(
+    trigger: On<EnterCombatEvent>,
+    query_player: Query<&GodotNodeHandle, With<Player3DNode>>,
+    query_encounter: Query<&GodotNodeHandle, With<EnemyEncounterNode>>,
+    mut godot: GodotAccess,
+) {
+    let Ok(handle) = query_player.single() else {
+        return;
+    };
+
+    let Some(mut body) = get_custom_character_body_3d(handle, &mut godot) else {
+        return;
+    };
+
+    let Ok(encounter_handle) = query_encounter.get(trigger.event().encounter) else {
+        return;
+    };
+
+    let Some(encounter_area) = get_custom_area_3d(encounter_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(position) = get_player_starting_position(&encounter_area) else {
+        return;
+    };
+
+    let starting_position = position.get_global_position();
+
+    body.set_global_position(starting_position);
+}
+
 fn on_next_turn(
     _trigger: On<NextTurn>,
     mut combat_resource: ResMut<CombatResource>,
@@ -174,15 +214,11 @@ fn select_target(
     let alive_entities: Vec<Entity> = combat_resource
         .turn_order
         .iter()
-        .filter(|entity| {
-            query_alive
-                .get(**entity)
-                .is_ok_and(|alive| alive.0)
-        })
+        .filter(|entity| query_alive.get(**entity).is_ok_and(|alive| alive.0))
         .copied()
         .collect();
 
-    if alive_entities.is_empty(){
+    if alive_entities.is_empty() {
         return;
     }
 
@@ -231,6 +267,7 @@ impl Plugin for CombatPlugin {
             .add_observer(on_enter_combat)
             .add_observer(on_next_turn)
             .add_observer(on_end_combat)
+            .add_observer(on_enter_combat_positions)
             .add_systems(Update, select_target.run_if(in_state(GameState::InCombat)));
     }
 }

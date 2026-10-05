@@ -45,6 +45,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.07051, 1.6226668, 0)
 [node name="CollisionShape3D" parent="EnemyEncounter" index="0" unique_id=2134172080]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.035919905, 0)
 
+[node name="player_position" parent="EnemyEncounter" index="1" unique_id=1493014604]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5519638, 0, 0.44086456)
+
 [node name="CapeEnemy3d" parent="EnemyEncounter" unique_id=492072302 instance=ExtResource("6_lc0ey")]
 
 [node name="CapeEnemy3d2" parent="EnemyEncounter" unique_id=247171508 instance=ExtResource("6_lc0ey")]

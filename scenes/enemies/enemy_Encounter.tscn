@@ -9,3 +9,6 @@ collision_mask = 2
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2134172080]
 shape = SubResource("BoxShape3D_u5bk5")
 debug_color = Color(0.84061545, 0.3609552, 0.35098118, 0.41960785)
+
+[node name="player_position" type="Marker3D" parent="." unique_id=1493014604]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
