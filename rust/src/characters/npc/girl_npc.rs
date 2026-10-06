@@ -12,17 +12,13 @@ use godot::{
 use godot_bevy::prelude::*;
 
 use crate::{
-    characters::components::stats::Initialized,
-    state::GameState,
-    ui::dialogue_hud::{
-        DialogueHudNode, get_custom_canvas_layer, get_speaker_label, get_text_label,
-    },
+    characters::components::stats::{Initialized, Name}, godot_utils::nodes::{get_custom_area_3d, get_custom_canvas_layer}, state::GameState, ui::dialogue_hud::{
+        DialogueHudNode, get_speaker_label, get_text_label,
+    }
 };
 
 // Components
 
-#[derive(Component)]
-pub struct Name(pub String);
 
 #[derive(Component)]
 pub struct DialogueText(pub Vec<String>);
@@ -76,14 +72,6 @@ fn get_interacion_label(area: &Gd<Area3D>) -> Option<Gd<Label3D>> {
     };
 
     Some(label)
-}
-
-fn get_custom_area_3d(handle: &GodotNodeHandle, godot: &mut GodotAccess) -> Option<Gd<Area3D>> {
-    let Some(area) = godot.try_get::<Area3D>(*handle) else {
-        godot_print!("Cannot cast girl npc");
-        return None;
-    };
-    Some(area)
 }
 
 fn initialized_girl_npc(

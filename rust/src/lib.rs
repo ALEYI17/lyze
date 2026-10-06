@@ -1,6 +1,7 @@
 use bevy::{prelude::*, state::app::StatesPlugin};
 use godot_bevy::prelude::*;
 
+mod godot_utils;
 mod characters;
 mod events;
 mod state;

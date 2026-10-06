@@ -1,14 +1,11 @@
 use bevy::prelude::*;
-use godot::classes::{CharacterBody3D, Input, class_macros::private::virtuals::Xrvrs::Gd};
+use godot::classes::{Input};
 use godot_bevy::prelude::*;
 
 use crate::{
     characters::{
-        components::stats::{Alive, Damage, Gravity, Health, JumpVelocity, Speed},
-        enemies::cape_enemy_3d::{get_sprite, set_shader_false, set_shader_true},
-    },
-    events::combat::{CombatTarget, DiedInCombat},
-    state::GameState,
+        components::stats::{Alive, Damage, Gravity, Health, JumpVelocity, Speed}, helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
+    }, events::combat::{CombatTarget, DiedInCombat}, godot_utils::nodes::get_custom_character_body_3d, state::GameState
 };
 
 #[derive(Component, GodotNode, Default)]
@@ -22,14 +19,6 @@ use crate::{
     require(alive: Alive, as = bool, default = true),
 )]
 pub struct Player3DNode;
-
-pub fn get_custom_character_body_3d(
-    handle: &GodotNodeHandle,
-    godot: &mut GodotAccess,
-) -> Option<Gd<CharacterBody3D>> {
-    let body = godot.try_get::<CharacterBody3D>(*handle)?;
-    Some(body)
-}
 
 fn move_player_3d_node(
     query: Query<(&GodotNodeHandle, &Speed, &JumpVelocity, &Gravity), With<Player3DNode>>,

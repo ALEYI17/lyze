@@ -10,7 +10,7 @@ use crate::{
         components::stats::Initialized, enemies::cape_enemy_3d::CapeEnemy3D,
         player_3d::Player3DNode,
     },
-    events::combat::EnterCombatEvent,
+    events::combat::EnterCombatEvent, godot_utils::nodes::get_custom_area_3d,
 };
 
 #[derive(Component, GodotNode, Default)]
@@ -28,11 +28,6 @@ struct EntereEncounter {
 #[derive(Resource, Default)]
 pub struct EnemyEncounterRegistry {
     pub encounters: HashMap<Entity, Vec<Entity>>,
-}
-
-pub fn get_custom_area_3d(handle: &GodotNodeHandle, godot: &mut GodotAccess) -> Option<Gd<Area3D>> {
-    let area = godot.try_get::<Area3D>(*handle)?;
-    Some(area)
 }
 
 pub fn get_player_starting_position(area: &Gd<Area3D>) -> Option<Gd<Marker3D>> {

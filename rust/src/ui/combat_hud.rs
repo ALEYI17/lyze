@@ -1,10 +1,10 @@
 use bevy::prelude::*;
-use godot::classes::{CanvasLayer, class_macros::private::virtuals::Xrvrs::Gd};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
 use crate::characters::components::stats::Alive;
 use crate::events::combat::{CombatTarget, NextTurn};
+use crate::godot_utils::nodes::get_custom_canvas_layer;
 use crate::{
     events::{combat::CombatResource, damage::DamageEvent},
     state::GameState,
@@ -30,14 +30,6 @@ pub struct CombatHUdUi {
 
     #[node("/root/main_isometric/CombatHud/Control/attack_1")]
     pub attack_button: GodotNodeHandle,
-}
-
-fn get_custom_canvas_layer(
-    handle: &GodotNodeHandle,
-    godot: &mut GodotAccess,
-) -> Option<Gd<CanvasLayer>> {
-    let canvas = godot.try_get::<CanvasLayer>(*handle)?;
-    Some(canvas)
 }
 
 fn reset_combat_assets(mut combat_assets: ResMut<CombatHudAssets>) {

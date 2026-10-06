@@ -56,9 +56,7 @@ pub struct LoadSceneMessage {
 }
 
 #[derive(Event, Debug, Clone)]
-pub struct SceneLoadedMessage {
-    pub scene_state: SceneState,
-}
+pub struct SceneLoadedMessage;
 
 #[derive(Resource, Default)]
 struct SceneTreeSignalConnected(bool);
@@ -134,7 +132,7 @@ fn emit_level_loaded_event_when_scene_ready(
             {
                 let node_path = node.get_path().to_string();
                 if node_path == expected_path {
-                    commands.trigger(SceneLoadedMessage { scene_state });
+                    commands.trigger(SceneLoadedMessage);
                     pending_scene.scene_state = None;
                     break;
                 }

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use godot::{
-    classes::{CharacterBody3D, Label3D, Sprite3D},
+    classes::{CharacterBody3D, Label3D},
     prelude::*,
 };
 use godot_bevy::{
@@ -9,15 +9,10 @@ use godot_bevy::{
 };
 
 use crate::{
-    characters::{
-        components::stats::{Alive, Damage, Gravity, Health, Speed},
-        player_3d::get_custom_character_body_3d,
-    },
-    events::{
+    characters::{components::stats::{Alive, Damage, Gravity, Health, Speed}, helpers::sprite::{get_sprite, set_shader_false, set_shader_true}}, events::{
         combat::{CombatResource, CombatTarget, DiedInCombat, NextTurn, TurnStarted},
         damage::DamageEvent,
-    },
-    state::GameState,
+    }, godot_utils::nodes::get_custom_character_body_3d, state::GameState
 };
 
 #[derive(Component, GodotNode, Default)]
@@ -41,23 +36,6 @@ fn get_health_in_label(body: &Gd<CharacterBody3D>) -> Option<Gd<Label3D>> {
     Some(label)
 }
 
-pub fn get_sprite(body: Gd<CharacterBody3D>) -> Option<Gd<Sprite3D>> {
-    let sprite_handle = body.get_node_or_null("Sprite3D")?;
-
-    let Ok(sprite) = sprite_handle.try_cast::<Sprite3D>() else {
-        return None;
-    };
-
-    Some(sprite)
-}
-
-pub fn set_shader_true(sprite: &mut Gd<Sprite3D>) {
-    sprite.set_instance_shader_parameter("effect_enabled", &true.to_variant());
-}
-
-pub fn set_shader_false(sprite: &mut Gd<Sprite3D>) {
-    sprite.set_instance_shader_parameter("effect_enabled", &false.to_variant());
-}
 
 fn on_enemy_turn(
     trigger: On<TurnStarted>,
