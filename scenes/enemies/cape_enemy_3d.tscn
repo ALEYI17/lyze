@@ -8,7 +8,6 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_r2k8o"]
 render_priority = 0
 shader = ExtResource("1_inyef")
-shader_parameter/use_billboard = false
 shader_parameter/albedo_texture = ExtResource("1_00paa")
 
 [node name="CapeEnemy3d" type="CapeEnemy3D" unique_id=247171508]
@@ -19,6 +18,7 @@ shape = SubResource("BoxShape3D_u5bk5")
 [node name="Sprite3D" type="Sprite3D" parent="." unique_id=1100491143]
 transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
 material_override = SubResource("ShaderMaterial_r2k8o")
+billboard = 1
 alpha_cut = 1
 texture_filter = 0
 texture = ExtResource("1_00paa")
