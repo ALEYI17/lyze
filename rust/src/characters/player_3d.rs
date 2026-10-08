@@ -1,11 +1,15 @@
 use bevy::prelude::*;
-use godot::classes::{Input};
+use godot::classes::Input;
 use godot_bevy::prelude::*;
 
 use crate::{
     characters::{
-        components::stats::{Alive, Damage, Gravity, Health, JumpVelocity, Speed}, helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
-    }, events::combat::{CombatTarget, DiedInCombat}, godot_utils::nodes::get_custom_character_body_3d, state::GameState
+        components::stats::{Alive, Damage, Gravity, Health, JumpVelocity, Speed},
+        helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
+    },
+    events::combat::{CombatTarget, DiedInCombat},
+    godot_utils::nodes::get_custom_character_body_3d,
+    state::GameState,
 };
 
 #[derive(Component, GodotNode, Default)]

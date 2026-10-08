@@ -6,6 +6,7 @@ use godot::prelude::*;
 pub struct DamageEvent {
     pub source: Entity,
     pub target: Entity,
+    pub damage: Option<f32>,
 }
 
 fn on_damage_event(
@@ -25,12 +26,14 @@ fn on_damage_event(
         return;
     };
 
-    let Ok(damage) = query_damage.get(damage_event.source) else {
-        return;
-    };
+    let damage = damage_event.damage.unwrap_or_else(|| {
+        query_damage
+            .get(damage_event.source)
+            .map_or(0.0, |damage| damage.0)
+    });
 
     godot_print!("Target health: {}", health.0);
-    health.0 -= damage.0;
+    health.0 -= damage;
     godot_print!("Target health after: {}", health.0);
 }
 

@@ -196,6 +196,7 @@ fn on_enter_body(
     command.trigger(DamageEvent {
         source: trigger.event().entity,
         target: entity_area,
+        damage: None,
     });
 }
 
@@ -221,6 +222,7 @@ fn on_hurt(
     command.trigger(DamageEvent {
         target: trigger.event().entity,
         source: entity_area,
+        damage: None,
     });
 }
 

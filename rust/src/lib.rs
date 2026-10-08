@@ -1,9 +1,10 @@
 use bevy::{prelude::*, state::app::StatesPlugin};
 use godot_bevy::prelude::*;
 
-mod godot_utils;
 mod characters;
+mod combat;
 mod events;
+mod godot_utils;
 mod state;
 mod ui;
 
@@ -17,5 +18,6 @@ fn build_app(app: &mut App) {
         .add_plugins(CharactersPlugin)
         .add_plugins(ui::UiPlugin)
         .add_plugins(events::EventPlugins)
-        .add_plugins(GodotCollisionsPlugin);
+        .add_plugins(GodotCollisionsPlugin)
+        .add_plugins(combat::CombatPlugin);
 }

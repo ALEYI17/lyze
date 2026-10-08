@@ -5,11 +5,11 @@ use godot_bevy::interop::{GodotAccess, GodotNodeHandle};
 use crate::{
     characters::{
         components::stats::Alive,
-        enemies::enemy_encounter::{
-            EnemyEncounterNode, get_player_starting_position,
-        },
+        enemies::enemy_encounter::{EnemyEncounterNode, get_player_starting_position},
         player_3d::Player3DNode,
-    }, godot_utils::nodes::{get_custom_area_3d, get_custom_character_body_3d}, state::GameState
+    },
+    godot_utils::nodes::{get_custom_area_3d, get_custom_character_body_3d},
+    state::GameState,
 };
 
 #[derive(Event)]

@@ -10,7 +10,8 @@ use crate::{
         components::stats::Initialized, enemies::cape_enemy_3d::CapeEnemy3D,
         player_3d::Player3DNode,
     },
-    events::combat::EnterCombatEvent, godot_utils::nodes::get_custom_area_3d,
+    events::combat::EnterCombatEvent,
+    godot_utils::nodes::get_custom_area_3d,
 };
 
 #[derive(Component, GodotNode, Default)]

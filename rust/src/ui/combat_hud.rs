@@ -103,6 +103,7 @@ fn on_attack_button(
     commands.trigger(DamageEvent {
         source: player,
         target: enemy,
+        damage: None,
     });
 
     commands.trigger(NextTurn);

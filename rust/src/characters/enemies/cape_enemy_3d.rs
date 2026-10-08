@@ -9,10 +9,14 @@ use godot_bevy::{
 };
 
 use crate::{
-    characters::{components::stats::{Alive, Damage, Gravity, Health, Speed}, helpers::sprite::{get_sprite, set_shader_false, set_shader_true}}, events::{
-        combat::{CombatResource, CombatTarget, DiedInCombat, NextTurn, TurnStarted},
-        damage::DamageEvent,
-    }, godot_utils::nodes::get_custom_character_body_3d, state::GameState
+    characters::{
+        components::stats::{Alive, Damage, Gravity, Health, Speed},
+        helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
+    },
+    combat::attack::{AttackDefinition, AttackEvent},
+    events::combat::{CombatResource, CombatTarget, DiedInCombat, NextTurn, TurnStarted},
+    godot_utils::nodes::get_custom_character_body_3d,
+    state::GameState,
 };
 
 #[derive(Component, GodotNode, Default)]
@@ -35,7 +39,6 @@ fn get_health_in_label(body: &Gd<CharacterBody3D>) -> Option<Gd<Label3D>> {
 
     Some(label)
 }
-
 
 fn on_enemy_turn(
     trigger: On<TurnStarted>,
@@ -60,12 +63,25 @@ fn on_enemy_turn(
     };
 
     godot_print!("Enemy entity:{}, handle: {:?}", entity, handle);
-    commands.trigger(DamageEvent {
+
+    commands.trigger(AttackEvent {
         source: entity,
         target: player,
+        attacks: vec![
+            AttackDefinition {
+                damage: 5.0,
+                reaction_window: 1.0,
+            },
+            AttackDefinition {
+                damage: 7.0,
+                reaction_window: 1.5,
+            },
+            AttackDefinition {
+                damage: 10.0,
+                reaction_window: 0.8,
+            },
+        ],
     });
-
-    commands.trigger(NextTurn);
 }
 
 fn update_health_label(

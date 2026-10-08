@@ -1,4 +1,7 @@
-use godot::{classes::{Area3D, CanvasLayer, CharacterBody3D}, prelude::*};
+use godot::{
+    classes::{Area3D, CanvasLayer, CharacterBody3D},
+    prelude::*,
+};
 use godot_bevy::interop::{GodotAccess, GodotNodeHandle};
 
 pub fn get_custom_character_body_3d(
@@ -21,6 +24,3 @@ pub fn get_custom_canvas_layer(
     let canvas = godot.try_get::<CanvasLayer>(*handle)?;
     Some(canvas)
 }
-
-
-

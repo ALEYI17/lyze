@@ -31,4 +31,3 @@ pub struct Alive(pub bool);
 
 #[derive(Component)]
 pub struct Name(pub String);
-

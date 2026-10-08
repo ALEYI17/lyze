@@ -12,13 +12,13 @@ use godot::{
 use godot_bevy::prelude::*;
 
 use crate::{
-    characters::components::stats::{Initialized, Name}, godot_utils::nodes::{get_custom_area_3d, get_custom_canvas_layer}, state::GameState, ui::dialogue_hud::{
-        DialogueHudNode, get_speaker_label, get_text_label,
-    }
+    characters::components::stats::{Initialized, Name},
+    godot_utils::nodes::{get_custom_area_3d, get_custom_canvas_layer},
+    state::GameState,
+    ui::dialogue_hud::{DialogueHudNode, get_speaker_label, get_text_label},
 };
 
 // Components
-
 
 #[derive(Component)]
 pub struct DialogueText(pub Vec<String>);
