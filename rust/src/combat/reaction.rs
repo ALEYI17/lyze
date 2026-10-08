@@ -28,12 +28,14 @@ pub struct ReactionFinished {
 pub struct ReactionWindow {
     timer: Timer,
     active: bool,
+    result: Option<ReactionResult>,
 }
 
 fn on_start_reaction(trigger: On<StartReactionEvent>, mut window: ResMut<ReactionWindow>) {
     let duration = trigger.event().duration;
     window.timer = Timer::from_seconds(duration, TimerMode::Once);
     window.active = true;
+    window.result = None;
     godot_print!("Reaction window START - duration: {:.2}s", duration);
 }
 
@@ -50,22 +52,20 @@ fn proccess_reaction_window(
     let input = godot.singleton::<Input>();
 
     if input.is_action_just_pressed("combat_parry") {
-        window.active = false;
         godot_print!("Reaction window RESULT - SUCCESS");
-        commands.trigger(ReactionFinished {
-            result: ReactionResult::Success,
-        });
-
+        window.result = Some(ReactionResult::Success);
         return;
     }
 
     window.timer.tick(time.delta());
     if window.timer.just_finished() {
         window.active = false;
-        godot_print!("Reaction window RESULT - FAILED (timeout)");
-        commands.trigger(ReactionFinished {
-            result: ReactionResult::Failed,
-        });
+        let result = window.result.take().unwrap_or(ReactionResult::Failed);
+
+        if matches!(result, ReactionResult::Failed) {
+            godot_print!("Reaction window RESULT - FAILED (timeout)");
+        }
+        commands.trigger(ReactionFinished { result });
     }
 }
 

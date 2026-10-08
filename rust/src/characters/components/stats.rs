@@ -22,12 +22,3 @@ pub struct Damage(pub f32);
 
 #[derive(Component, Default)]
 pub struct Direction(pub f32);
-
-#[derive(Component)]
-pub struct Initialized(pub bool);
-
-#[derive(Component)]
-pub struct Alive(pub bool);
-
-#[derive(Component)]
-pub struct Name(pub String);

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
-use crate::characters::components::stats::Alive;
+use crate::characters::components::state::Alive;
 use crate::events::combat::{CombatTarget, NextTurn};
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use crate::{

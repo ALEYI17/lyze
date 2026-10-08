@@ -10,7 +10,7 @@ use godot_bevy::{
 
 use crate::{
     characters::{
-        components::stats::{Alive, Damage, Gravity, Health, Speed},
+        components::{state::Alive, stats::{Damage, Gravity, Health, Speed}},
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
     combat::attack::{AttackDefinition, AttackEvent},
