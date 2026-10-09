@@ -10,10 +10,13 @@ use godot_bevy::{
 
 use crate::{
     characters::{
-        components::{state::Alive, stats::{Damage, Gravity, Health, Speed}},
+        components::{
+            state::Alive,
+            stats::{Damage, Gravity, Health, Speed},
+        },
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
-    combat::attack::{AttackDefinition, AttackEvent},
+    combat::attack::{AttackDefinition, AttackEvent, DodgeDirection, ReactionType},
     events::combat::{CombatResource, CombatTarget, DiedInCombat, NextTurn, TurnStarted},
     godot_utils::nodes::get_custom_character_body_3d,
     state::GameState,
@@ -71,14 +74,22 @@ fn on_enemy_turn(
             AttackDefinition {
                 damage: 5.0,
                 reaction_window: 1.0,
+                reaction: ReactionType::Parry,
             },
             AttackDefinition {
                 damage: 7.0,
                 reaction_window: 1.5,
+                reaction: ReactionType::Parry,
             },
             AttackDefinition {
                 damage: 10.0,
                 reaction_window: 0.8,
+                reaction: ReactionType::Parry,
+            },
+            AttackDefinition {
+                damage: 2.0,
+                reaction_window: 1.3,
+                reaction: ReactionType::Dodge(vec![DodgeDirection::Left, DodgeDirection::Right]),
             },
         ],
     });

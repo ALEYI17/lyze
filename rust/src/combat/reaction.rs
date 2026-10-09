@@ -4,7 +4,7 @@ use godot::global::godot_print;
 use godot_bevy::interop::GodotAccess;
 
 use crate::{
-    combat::attack::{CurrentAttack, FinishAttackEvent},
+    combat::attack::{CurrentAttack, DodgeDirection, FinishAttackEvent, ReactionType},
     events::damage::DamageEvent,
     state::GameState,
 };
@@ -44,17 +44,50 @@ fn proccess_reaction_window(
     mut window: ResMut<ReactionWindow>,
     mut commands: Commands,
     mut godot: GodotAccess,
+    attack: Res<CurrentAttack>,
 ) {
     if !window.active {
         return;
     }
 
+    let Some(hit) = attack.hits.get(attack.current_hit) else {
+        return;
+    };
+
+    let reaction_type = &hit.reaction;
+
     let input = godot.singleton::<Input>();
 
-    if input.is_action_just_pressed("combat_parry") {
-        godot_print!("Reaction window RESULT - SUCCESS");
-        window.result = Some(ReactionResult::Success);
-        return;
+    match reaction_type {
+        ReactionType::Parry => {
+            if window.result.is_none() && input.is_action_just_pressed("combat_parry") {
+                godot_print!("Reaction window RESULT - SUCCESS");
+                window.result = Some(ReactionResult::Success);
+            }
+        }
+        ReactionType::Dodge(directions) => {
+            if window.result.is_some() {
+            } else {
+                let dodge_direction = if input.is_action_just_pressed("move_forward") {
+                    Some(DodgeDirection::Forward)
+                } else if input.is_action_just_pressed("move_backward") {
+                    Some(DodgeDirection::Backward)
+                } else if input.is_action_just_pressed("move_left") {
+                    Some(DodgeDirection::Left)
+                } else if input.is_action_just_pressed("move_right") {
+                    Some(DodgeDirection::Right)
+                } else {
+                    None
+                };
+
+                if let Some(direction) = dodge_direction
+                    && directions.contains(&direction)
+                {
+                    window.result = Some(ReactionResult::Success);
+                    godot_print!("Reaction window RESULT - SUCCESS");
+                }
+            }
+        }
     }
 
     window.timer.tick(time.delta());

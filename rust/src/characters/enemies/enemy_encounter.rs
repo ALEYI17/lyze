@@ -7,7 +7,8 @@ use godot_bevy::prelude::*;
 
 use crate::{
     characters::{
-        components::state::Initialized, enemies::cape_enemy_3d::CapeEnemy3D, player_3d::Player3DNode
+        components::state::Initialized, enemies::cape_enemy_3d::CapeEnemy3D,
+        player_3d::Player3DNode,
     },
     events::combat::EnterCombatEvent,
     godot_utils::nodes::get_custom_area_3d,

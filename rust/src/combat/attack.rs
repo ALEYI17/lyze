@@ -3,6 +3,27 @@ use godot::global::godot_print;
 
 use crate::{combat::reaction::StartReactionEvent, events::combat::NextTurn, state::GameState};
 
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum DodgeDirection {
+    Forward,
+    Backward,
+    Left,
+    Right,
+}
+
+#[derive(Clone)]
+pub enum ReactionType {
+    Parry,
+    Dodge(Vec<DodgeDirection>),
+}
+
+#[derive(Clone)]
+pub struct AttackDefinition {
+    pub damage: f32,
+    pub reaction_window: f32,
+    pub reaction: ReactionType,
+}
+
 #[derive(Event)]
 pub struct AttackEvent {
     pub target: Entity,
@@ -12,12 +33,6 @@ pub struct AttackEvent {
 
 #[derive(Event)]
 pub struct FinishAttackEvent;
-
-#[derive(Clone)]
-pub struct AttackDefinition {
-    pub damage: f32,
-    pub reaction_window: f32,
-}
 
 #[derive(Resource, Default)]
 pub struct CurrentAttack {
@@ -43,6 +58,15 @@ fn proccess_attacks(mut attacks: ResMut<CurrentAttack>, mut commands: Commands) 
     let Some(current_attack) = attacks.hits.get(attacks.current_hit) else {
         return;
     };
+
+    match &current_attack.reaction {
+        ReactionType::Parry => {
+            godot_print!("Required reaction: PARRY");
+        }
+        ReactionType::Dodge(directions) => {
+            godot_print!("Required reaction: DODGE - {:?}", directions);
+        }
+    }
 
     commands.trigger(StartReactionEvent {
         duration: current_attack.reaction_window,

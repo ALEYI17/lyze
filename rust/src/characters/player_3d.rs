@@ -4,7 +4,10 @@ use godot_bevy::prelude::*;
 
 use crate::{
     characters::{
-        components::{state::Alive, stats::{Damage, Gravity, Health, JumpVelocity, Speed}},
+        components::{
+            state::Alive,
+            stats::{Damage, Gravity, Health, JumpVelocity, Speed},
+        },
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
     events::combat::{CombatTarget, DiedInCombat},
