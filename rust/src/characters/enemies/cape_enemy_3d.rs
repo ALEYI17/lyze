@@ -45,18 +45,18 @@ fn get_health_in_label(body: &Gd<CharacterBody3D>) -> Option<Gd<Label3D>> {
 
 fn on_enemy_turn(
     trigger: On<TurnStarted>,
-    query: Query<(&GodotNodeHandle, &Alive), With<CapeEnemyNode3D>>,
+    query: Query<(&GodotNodeHandle, &Alive, &Health), With<CapeEnemyNode3D>>,
     mut commands: Commands,
     combat_resource: Res<CombatResource>,
 ) {
     godot_print!("Receive event");
     let entity = trigger.event().entity;
 
-    let Ok((handle, alive)) = query.get(entity) else {
+    let Ok((handle, alive, health)) = query.get(entity) else {
         return;
     };
 
-    if !alive.0 {
+    if !alive.0 || health.0 <= 0.0 {
         commands.trigger(NextTurn);
         return;
     }
@@ -135,12 +135,22 @@ fn is_target(
     target: Res<CombatTarget>,
     query: Query<(Entity, &GodotNodeHandle), With<CapeEnemyNode3D>>,
     mut godot: GodotAccess,
+    combat: Res<CombatResource>,
 ) {
-    for (entity, handle) in query {
-        let Some(target) = target.target else {
-            return;
-        };
+    let Some(target) = target.target else {
+        return;
+    };
+    let Some(current_entity) = combat.current_entity() else {
+        return;
+    };
 
+    let Some(player) = combat.player else {
+        return;
+    };
+
+    let is_player_turn = player == current_entity;
+
+    for (entity, handle) in query {
         let Some(body) = get_custom_character_body_3d(handle, &mut godot) else {
             return;
         };
@@ -149,7 +159,9 @@ fn is_target(
             return;
         };
 
-        if entity == target {
+        let is_selected = is_player_turn && entity == target;
+
+        if is_selected {
             set_shader_true(&mut sprite);
         } else {
             set_shader_false(&mut sprite);

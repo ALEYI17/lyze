@@ -10,7 +10,7 @@ use crate::{
         },
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
-    events::combat::{CombatTarget, DiedInCombat},
+    events::combat::{CombatResource, CombatTarget, DiedInCombat},
     godot_utils::nodes::get_custom_character_body_3d,
     state::GameState,
 };
@@ -94,6 +94,7 @@ fn is_target(
     target: Res<CombatTarget>,
     query: Query<(Entity, &GodotNodeHandle), With<Player3DNode>>,
     mut godot: GodotAccess,
+    combat: Res<CombatResource>,
 ) {
     let Ok((entity, handle)) = query.single() else {
         return;
@@ -111,7 +112,19 @@ fn is_target(
         return;
     };
 
-    if entity == target {
+    let Some(current_entity) = combat.current_entity() else {
+        return;
+    };
+
+    let Some(player) = combat.player else {
+        return;
+    };
+
+    let is_player_turn = current_entity == player;
+
+    let is_selected = is_player_turn && entity == target;
+
+    if is_selected {
         set_shader_true(&mut sprite);
     } else {
         set_shader_false(&mut sprite);

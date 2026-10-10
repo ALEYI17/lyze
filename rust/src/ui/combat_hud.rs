@@ -127,6 +127,34 @@ fn enter_combat_hud(
     combat_resource.menu_entered = true;
 }
 
+fn toogle_combat_hud_visibility(
+    mut godot: GodotAccess,
+    query_hud: Query<&GodotNodeHandle, With<CombatHudNode>>,
+    combat: Res<CombatResource>,
+) {
+    let Some(current_entity) = combat.current_entity() else {
+        return;
+    };
+
+    let Some(player) = combat.player else {
+        return;
+    };
+
+    let Ok(hud_handle) = query_hud.single() else {
+        return;
+    };
+
+    let Some(mut hud) = get_custom_canvas_layer(hud_handle, &mut godot) else {
+        return;
+    };
+
+    if player != current_entity {
+        hud.set_visible(false);
+    } else {
+        hud.set_visible(true);
+    }
+}
+
 fn exit_combat_hud(
     mut combat_resource: ResMut<CombatHudAssets>,
     mut godot: GodotAccess,
@@ -170,6 +198,7 @@ impl Plugin for CombatHudPlugin {
                     initialized_combat_hud.run_if(combat_hud_not_initialized),
                     connect_button.run_if(combat_hud_initialized_but_signals_not_connected),
                     enter_combat_hud.run_if(not_entered_hud),
+                    toogle_combat_hud_visibility,
                 )
                     .run_if(in_state(GameState::InCombat)),
             )

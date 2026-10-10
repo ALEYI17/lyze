@@ -182,26 +182,23 @@ fn on_end_combat(
         for enemy in &combat_resource.enemy {
             commands.entity(*enemy).despawn();
         }
-        let Some(encounter) = combat_resource.encounter else {
-            return;
-        };
-        commands.entity(encounter).despawn();
-        combat_resource.enemy.clear();
-        combat_resource.player = None;
-        combat_resource.activate = false;
-        combat_resource.encounter = None;
-        combat_resource.turn_order.clear();
-        combat_resource.current_turn = 0;
-
-        target.target = None;
-        app_state.set(GameState::Ingame3D);
-    } else {
-        let Some(player) = combat_resource.player else {
-            return;
-        };
+        if let Some(encounter) = combat_resource.encounter {
+            commands.entity(encounter).despawn();
+        }
+    } else if let Some(player) = combat_resource.player {
         commands.entity(player).despawn();
-        app_state.set(GameState::Ingame3D);
     }
+    combat_resource.enemy.clear();
+    combat_resource.player = None;
+    combat_resource.activate = false;
+    combat_resource.encounter = None;
+    combat_resource.turn_order.clear();
+    combat_resource.current_turn = 0;
+
+    target.target = None;
+    target.index = 0;
+
+    app_state.set(GameState::Ingame3D);
 }
 
 fn select_target(
@@ -210,6 +207,14 @@ fn select_target(
     mut godot: GodotAccess,
     query_alive: Query<&Alive>,
 ) {
+    let Some(player) = combat_resource.player else {
+        return;
+    };
+
+    if combat_resource.current_entity() != Some(player) {
+        return;
+    }
+
     let alive_entities: Vec<Entity> = combat_resource
         .turn_order
         .iter()
@@ -241,6 +246,24 @@ fn select_target(
     if input.is_action_just_pressed("move_right") {
         let actual_index = (target.index + 1) % alive_entities.len();
 
+        let Some(next_entity) = alive_entities.get(actual_index).copied() else {
+            return;
+        };
+
+        target.target = Some(next_entity);
+        target.index = actual_index;
+
+        godot_print!(
+            "Actual target: {:?}, actual index: {}",
+            target.target,
+            target.index
+        );
+    } else if input.is_action_just_pressed("move_left") {
+        let actual_index = if target.index == 0 {
+            alive_entities.len() - 1
+        } else {
+            target.index - 1
+        };
         let Some(next_entity) = alive_entities.get(actual_index).copied() else {
             return;
         };
