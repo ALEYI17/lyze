@@ -10,7 +10,7 @@ use crate::{
         },
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
-    events::combat::{CombatResource, CombatTarget, DiedInCombat},
+    events::{combat::{CombatResource, CombatTarget}, damage::Die},
     godot_utils::nodes::get_custom_character_body_3d,
     state::GameState,
 };
@@ -80,14 +80,19 @@ fn move_player_3d_node(
     body.move_and_slide();
 }
 
-fn kill_player(query: Query<(Entity, &Health), With<Player3DNode>>, mut commands: Commands) {
-    let Ok((entity, health)) = query.single() else {
+fn on_die_player(trigger: On<Die>,
+    query: Query<&GodotNodeHandle, With<Player3DNode>>,
+    mut godot: GodotAccess,
+){
+    let Ok(handle) = query.get(trigger.entity) else{
         return;
     };
 
-    if health.0 <= 0.0 {
-        commands.trigger(DiedInCombat { entity });
-    }
+    let Some(mut body) = get_custom_character_body_3d(handle, &mut godot) else {
+        return;
+    };
+
+    body.set_visible(false);
 }
 
 fn is_target(
@@ -140,6 +145,6 @@ impl Plugin for Player3DPlugin {
             move_player_3d_node.run_if(in_state(GameState::Ingame3D)),
         )
         .add_systems(Update, is_target.run_if(in_state(GameState::InCombat)))
-        .add_systems(Update, kill_player.run_if(in_state(GameState::InCombat)));
+        .add_observer(on_die_player);
     }
 }

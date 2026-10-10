@@ -1,9 +1,10 @@
 use bevy::prelude::*;
+use godot::classes::{CanvasLayer, Control, Label};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
 use crate::characters::components::state::Alive;
-use crate::events::combat::{CombatTarget, NextTurn};
+use crate::events::combat::{CombatTarget, NextTurn, TurnTransition, is_player_turn};
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use crate::{
     events::{combat::CombatResource, damage::DamageEvent},
@@ -13,6 +14,26 @@ use crate::{
 #[derive(Component, GodotNode, Default)]
 #[gdbevy(base = CanvasLayer, class_name = CombatHud)]
 pub struct CombatHudNode;
+
+fn get_turn_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let label_handle = canvas.get_node_or_null("turn")?;
+
+    let Ok(label) = label_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(label)
+}
+
+fn get_control(canvas: &Gd<CanvasLayer>) -> Option<Gd<Control>> {
+    let label_handle = canvas.get_node_or_null("Control")?;
+
+    let Ok(control) = label_handle.try_cast::<Control>() else {
+        return None;
+    };
+
+    Some(control)
+}
 
 #[derive(Resource, Default)]
 pub struct CombatHudAssets {
@@ -144,15 +165,52 @@ fn toogle_combat_hud_visibility(
         return;
     };
 
-    let Some(mut hud) = get_custom_canvas_layer(hud_handle, &mut godot) else {
+    let Some(hud) = get_custom_canvas_layer(hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut control) = get_control(&hud) else {
         return;
     };
 
     if player != current_entity {
-        hud.set_visible(false);
+        control.set_visible(false);
     } else {
-        hud.set_visible(true);
+        control.set_visible(true);
     }
+}
+
+fn toogle_turn_label(
+    mut godot: GodotAccess,
+    query: Query<&GodotNodeHandle, With<CombatHudNode>>,
+    combat_resource: Res<CombatResource>,
+    turn_transition: Res<TurnTransition>,
+) {
+    let Ok(handle) = query.single() else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut label) = get_turn_label(&canvas) else {
+        return;
+    };
+
+    let Some(entity) =  turn_transition.pending_entity else{
+        label.set_text("");
+        return;
+    };
+
+    let text = if is_player_turn(combat_resource){
+        format!("PLAYER TURN: {}", entity)
+    }else{
+        format!("ENEMY TURN: {}", entity)
+    };
+
+
+    label.set_text(&text);
 }
 
 fn exit_combat_hud(
@@ -199,6 +257,7 @@ impl Plugin for CombatHudPlugin {
                     connect_button.run_if(combat_hud_initialized_but_signals_not_connected),
                     enter_combat_hud.run_if(not_entered_hud),
                     toogle_combat_hud_visibility,
+                    toogle_turn_label,
                 )
                     .run_if(in_state(GameState::InCombat)),
             )

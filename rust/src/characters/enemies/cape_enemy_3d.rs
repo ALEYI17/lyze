@@ -17,7 +17,7 @@ use crate::{
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
     combat::attack::{AttackDefinition, AttackEvent, DodgeDirection, ReactionType},
-    events::combat::{CombatResource, CombatTarget, DiedInCombat, NextTurn, TurnStarted},
+    events::{combat::{CombatResource, CombatTarget, NextTurn, TurnStarted}, damage::Die},
     godot_utils::nodes::get_custom_character_body_3d,
     state::GameState,
 };
@@ -113,22 +113,19 @@ fn update_health_label(
     }
 }
 
-fn kill_enemy_3d(
-    mut commands: Commands,
-    query: Query<(Entity, &GodotNodeHandle, &Health, &mut Alive), With<CapeEnemyNode3D>>,
+fn on_die_enemy(trigger: On<Die>,
+    query: Query<&GodotNodeHandle, With<CapeEnemyNode3D>>,
     mut godot: GodotAccess,
-) {
-    for (entity, handle, health, mut alive) in query {
-        if health.0 <= 0.0 && alive.0 {
-            let Some(mut body) = get_custom_character_body_3d(handle, &mut godot) else {
-                continue;
-            };
+){
+    let Ok(handle) = query.get(trigger.entity) else{
+        return;
+    };
 
-            body.set_visible(false);
-            commands.trigger(DiedInCombat { entity });
-            alive.0 = false;
-        }
-    }
+    let Some(mut body) = get_custom_character_body_3d(handle, &mut godot) else {
+        return;
+    };
+
+    body.set_visible(false);
 }
 
 fn is_target(
@@ -173,12 +170,12 @@ pub struct CapeEnemy3DPlugin;
 
 impl Plugin for CapeEnemy3DPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, kill_enemy_3d.run_if(in_state(GameState::InCombat)))
-            .add_systems(
+        app.add_systems(
                 Update,
                 update_health_label.run_if(in_state(GameState::InCombat)),
             )
             .add_systems(Update, is_target.run_if(in_state(GameState::InCombat)))
-            .add_observer(on_enemy_turn);
+            .add_observer(on_enemy_turn)
+            .add_observer(on_die_enemy);
     }
 }

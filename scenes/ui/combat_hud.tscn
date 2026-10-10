@@ -2,6 +2,12 @@
 
 [node name="CombatHud" type="CombatHud" unique_id=288455881]
 
+[node name="turn" type="Label" parent="." unique_id=1001096463]
+offset_left = 312.0
+offset_top = 316.0
+offset_right = 940.0
+offset_bottom = 452.0
+
 [node name="Control" type="Control" parent="." unique_id=1273471873]
 layout_mode = 3
 anchors_preset = 0

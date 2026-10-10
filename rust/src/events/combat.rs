@@ -20,11 +20,17 @@ pub struct EnterCombatEvent {
 }
 
 #[derive(Event)]
+pub struct NextTurn;
+
+#[derive(Event)]
+pub struct NextTurnTransition {
+    pub entity: Entity,
+}
+
+#[derive(Event)]
 pub struct TurnStarted {
     pub entity: Entity,
 }
-#[derive(Event)]
-pub struct NextTurn;
 
 #[derive(Event)]
 pub struct DiedInCombat {
@@ -40,6 +46,12 @@ struct EndCombat {
 pub struct CombatTarget {
     pub target: Option<Entity>,
     index: usize,
+}
+
+#[derive(Resource, Default)]
+pub struct TurnTransition {
+    pub pending_entity: Option<Entity>,
+    pub timer: Option<Timer>,
 }
 
 #[derive(Resource, Default)]
@@ -134,14 +146,65 @@ fn on_next_turn(
     _trigger: On<NextTurn>,
     mut combat_resource: ResMut<CombatResource>,
     mut commands: Commands,
+    query_alive: Query<&Alive>,
 ) {
-    combat_resource.next_turn();
+    if !combat_resource.activate || combat_resource.turn_order.is_empty() {
+        return;
+    }
 
-    let Some(entity) = combat_resource.current_entity() else {
+    let turn_count = combat_resource.turn_order.len();
+
+    for _ in 0..turn_count {
+        combat_resource.next_turn();
+
+        let Some(entity) = combat_resource.current_entity() else {
+            return;
+        };
+
+        let is_alive = query_alive.get(entity).is_ok_and(|alive| alive.0);
+
+        if is_alive {
+            commands.trigger(NextTurnTransition { entity });
+            return;
+        }
+    }
+
+    //commands.trigger(TurnStarted { entity });
+}
+
+fn on_next_turn_transition(
+    trigger: On<NextTurnTransition>,
+    mut turn_transition: ResMut<TurnTransition>,
+) {
+    let next_entity = trigger.event().entity;
+
+    turn_transition.pending_entity = Some(next_entity);
+    turn_transition.timer = Some(Timer::from_seconds(2.0, TimerMode::Once));
+}
+
+fn update_turn_transition(
+    mut turn_transition: ResMut<TurnTransition>,
+    mut commands: Commands,
+    time: Res<Time>,
+) {
+    let Some(timer) = turn_transition.timer.as_mut() else {
         return;
     };
 
+    timer.tick(time.delta());
+
+    if !timer.is_finished() {
+        return;
+    }
+
+    let Some(entity) = turn_transition.pending_entity else {
+        turn_transition.timer = None;
+        return;
+    };
+
+    turn_transition.timer = None;
     commands.trigger(TurnStarted { entity });
+    turn_transition.pending_entity = None;
 }
 
 fn on_died_in_combat(
@@ -207,14 +270,6 @@ fn select_target(
     mut godot: GodotAccess,
     query_alive: Query<&Alive>,
 ) {
-    let Some(player) = combat_resource.player else {
-        return;
-    };
-
-    if combat_resource.current_entity() != Some(player) {
-        return;
-    }
-
     let alive_entities: Vec<Entity> = combat_resource
         .turn_order
         .iter()
@@ -279,17 +334,32 @@ fn select_target(
     }
 }
 
+pub fn is_player_turn(combat_resource: Res<CombatResource>) -> bool {
+    combat_resource
+        .player
+        .is_some_and(|player| combat_resource.current_entity() == Some(player))
+}
+
 pub struct CombatPlugin;
 
 impl Plugin for CombatPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CombatResource>()
             .init_resource::<CombatTarget>()
+            .init_resource::<TurnTransition>()
             .add_observer(on_died_in_combat)
             .add_observer(on_enter_combat)
             .add_observer(on_next_turn)
             .add_observer(on_end_combat)
             .add_observer(on_enter_combat_positions)
-            .add_systems(Update, select_target.run_if(in_state(GameState::InCombat)));
+            .add_observer(on_next_turn_transition)
+            .add_systems(
+                Update,
+                select_target.run_if(in_state(GameState::InCombat).and_then(is_player_turn)),
+            )
+            .add_systems(
+                Update,
+                update_turn_transition.run_if(in_state(GameState::InCombat)),
+            );
     }
 }

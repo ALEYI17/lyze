@@ -11,6 +11,7 @@ shader = ExtResource("1_inyef")
 shader_parameter/albedo_texture = ExtResource("1_00paa")
 
 [node name="CapeEnemy3d" type="CapeEnemy3D" unique_id=247171508]
+health = 20.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1221596812]
 shape = SubResource("BoxShape3D_u5bk5")
