@@ -59,17 +59,20 @@ fn proccess_attacks(mut attacks: ResMut<CurrentAttack>, mut commands: Commands) 
         return;
     };
 
-    match &current_attack.reaction {
+    let prompt = match &current_attack.reaction {
         ReactionType::Parry => {
             godot_print!("Required reaction: PARRY");
+            "Required reaction: PARRY".to_string()
         }
         ReactionType::Dodge(directions) => {
             godot_print!("Required reaction: DODGE - {:?}", directions);
+            format!("Required reaction: DODGE - {:?}", directions)
         }
-    }
+    };
 
     commands.trigger(StartReactionEvent {
         duration: current_attack.reaction_window,
+        prompt,
     });
 
     attacks.waiting_for_reaction = true;

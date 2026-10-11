@@ -17,7 +17,10 @@ use crate::{
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
     combat::attack::{AttackDefinition, AttackEvent, DodgeDirection, ReactionType},
-    events::{combat::{CombatResource, CombatTarget, NextTurn, TurnStarted}, damage::Die},
+    events::{
+        combat::{CombatResource, CombatTarget, NextTurn, TurnStarted},
+        damage::Die,
+    },
     godot_utils::nodes::get_custom_character_body_3d,
     state::GameState,
 };
@@ -113,11 +116,12 @@ fn update_health_label(
     }
 }
 
-fn on_die_enemy(trigger: On<Die>,
+fn on_die_enemy(
+    trigger: On<Die>,
     query: Query<&GodotNodeHandle, With<CapeEnemyNode3D>>,
     mut godot: GodotAccess,
-){
-    let Ok(handle) = query.get(trigger.entity) else{
+) {
+    let Ok(handle) = query.get(trigger.entity) else {
         return;
     };
 
@@ -171,11 +175,11 @@ pub struct CapeEnemy3DPlugin;
 impl Plugin for CapeEnemy3DPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-                Update,
-                update_health_label.run_if(in_state(GameState::InCombat)),
-            )
-            .add_systems(Update, is_target.run_if(in_state(GameState::InCombat)))
-            .add_observer(on_enemy_turn)
-            .add_observer(on_die_enemy);
+            Update,
+            update_health_label.run_if(in_state(GameState::InCombat)),
+        )
+        .add_systems(Update, is_target.run_if(in_state(GameState::InCombat)))
+        .add_observer(on_enemy_turn)
+        .add_observer(on_die_enemy);
     }
 }

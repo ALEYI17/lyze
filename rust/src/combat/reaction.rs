@@ -9,6 +9,7 @@ use crate::{
     state::GameState,
 };
 
+#[derive(Debug)]
 pub enum ReactionResult {
     Failed,
     Success,
@@ -17,17 +18,18 @@ pub enum ReactionResult {
 #[derive(Event)]
 pub struct StartReactionEvent {
     pub duration: f32,
+    pub prompt: String,
 }
 
 #[derive(Event)]
 pub struct ReactionFinished {
-    result: ReactionResult,
+    pub result: ReactionResult,
 }
 
 #[derive(Resource, Default)]
 pub struct ReactionWindow {
-    timer: Timer,
-    active: bool,
+    pub timer: Timer,
+    pub active: bool,
     result: Option<ReactionResult>,
 }
 

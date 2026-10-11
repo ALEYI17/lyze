@@ -1,9 +1,13 @@
 use bevy::prelude::*;
-use godot::classes::{CanvasLayer, Control, Label};
+use godot::classes::{CanvasLayer, Control, Label, PanelContainer, ProgressBar};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
 use crate::characters::components::state::Alive;
+use crate::combat::attack::FinishAttackEvent;
+use crate::combat::reaction::{
+    ReactionFinished, ReactionResult, ReactionWindow, StartReactionEvent,
+};
 use crate::events::combat::{CombatTarget, NextTurn, TurnTransition, is_player_turn};
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use crate::{
@@ -33,6 +37,46 @@ fn get_control(canvas: &Gd<CanvasLayer>) -> Option<Gd<Control>> {
     };
 
     Some(control)
+}
+
+fn get_attack_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let label_handle = canvas.get_node_or_null("ReactionPrompt/ReactionContent/AttackLabel")?;
+
+    let Ok(label) = label_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(label)
+}
+
+fn get_reaction_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let label_handle = canvas.get_node_or_null("ReactionPrompt/ReactionContent/ReactionLabel")?;
+
+    let Ok(label) = label_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(label)
+}
+
+fn get_reaction_prompt(canvas: &Gd<CanvasLayer>) -> Option<Gd<PanelContainer>> {
+    let label_handle = canvas.get_node_or_null("ReactionPrompt")?;
+
+    let Ok(panel) = label_handle.try_cast::<PanelContainer>() else {
+        return None;
+    };
+
+    Some(panel)
+}
+
+fn get_reaction_timer(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
+    let label_handle = canvas.get_node_or_null("ReactionPrompt/ReactionContent/ReactionTimer")?;
+
+    let Ok(bar) = label_handle.try_cast::<ProgressBar>() else {
+        return None;
+    };
+
+    Some(bar)
 }
 
 #[derive(Resource, Default)]
@@ -198,19 +242,125 @@ fn toogle_turn_label(
         return;
     };
 
-    let Some(entity) =  turn_transition.pending_entity else{
+    let Some(entity) = turn_transition.pending_entity else {
         label.set_text("");
         return;
     };
 
-    let text = if is_player_turn(combat_resource){
+    let text = if is_player_turn(combat_resource) {
         format!("PLAYER TURN: {}", entity)
-    }else{
+    } else {
         format!("ENEMY TURN: {}", entity)
     };
 
-
     label.set_text(&text);
+}
+
+fn on_start_reaction(
+    trigger: On<StartReactionEvent>,
+    query: Query<&GodotNodeHandle, With<CombatHudNode>>,
+    mut godot: GodotAccess,
+) {
+    let prompt = &trigger.prompt;
+
+    let Ok(handle) = query.single() else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut attack_label) = get_attack_label(&canvas) else {
+        return;
+    };
+
+    let Some(mut panel) = get_reaction_prompt(&canvas) else {
+        return;
+    };
+
+    panel.set_visible(true);
+
+    attack_label.set_text(prompt);
+}
+
+fn update_reaction_timer(
+    query: Query<&GodotNodeHandle, With<CombatHudNode>>,
+    mut godot: GodotAccess,
+    window: Res<ReactionWindow>,
+) {
+    if !window.active{
+        return;
+    }
+
+    let Ok(handle) = query.single() else{
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(handle, &mut godot) else{
+        return;
+    };
+
+    let Some(mut bar) = get_reaction_timer(&canvas) else{
+        return;
+    };
+
+    let remaining = window.timer.remaining_secs();
+    let duration = window.timer.duration().as_secs_f32();
+
+    let progress = if duration > 0.0 {
+        remaining / duration
+    } else {
+        0.0
+    };
+
+    bar.set_value(f64::from(progress));
+
+}
+
+fn on_reaction_finished(
+    trigger: On<ReactionFinished>,
+    query: Query<&GodotNodeHandle, With<CombatHudNode>>,
+    mut godot: GodotAccess,
+) {
+    let result = &trigger.result;
+
+    let Ok(handle) = query.single() else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut reaction_label) = get_reaction_label(&canvas) else {
+        return;
+    };
+
+    let result_text = match result {
+        ReactionResult::Success => "Success".to_string(),
+        ReactionResult::Failed => "Failed".to_string(),
+    };
+    reaction_label.set_text(&result_text);
+}
+
+fn on_finish_attack_event(_trigger: On<FinishAttackEvent>,
+    query: Query<&GodotNodeHandle, With<CombatHudNode>>,
+    mut godot: GodotAccess,
+){
+    let Ok(handle) = query.single() else{
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut reaction_prompt) = get_reaction_prompt(&canvas) else{
+        return;
+    };
+
+    reaction_prompt.set_visible(false);
 }
 
 fn exit_combat_hud(
@@ -258,9 +408,13 @@ impl Plugin for CombatHudPlugin {
                     enter_combat_hud.run_if(not_entered_hud),
                     toogle_combat_hud_visibility,
                     toogle_turn_label,
+                    update_reaction_timer,
                 )
                     .run_if(in_state(GameState::InCombat)),
             )
-            .add_observer(on_attack_button);
+            .add_observer(on_attack_button)
+            .add_observer(on_start_reaction)
+            .add_observer(on_reaction_finished)
+            .add_observer(on_finish_attack_event);
     }
 }

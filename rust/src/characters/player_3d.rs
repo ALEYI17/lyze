@@ -10,7 +10,10 @@ use crate::{
         },
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
-    events::{combat::{CombatResource, CombatTarget}, damage::Die},
+    events::{
+        combat::{CombatResource, CombatTarget},
+        damage::Die,
+    },
     godot_utils::nodes::get_custom_character_body_3d,
     state::GameState,
 };
@@ -80,11 +83,12 @@ fn move_player_3d_node(
     body.move_and_slide();
 }
 
-fn on_die_player(trigger: On<Die>,
+fn on_die_player(
+    trigger: On<Die>,
     query: Query<&GodotNodeHandle, With<Player3DNode>>,
     mut godot: GodotAccess,
-){
-    let Ok(handle) = query.get(trigger.entity) else{
+) {
+    let Ok(handle) = query.get(trigger.entity) else {
         return;
     };
 

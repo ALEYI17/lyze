@@ -1,23 +1,159 @@
 [gd_scene format=3 uid="uid://byfq4cwb7wawl"]
 
+[sub_resource type="StyleBoxFlat" id="AttackButtonNormal"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.16, 0.13, 0.1, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 3
+border_color = Color(0.78, 0.55, 0.24, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="AttackButtonPressed"]
+bg_color = Color(0.1, 0.08, 0.07, 1)
+border_width_left = 1
+border_width_top = 2
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.78, 0.55, 0.24, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="AttackButtonHover"]
+bg_color = Color(0.29, 0.21, 0.12, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 3
+border_color = Color(1, 0.75, 0.35, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="ReactionPanelStyle"]
+content_margin_left = 20.0
+content_margin_top = 14.0
+content_margin_right = 20.0
+content_margin_bottom = 14.0
+bg_color = Color(0.075, 0.055, 0.065, 0.97)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.82, 0.19, 0.18, 0.95)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="ReactionTimerBackground"]
+bg_color = Color(0.19, 0.13, 0.15, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="ReactionTimerFill"]
+bg_color = Color(0.91, 0.22, 0.19, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [node name="CombatHud" type="CombatHud" unique_id=288455881]
 
 [node name="turn" type="Label" parent="." unique_id=1001096463]
-offset_left = 312.0
-offset_top = 316.0
-offset_right = 940.0
-offset_bottom = 452.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -179.0
+offset_top = 24.0
+offset_right = 181.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.94, 0.82, 1)
+theme_override_font_sizes/font_size = 22
+text = "YOUR TURN"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Control" type="Control" parent="." unique_id=1273471873]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="attack_1" type="Button" parent="Control" unique_id=732887277]
-layout_mode = 0
-offset_left = 547.0
-offset_top = 606.0
-offset_right = 651.0
-offset_bottom = 655.0
-text = "Attack 1"
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -88.0
+offset_right = 200.0
+offset_bottom = -32.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.91, 0.74, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 0.75, 0.52, 1)
+theme_override_colors/font_hover_color = Color(1, 0.98, 0.88, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("AttackButtonNormal")
+theme_override_styles/pressed = SubResource("AttackButtonPressed")
+theme_override_styles/hover = SubResource("AttackButtonHover")
+text = "ATTACK 1"
+
+[node name="ReactionPrompt" type="PanelContainer" parent="." unique_id=899410038]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -230.0
+offset_top = -166.0
+offset_right = 230.0
+offset_bottom = -38.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("ReactionPanelStyle")
+
+[node name="ReactionContent" type="VBoxContainer" parent="ReactionPrompt" unique_id=827601192]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="AttackLabel" type="Label" parent="ReactionPrompt/ReactionContent" unique_id=1104703717]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.43, 0.35, 1)
+theme_override_font_sizes/font_size = 13
+text = "ENEMY ATTACK"
+horizontal_alignment = 1
+
+[node name="ReactionLabel" type="Label" parent="ReactionPrompt/ReactionContent" unique_id=1479839187]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.94, 0.88, 1)
+theme_override_font_sizes/font_size = 27
+text = "PARRY!"
+horizontal_alignment = 1
+
+[node name="ReactionTimer" type="ProgressBar" parent="ReactionPrompt/ReactionContent" unique_id=191069878]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+theme_override_styles/background = SubResource("ReactionTimerBackground")
+theme_override_styles/fill = SubResource("ReactionTimerFill")
+max_value = 1.0
+value = 1.0
+show_percentage = false

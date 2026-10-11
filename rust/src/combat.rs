@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 pub mod attack;
-mod reaction;
+pub mod reaction;
 
 pub struct CombatPlugin;
 
