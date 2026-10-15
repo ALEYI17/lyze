@@ -4,7 +4,7 @@ mod npc;
 pub mod player_3d;
 pub mod players;
 use bevy::prelude::*;
-mod helpers;
+pub mod helpers;
 
 use npc::NpcPlugin;
 use player_3d::Player3DPlugin;

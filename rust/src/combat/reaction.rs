@@ -5,7 +5,10 @@ use godot_bevy::interop::GodotAccess;
 
 use crate::{
     combat::attack::{CurrentAttack, DodgeDirection, FinishAttackEvent, ReactionType},
-    events::damage::DamageEvent,
+    events::{
+        damage::DamageEvent,
+        effects::{CombatVisualResult, CombatVisulEvent},
+    },
     state::GameState,
 };
 
@@ -134,6 +137,10 @@ fn on_reaction_finish(
         }
         ReactionResult::Success => {
             godot_print!("Hit {} - MITIGATED", attack_resource.current_hit + 1);
+            commands.trigger(CombatVisulEvent {
+                entity: target,
+                result: CombatVisualResult::ParrySuccess,
+            });
         }
     }
 

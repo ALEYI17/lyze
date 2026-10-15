@@ -5,9 +5,7 @@ use godot_bevy::prelude::*;
 
 use crate::characters::components::state::Alive;
 use crate::combat::attack::FinishAttackEvent;
-use crate::combat::reaction::{
-    ReactionFinished, ReactionResult, ReactionWindow, StartReactionEvent,
-};
+use crate::combat::reaction::{ReactionWindow, StartReactionEvent};
 use crate::events::combat::{CombatTarget, NextTurn, TurnTransition, is_player_turn};
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use crate::{
@@ -37,16 +35,6 @@ fn get_control(canvas: &Gd<CanvasLayer>) -> Option<Gd<Control>> {
     };
 
     Some(control)
-}
-
-fn get_attack_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
-    let label_handle = canvas.get_node_or_null("ReactionPrompt/ReactionContent/AttackLabel")?;
-
-    let Ok(label) = label_handle.try_cast::<Label>() else {
-        return None;
-    };
-
-    Some(label)
 }
 
 fn get_reaction_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
@@ -271,7 +259,7 @@ fn on_start_reaction(
         return;
     };
 
-    let Some(mut attack_label) = get_attack_label(&canvas) else {
+    let Some(mut attack_label) = get_reaction_label(&canvas) else {
         return;
     };
 
@@ -289,19 +277,19 @@ fn update_reaction_timer(
     mut godot: GodotAccess,
     window: Res<ReactionWindow>,
 ) {
-    if !window.active{
+    if !window.active {
         return;
     }
 
-    let Ok(handle) = query.single() else{
+    let Ok(handle) = query.single() else {
         return;
     };
 
-    let Some(canvas) = get_custom_canvas_layer(handle, &mut godot) else{
+    let Some(canvas) = get_custom_canvas_layer(handle, &mut godot) else {
         return;
     };
 
-    let Some(mut bar) = get_reaction_timer(&canvas) else{
+    let Some(mut bar) = get_reaction_timer(&canvas) else {
         return;
     };
 
@@ -315,16 +303,13 @@ fn update_reaction_timer(
     };
 
     bar.set_value(f64::from(progress));
-
 }
 
-fn on_reaction_finished(
-    trigger: On<ReactionFinished>,
+fn on_finish_attack_event(
+    _trigger: On<FinishAttackEvent>,
     query: Query<&GodotNodeHandle, With<CombatHudNode>>,
     mut godot: GodotAccess,
 ) {
-    let result = &trigger.result;
-
     let Ok(handle) = query.single() else {
         return;
     };
@@ -333,30 +318,7 @@ fn on_reaction_finished(
         return;
     };
 
-    let Some(mut reaction_label) = get_reaction_label(&canvas) else {
-        return;
-    };
-
-    let result_text = match result {
-        ReactionResult::Success => "Success".to_string(),
-        ReactionResult::Failed => "Failed".to_string(),
-    };
-    reaction_label.set_text(&result_text);
-}
-
-fn on_finish_attack_event(_trigger: On<FinishAttackEvent>,
-    query: Query<&GodotNodeHandle, With<CombatHudNode>>,
-    mut godot: GodotAccess,
-){
-    let Ok(handle) = query.single() else{
-        return;
-    };
-
-    let Some(canvas) = get_custom_canvas_layer(handle, &mut godot) else {
-        return;
-    };
-
-    let Some(mut reaction_prompt) = get_reaction_prompt(&canvas) else{
+    let Some(mut reaction_prompt) = get_reaction_prompt(&canvas) else {
         return;
     };
 
@@ -414,7 +376,6 @@ impl Plugin for CombatHudPlugin {
             )
             .add_observer(on_attack_button)
             .add_observer(on_start_reaction)
-            .add_observer(on_reaction_finished)
             .add_observer(on_finish_attack_event);
     }
 }

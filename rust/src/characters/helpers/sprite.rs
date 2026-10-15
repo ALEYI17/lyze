@@ -20,3 +20,11 @@ pub fn set_shader_true(sprite: &mut Gd<Sprite3D>) {
 pub fn set_shader_false(sprite: &mut Gd<Sprite3D>) {
     sprite.set_instance_shader_parameter("effect_enabled", &false.to_variant());
 }
+
+pub fn set_damage_flash(sprite: &mut Gd<Sprite3D>, enabled: bool) {
+    sprite.set_instance_shader_parameter("damage_flash", &enabled.to_variant());
+}
+
+pub fn set_success_flash(sprite: &mut Gd<Sprite3D>, enabled: bool) {
+    sprite.set_instance_shader_parameter("success_flash", &enabled.to_variant());
+}

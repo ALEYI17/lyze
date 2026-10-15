@@ -2,6 +2,8 @@ shader_type spatial;
 render_mode unshaded;
 
 instance uniform bool effect_enabled = false;
+instance uniform bool damage_flash = false;
+instance uniform bool success_flash = false;
 uniform sampler2D albedo_texture : source_color, filter_nearest;
 
 void vertex() {
@@ -19,7 +21,11 @@ void vertex() {
 
 void fragment() {
   vec4 tex = texture(albedo_texture, UV);
-	if (effect_enabled) {
+  if (damage_flash){
+    ALBEDO = tex.rgb * vec3(1.0, 0.15, 0.15);
+  }else if (success_flash){
+    ALBEDO = tex.rgb * vec3(0.15, 0.35, 1.0);
+  }else if (effect_enabled) {
 		ALBEDO = tex.rgb * vec3(1.0, 0.3, 0.3);
 	} else {
 		ALBEDO = tex.rgb;

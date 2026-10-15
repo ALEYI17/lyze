@@ -3,7 +3,10 @@ use crate::{
         state::Alive,
         stats::{Damage, Health},
     },
-    events::combat::DiedInCombat,
+    events::{
+        combat::DiedInCombat,
+        effects::{CombatVisualResult, CombatVisulEvent},
+    },
     state::GameState,
 };
 use bevy::prelude::*;
@@ -55,6 +58,11 @@ fn on_damage_event(
     godot_print!("Target health: {}", health.0);
     health.0 -= damage;
     godot_print!("Target health after: {}", health.0);
+
+    commands.trigger(CombatVisulEvent {
+        entity: damage_event.target,
+        result: CombatVisualResult::PlayerDamaged,
+    });
 
     if health.0 <= 0.0 {
         alive.0 = false;
