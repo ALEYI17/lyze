@@ -43,6 +43,15 @@ pub struct CurrentAttack {
     pub waiting_for_reaction: bool,
 }
 
+fn dodge_direction_arrow(direction: &DodgeDirection) -> &'static str {
+    match direction {
+        DodgeDirection::Forward => "↑",
+        DodgeDirection::Backward => "↓",
+        DodgeDirection::Left => "←",
+        DodgeDirection::Right => "→",
+    }
+}
+
 fn on_attack_event(trigger: On<AttackEvent>, mut attack_resource: ResMut<CurrentAttack>) {
     attack_resource.source = Some(trigger.event().source);
     attack_resource.target = Some(trigger.event().target);
@@ -65,8 +74,9 @@ fn proccess_attacks(mut attacks: ResMut<CurrentAttack>, mut commands: Commands) 
             "Required reaction: PARRY".to_string()
         }
         ReactionType::Dodge(directions) => {
-            godot_print!("Required reaction: DODGE - {:?}", directions);
-            format!("Required reaction: DODGE - {:?}", directions)
+            let arrows = directions.iter().map(dodge_direction_arrow).collect::<Vec<_>>().join(" ");
+            godot_print!("Required reaction: DODGE - {:?}", arrows);
+            format!("Required reaction: DODGE - {:?}", arrows)
         }
     };
 
