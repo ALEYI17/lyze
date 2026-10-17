@@ -12,11 +12,14 @@ use crate::{
     characters::{
         components::{
             state::Alive,
-            stats::{Damage, Gravity, Health, Speed},
+            stats::{Damage, Gravity, Health, MaxHealth, Speed},
+        },
+        enemies::ai::{
+            context::CombatContext, decision::get_attack, personality::EnemyPersonalityComponent,
         },
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
-    combat::attack::{AttackDefinition, AttackEvent, DodgeDirection, ReactionType},
+    combat::attack::AttackEvent,
     events::{
         combat::{CombatResource, CombatTarget, NextTurn, TurnStarted},
         damage::Die,
@@ -25,14 +28,18 @@ use crate::{
     state::GameState,
 };
 
+use crate::characters::enemies::ai::personality::from_godot_personality;
+
 #[derive(Component, GodotNode, Default)]
 #[gdbevy(base = CharacterBody3D, class_name = CapeEnemy3D)]
 #[gdbevy(
     require(speed: Speed, as = f32, default = 150.0),
     require(health: Health, as = f32, default = 50.0),
+    require(max_health: MaxHealth, as = f32, default = 50.0),
     require(damage: Damage, as = f32, default = 5.0),
     require(enemy_gravity: Gravity, as = f32, default = 980.0),
     require(alive: Alive, as = bool, default = true),
+    require(personality: EnemyPersonalityComponent,as = GString, with = from_godot_personality, default = GString::from("neutral"), hint = ENUM, hint_string = "neutral,aggressive,defensive,crazy"),
 )]
 pub struct CapeEnemyNode3D;
 
@@ -48,14 +55,23 @@ fn get_health_in_label(body: &Gd<CharacterBody3D>) -> Option<Gd<Label3D>> {
 
 fn on_enemy_turn(
     trigger: On<TurnStarted>,
-    query: Query<(&GodotNodeHandle, &Alive, &Health), With<CapeEnemyNode3D>>,
+    query: Query<
+        (
+            &GodotNodeHandle,
+            &Alive,
+            &Health,
+            &MaxHealth,
+            &EnemyPersonalityComponent,
+        ),
+        With<CapeEnemyNode3D>,
+    >,
     mut commands: Commands,
     combat_resource: Res<CombatResource>,
 ) {
     godot_print!("Receive event");
     let entity = trigger.event().entity;
 
-    let Ok((handle, alive, health)) = query.get(entity) else {
+    let Ok((handle, alive, health, max_health, personality)) = query.get(entity) else {
         return;
     };
 
@@ -65,36 +81,25 @@ fn on_enemy_turn(
     }
 
     let Some(player) = combat_resource.player else {
+        commands.trigger(NextTurn);
         return;
     };
 
     godot_print!("Enemy entity:{}, handle: {:?}", entity, handle);
 
+    let context = CombatContext::from_health(health.0, max_health.0);
+    let random = rand::random::<f32>();
+    godot_print!("Random: {}", random);
+    let Some(combo) = get_attack(personality.0, context, random) else {
+        godot_print!("Dont get combo");
+        commands.trigger(NextTurn);
+        return;
+    };
+
     commands.trigger(AttackEvent {
         source: entity,
         target: player,
-        attacks: vec![
-            AttackDefinition {
-                damage: 5.0,
-                reaction_window: 1.0,
-                reaction: ReactionType::Parry,
-            },
-            AttackDefinition {
-                damage: 7.0,
-                reaction_window: 1.5,
-                reaction: ReactionType::Parry,
-            },
-            AttackDefinition {
-                damage: 10.0,
-                reaction_window: 0.8,
-                reaction: ReactionType::Parry,
-            },
-            AttackDefinition {
-                damage: 2.0,
-                reaction_window: 1.3,
-                reaction: ReactionType::Dodge(vec![DodgeDirection::Left, DodgeDirection::Right]),
-            },
-        ],
+        attacks: combo,
     });
 }
 

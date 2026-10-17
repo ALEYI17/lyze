@@ -18,6 +18,10 @@ pub struct Health(pub f32);
 
 #[derive(Component, Default, Debug, Clone, Reflect)]
 #[reflect(Component)]
+pub struct MaxHealth(pub f32);
+
+#[derive(Component, Default, Debug, Clone, Reflect)]
+#[reflect(Component)]
 pub struct Damage(pub f32);
 
 #[derive(Component, Default)]
