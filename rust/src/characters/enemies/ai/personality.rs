@@ -52,6 +52,6 @@ impl From<GString> for EnemyPersonality {
     }
 }
 
-pub fn from_godot_personality(value: GString) -> EnemyPersonality  {
+pub fn from_godot_personality(value: GString) -> EnemyPersonality {
     value.into()
 }

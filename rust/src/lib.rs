@@ -1,6 +1,7 @@
 use bevy::{prelude::*, state::app::StatesPlugin};
 use godot_bevy::prelude::*;
 
+mod abilities;
 mod characters;
 mod combat;
 mod events;

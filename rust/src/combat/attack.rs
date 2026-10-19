@@ -74,7 +74,11 @@ fn proccess_attacks(mut attacks: ResMut<CurrentAttack>, mut commands: Commands) 
             "Required reaction: PARRY".to_string()
         }
         ReactionType::Dodge(directions) => {
-            let arrows = directions.iter().map(dodge_direction_arrow).collect::<Vec<_>>().join(" ");
+            let arrows = directions
+                .iter()
+                .map(dodge_direction_arrow)
+                .collect::<Vec<_>>()
+                .join(" ");
             godot_print!("Required reaction: DODGE - {:?}", arrows);
             format!("Required reaction: DODGE - {:?}", arrows)
         }

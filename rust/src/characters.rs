@@ -5,10 +5,13 @@ pub mod player_3d;
 pub mod players;
 use bevy::prelude::*;
 pub mod helpers;
+pub mod inventories;
 
 use npc::NpcPlugin;
 use player_3d::Player3DPlugin;
 use players::PlayerPlugin;
+
+use crate::characters::inventories::InventoryPlugin;
 
 pub struct CharactersPlugin;
 
@@ -17,6 +20,7 @@ impl Plugin for CharactersPlugin {
         app.add_plugins(PlayerPlugin)
             .add_plugins(enemies::EnemiesPlugin)
             .add_plugins(Player3DPlugin)
-            .add_plugins(NpcPlugin);
+            .add_plugins(NpcPlugin)
+            .add_plugins(InventoryPlugin);
     }
 }

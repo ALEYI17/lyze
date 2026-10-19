@@ -1,17 +1,18 @@
 use bevy::prelude::*;
-use godot::classes::{CanvasLayer, Control, Label, PanelContainer, ProgressBar};
+use godot::classes::{Button, CanvasLayer, Control, Label, PanelContainer, ProgressBar};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
+use crate::abilities::definition::AbilityId;
+use crate::abilities::registry::AbilityRegistry;
 use crate::characters::components::state::Alive;
+use crate::characters::inventories::abilities::AbilityInventory;
 use crate::combat::attack::FinishAttackEvent;
 use crate::combat::reaction::{ReactionWindow, StartReactionEvent};
+use crate::events::abilities::AbilityEvent;
 use crate::events::combat::{CombatTarget, NextTurn, TurnTransition, is_player_turn};
 use crate::godot_utils::nodes::get_custom_canvas_layer;
-use crate::{
-    events::{combat::CombatResource, damage::DamageEvent},
-    state::GameState,
-};
+use crate::{events::combat::CombatResource, state::GameState};
 
 #[derive(Component, GodotNode, Default)]
 #[gdbevy(base = CanvasLayer, class_name = CombatHud)]
@@ -35,6 +36,10 @@ fn get_control(canvas: &Gd<CanvasLayer>) -> Option<Gd<Control>> {
     };
 
     Some(control)
+}
+
+fn get_attack_button(button: &GodotNodeHandle, godot: &mut GodotAccess) -> Option<Gd<Button>> {
+    godot.try_get::<Button>(*button)
 }
 
 fn get_reaction_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
@@ -71,6 +76,10 @@ fn get_reaction_timer(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
 pub struct CombatHudAssets {
     pub combat_hud: Option<GodotNodeHandle>,
     pub attack_button: Option<GodotNodeHandle>,
+    pub attack_button_b: Option<GodotNodeHandle>,
+    pub attack_button_c: Option<GodotNodeHandle>,
+    pub attack_button_d: Option<GodotNodeHandle>,
+    pub attack_button_e: Option<GodotNodeHandle>,
     pub initialized: bool,
     pub signal_connected: bool,
     pub menu_entered: bool,
@@ -83,11 +92,32 @@ pub struct CombatHUdUi {
 
     #[node("/root/main_isometric/CombatHud/Control/attack_1")]
     pub attack_button: GodotNodeHandle,
+
+    #[node("/root/main_isometric/CombatHud/Control/attack_2")]
+    pub attack_button_b: GodotNodeHandle,
+
+    #[node("/root/main_isometric/CombatHud/Control/attack_3")]
+    pub attack_button_c: GodotNodeHandle,
+
+    #[node("/root/main_isometric/CombatHud/Control/attack_4")]
+    pub attack_button_d: GodotNodeHandle,
+
+    #[node("/root/main_isometric/CombatHud/Control/attack_5")]
+    pub attack_button_e: GodotNodeHandle,
+}
+
+#[derive(Event, Debug, Clone)]
+struct AttackEvent {
+    pub ability_id: AbilityId,
 }
 
 fn reset_combat_assets(mut combat_assets: ResMut<CombatHudAssets>) {
     combat_assets.combat_hud = None;
     combat_assets.attack_button = None;
+    combat_assets.attack_button_b = None;
+    combat_assets.attack_button_c = None;
+    combat_assets.attack_button_d = None;
+    combat_assets.attack_button_e = None;
     combat_assets.initialized = false;
     combat_assets.signal_connected = false;
     combat_assets.menu_entered = false;
@@ -101,6 +131,10 @@ fn initialized_combat_hud(
         if let Ok(menu_ui) = CombatHUdUi::from_node(root) {
             combat_assets.combat_hud = Some(menu_ui.combat_hud);
             combat_assets.attack_button = Some(menu_ui.attack_button);
+            combat_assets.attack_button_b = Some(menu_ui.attack_button_b);
+            combat_assets.attack_button_c = Some(menu_ui.attack_button_c);
+            combat_assets.attack_button_d = Some(menu_ui.attack_button_d);
+            combat_assets.attack_button_e = Some(menu_ui.attack_button_e);
             combat_assets.initialized = true;
         }
     } else {
@@ -108,29 +142,70 @@ fn initialized_combat_hud(
     }
 }
 
-#[derive(Event, Debug, Clone)]
-struct AttackEvent;
-
 fn connect_button(
     mut combat_assets: ResMut<CombatHudAssets>,
     signals_attack: GodotSignals<AttackEvent>,
+    ability_inventory: Res<AbilityInventory>,
+    ability_registry: Res<AbilityRegistry>,
+    mut godot: GodotAccess,
 ) {
-    if combat_assets.attack_button.is_some() && !combat_assets.signal_connected {
-        if let Some(attack_handle) = combat_assets.attack_button {
-            signals_attack.connect(
-                attack_handle,
-                BaseButtonSignals::PRESSED,
-                None,
-                |_args, _node_handle, _ent| Some(AttackEvent),
-            );
-        }
-
-        combat_assets.signal_connected = true;
+    if combat_assets.signal_connected {
+        return;
     }
+
+    let buttons = [
+        combat_assets.attack_button,
+        combat_assets.attack_button_b,
+        combat_assets.attack_button_c,
+        combat_assets.attack_button_d,
+        combat_assets.attack_button_e,
+    ];
+
+    for (index, button) in buttons.into_iter().enumerate() {
+        let Some(button_handle) = button else {
+            continue;
+        };
+
+        let Some(mut button) = get_attack_button(&button_handle, &mut godot) else {
+            return;
+        };
+
+        let Some(ability_id) = ability_inventory.abilities.get(index).copied() else {
+            continue;
+        };
+
+        let Some(ability) = ability_registry.get(ability_id) else {
+            return;
+        };
+
+        button.set_text(ability.name);
+
+        signals_attack.connect(
+            button_handle,
+            BaseButtonSignals::PRESSED,
+            None,
+            move |_args, _node_handle, _ent| Some(AttackEvent { ability_id }),
+        );
+    }
+
+    combat_assets.signal_connected = true;
+
+    // if combat_assets.attack_button.is_some() && !combat_assets.signal_connected {
+    //     if let Some(attack_handle) = combat_assets.attack_button {
+    //         signals_attack.connect(
+    //             attack_handle,
+    //             BaseButtonSignals::PRESSED,
+    //             None,
+    //             |_args, _node_handle, _ent| Some(AttackEvent),
+    //         );
+    //     }
+    //
+    //     combat_assets.signal_connected = true;
+    // }
 }
 
 fn on_attack_button(
-    _trigger: On<AttackEvent>,
+    trigger: On<AttackEvent>,
     combat_resource: ResMut<CombatResource>,
     mut commands: Commands,
     _alive_query: Query<&Alive>,
@@ -153,11 +228,17 @@ fn on_attack_button(
         return;
     }
 
-    commands.trigger(DamageEvent {
+    commands.trigger(AbilityEvent {
+        ability: trigger.ability_id,
         source: player,
         target: enemy,
-        damage: None,
     });
+
+    // commands.trigger(DamageEvent {
+    //     source: player,
+    //     target: enemy,
+    //     damage: None,
+    // });
 
     commands.trigger(NextTurn);
 }

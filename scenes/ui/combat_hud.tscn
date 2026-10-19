@@ -114,7 +114,78 @@ theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("AttackButtonNormal")
 theme_override_styles/pressed = SubResource("AttackButtonPressed")
 theme_override_styles/hover = SubResource("AttackButtonHover")
-text = "ATTACK 1"
+
+[node name="attack_2" type="Button" parent="Control" unique_id=163060319]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 232.0
+offset_top = -88.0
+offset_right = 400.0
+offset_bottom = -32.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.91, 0.74, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 0.75, 0.52, 1)
+theme_override_colors/font_hover_color = Color(1, 0.98, 0.88, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("AttackButtonNormal")
+theme_override_styles/pressed = SubResource("AttackButtonPressed")
+theme_override_styles/hover = SubResource("AttackButtonHover")
+
+[node name="attack_3" type="Button" parent="Control" unique_id=716999681]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 432.0
+offset_top = -88.0
+offset_right = 600.0
+offset_bottom = -32.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.91, 0.74, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 0.75, 0.52, 1)
+theme_override_colors/font_hover_color = Color(1, 0.98, 0.88, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("AttackButtonNormal")
+theme_override_styles/pressed = SubResource("AttackButtonPressed")
+theme_override_styles/hover = SubResource("AttackButtonHover")
+
+[node name="attack_4" type="Button" parent="Control" unique_id=1279544713]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 632.0
+offset_top = -88.0
+offset_right = 800.0
+offset_bottom = -32.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.91, 0.74, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 0.75, 0.52, 1)
+theme_override_colors/font_hover_color = Color(1, 0.98, 0.88, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("AttackButtonNormal")
+theme_override_styles/pressed = SubResource("AttackButtonPressed")
+theme_override_styles/hover = SubResource("AttackButtonHover")
+
+[node name="attack_5" type="Button" parent="Control" unique_id=116594370]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 832.0
+offset_top = -88.0
+offset_right = 1000.0
+offset_bottom = -32.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.91, 0.74, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 0.75, 0.52, 1)
+theme_override_colors/font_hover_color = Color(1, 0.98, 0.88, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("AttackButtonNormal")
+theme_override_styles/pressed = SubResource("AttackButtonPressed")
+theme_override_styles/hover = SubResource("AttackButtonHover")
 
 [node name="ReactionPrompt" type="PanelContainer" parent="." unique_id=899410038]
 visible = false

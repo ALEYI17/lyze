@@ -5,6 +5,7 @@ use godot_bevy::prelude::*;
 use crate::{
     characters::{
         components::{
+            convictions::{Convictions, from_godot_conviction},
             state::Alive,
             stats::{Damage, Gravity, Health, JumpVelocity, Speed},
         },
@@ -18,6 +19,8 @@ use crate::{
     state::GameState,
 };
 
+use godot::classes::class_macros::private::virtuals::ZipReader::Vector2;
+
 #[derive(Component, GodotNode, Default)]
 #[gdbevy(base = CharacterBody3D, class_name = Player3D)]
 #[gdbevy(
@@ -27,6 +30,33 @@ use crate::{
     require(health: Health, as = f32, default = 50.0),
     require(damage: Damage, as = f32, default = 15.0),
     require(alive: Alive, as = bool, default = true),
+    require(convictions: Convictions {
+        aeternum(
+            as = Vector2,
+            with = from_godot_conviction,
+            default = Vector2::new(1.0, 1.0)
+        ),
+        alligatio(
+            as = Vector2,
+            with = from_godot_conviction,
+            default = Vector2::new(1.0, 1.0)
+        ),
+        ananke(
+            as = Vector2,
+            with = from_godot_conviction,
+            default = Vector2::new(1.0, 1.0)
+        ),
+        sekhem(
+            as = Vector2,
+            with = from_godot_conviction,
+            default = Vector2::new(1.0, 1.0)
+        ),
+        ataraxia(
+            as = Vector2,
+            with = from_godot_conviction,
+            default = Vector2::new(1.0, 1.0)
+        )
+    }),
 )]
 pub struct Player3DNode;
 
