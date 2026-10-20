@@ -54,7 +54,7 @@ fn set_player_health(
         return;
     };
 
-    let text = format!("Health: {}", health.0);
+    let text = format!("Health: {:.1}", health.0);
     node.set_text(&text);
 }
 

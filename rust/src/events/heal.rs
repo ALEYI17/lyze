@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use godot::global::godot_print;
 
-use crate::characters::components::stats::Health;
+use crate::characters::components::stats::{Health, MaxHealth};
 
 #[derive(Event)]
 pub struct HealEvent {
@@ -10,24 +10,28 @@ pub struct HealEvent {
     pub heal: Option<f32>,
 }
 
-fn on_heal_event(damage_event: On<HealEvent>, mut query_health: Query<&mut Health>) {
+fn on_heal_event(heal_event: On<HealEvent>, mut query_health: Query<(&mut Health, &MaxHealth)>) {
     godot_print!(
         "Source entity: {:?}, Target entity: {:?}",
-        damage_event.source,
-        damage_event.target
+        heal_event.source,
+        heal_event.target
     );
 
-    let Ok(mut health) = query_health.get_mut(damage_event.target) else {
+    let Ok((mut health, max_health)) = query_health.get_mut(heal_event.target) else {
         return;
     };
 
-    let Some(heal) = damage_event.heal else {
+    let Some(heal) = heal_event.heal else {
         return;
     };
 
-    godot_print!("Target health: {}", health.0);
-    health.0 += heal;
-    godot_print!("Target health after: {}", health.0);
+    let target_health = health.0 + heal;
+
+    if target_health > max_health.0 {
+        health.0 = max_health.0;
+    } else {
+        health.0 = target_health;
+    }
 }
 
 pub struct HealPluign;

@@ -11,6 +11,7 @@ use godot_bevy::{
 use crate::{
     characters::{
         components::{
+            convictions::{Convictions, from_godot_conviction},
             state::Alive,
             stats::{Damage, Gravity, Health, MaxHealth, Speed},
         },
@@ -40,6 +41,33 @@ use crate::characters::enemies::ai::personality::from_godot_personality;
     require(enemy_gravity: Gravity, as = f32, default = 980.0),
     require(alive: Alive, as = bool, default = true),
     require(personality: EnemyPersonalityComponent,as = GString, with = from_godot_personality, default = GString::from("neutral"), hint = ENUM, hint_string = "neutral,aggressive,defensive,crazy"),
+    require(convictions: Convictions {
+        aeternum(
+            as = Vector2,
+            with = from_godot_conviction,
+            default = Vector2::new(1.0, 1.0)
+        ),
+        alligatio(
+            as = Vector2,
+            with = from_godot_conviction,
+            default = Vector2::new(1.0, 1.0)
+        ),
+        ananke(
+            as = Vector2,
+            with = from_godot_conviction,
+            default = Vector2::new(1.0, 1.0)
+        ),
+        sekhem(
+            as = Vector2,
+            with = from_godot_conviction,
+            default = Vector2::new(1.0, 1.0)
+        ),
+        ataraxia(
+            as = Vector2,
+            with = from_godot_conviction,
+            default = Vector2::new(1.0, 1.0)
+        )
+    }),
 )]
 pub struct CapeEnemyNode3D;
 
@@ -116,7 +144,7 @@ fn update_health_label(
             continue;
         };
 
-        let text = format!("{}", health.0);
+        let text = format!("{:.1}", health.0);
         label.set_text(&text);
     }
 }

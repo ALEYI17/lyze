@@ -3,7 +3,7 @@ use godot::classes::{Button, CanvasLayer, Control, Label, PanelContainer, Progre
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
-use crate::abilities::definition::AbilityId;
+use crate::abilities::definition::{AbilityId, format_ability_scaling};
 use crate::abilities::registry::AbilityRegistry;
 use crate::characters::components::state::Alive;
 use crate::characters::inventories::abilities::AbilityInventory;
@@ -72,6 +72,40 @@ fn get_reaction_timer(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
     Some(bar)
 }
 
+fn get_ability_tooltip(canvas: &Gd<CanvasLayer>) -> Option<Gd<PanelContainer>> {
+    let tooltip_handle = canvas.get_node_or_null("Control/AbilityTooltip")?;
+
+    let Ok(tooltip) = tooltip_handle.try_cast::<PanelContainer>() else {
+        return None;
+    };
+
+    Some(tooltip)
+}
+
+fn get_ability_name(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let node = canvas.get_node_or_null(
+        "Control/AbilityTooltip/MarginContainer/VBoxContainer/AbilityName",
+    )?;
+
+    let Ok(label) = node.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(label)
+}
+
+fn get_ability_scaling(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let label_handle = canvas.get_node_or_null(
+        "Control/AbilityTooltip/MarginContainer/VBoxContainer/AbilityScaling",
+    )?;
+
+    let Ok(label) = label_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(label)
+}
+
 #[derive(Resource, Default)]
 pub struct CombatHudAssets {
     pub combat_hud: Option<GodotNodeHandle>,
@@ -111,6 +145,14 @@ struct AttackEvent {
     pub ability_id: AbilityId,
 }
 
+#[derive(Event, Debug, Clone)]
+struct AbilityHover{
+    pub ability_id: AbilityId,
+}
+
+#[derive(Event, Debug, Clone)]
+struct AbilityUnHover;
+
 fn reset_combat_assets(mut combat_assets: ResMut<CombatHudAssets>) {
     combat_assets.combat_hud = None;
     combat_assets.attack_button = None;
@@ -145,6 +187,8 @@ fn initialized_combat_hud(
 fn connect_button(
     mut combat_assets: ResMut<CombatHudAssets>,
     signals_attack: GodotSignals<AttackEvent>,
+    signals_hover: GodotSignals<AbilityHover>,
+    signals_unhover: GodotSignals<AbilityUnHover>,
     ability_inventory: Res<AbilityInventory>,
     ability_registry: Res<AbilityRegistry>,
     mut godot: GodotAccess,
@@ -185,6 +229,20 @@ fn connect_button(
             BaseButtonSignals::PRESSED,
             None,
             move |_args, _node_handle, _ent| Some(AttackEvent { ability_id }),
+        );
+
+        signals_unhover.connect(
+            button_handle,
+            ControlSignals::MOUSE_EXITED,
+            None,
+            move |_args, _node_handle, _ent| Some(AbilityUnHover),
+        );
+
+        signals_hover.connect(
+            button_handle,
+            ControlSignals::MOUSE_ENTERED,
+            None,
+            move |_args, _node_handle, _ent| Some(AbilityHover { ability_id }),
         );
     }
 
@@ -241,6 +299,58 @@ fn on_attack_button(
     // });
 
     commands.trigger(NextTurn);
+}
+
+fn on_hover_enter(trigger: On<AbilityHover>, ability_registry: Res<AbilityRegistry>, mut godot: GodotAccess, combat: Res<CombatHudAssets>){
+
+    let Some(handle) = combat.combat_hud else{
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&handle, &mut godot) else{
+        return;
+    };
+
+    let Some(ability) = ability_registry.get(trigger.ability_id) else{
+        return;
+    };
+
+    let Some(mut ability_tooltip) = get_ability_tooltip(&canvas) else{
+        return;
+    };
+
+    let Some(mut name_label) = get_ability_name(&canvas) else{
+        return;
+    };
+
+    let Some(mut scaling_label) = get_ability_scaling(&canvas) else{
+        return;
+    };
+
+    ability_tooltip.set_visible(true);
+
+    name_label.set_text(ability.name);
+
+    let scaling_text = format_ability_scaling(&ability.effect);
+
+    scaling_label.set_text(&scaling_text);
+
+}
+
+fn on_hover_exit(_trigger: On<AbilityUnHover>, mut godot: GodotAccess, combat: Res<CombatHudAssets>){
+    let Some(handle) = combat.combat_hud else{
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&handle, &mut godot) else{
+        return;
+    };
+
+    let Some(mut ability_tooltip) = get_ability_tooltip(&canvas) else{
+        return;
+    };
+
+    ability_tooltip.set_visible(false);
 }
 
 fn enter_combat_hud(
@@ -457,6 +567,8 @@ impl Plugin for CombatHudPlugin {
             )
             .add_observer(on_attack_button)
             .add_observer(on_start_reaction)
-            .add_observer(on_finish_attack_event);
+            .add_observer(on_finish_attack_event)
+            .add_observer(on_hover_enter)
+            .add_observer(on_hover_exit);
     }
 }

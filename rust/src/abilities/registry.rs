@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
+use crate::abilities::definition::AbilityScaling;
+
 use super::definition::{
     AbilityDefinition, AbilityEffect, AbilityId, ConvictionScaling, ConvictionType,
 };
@@ -31,10 +33,13 @@ impl Default for AbilityRegistry {
                 learned: true,
                 effect: AbilityEffect::Damage {
                     base: 10.0,
-                    scalings: vec![ConvictionScaling{
-                        conviction: ConvictionType::Ataraxia,
-                        rate: 1.2,
-                    }],
+                    scalings: AbilityScaling {
+                        primary: ConvictionScaling {
+                            conviction: ConvictionType::Ataraxia,
+                            rate: 8.0,
+                        },
+                        secondary: Vec::new(),
+                    },
                 },
             },
             AbilityDefinition {
@@ -43,10 +48,13 @@ impl Default for AbilityRegistry {
                 learned: true,
                 effect: AbilityEffect::Damage {
                     base: 12.0,
-                    scalings: vec![ConvictionScaling{
-                        conviction: ConvictionType::Ananke,
-                        rate: 1.3,
-                    }],
+                    scalings: AbilityScaling {
+                        primary: ConvictionScaling {
+                            conviction: ConvictionType::Ananke,
+                            rate: 1.3,
+                        },
+                        secondary: Vec::new(),
+                    },
                 },
             },
             AbilityDefinition {
@@ -55,10 +63,13 @@ impl Default for AbilityRegistry {
                 learned: true,
                 effect: AbilityEffect::Damage {
                     base: 15.0,
-                    scalings: vec![ConvictionScaling {
-                        conviction: ConvictionType::Sekhem,
-                        rate: 1.5,
-                    }],
+                    scalings: AbilityScaling {
+                        primary: ConvictionScaling {
+                            conviction: ConvictionType::Sekhem,
+                            rate: 1.5,
+                        },
+                        secondary: Vec::new(),
+                    },
                 },
             },
             AbilityDefinition {
@@ -67,10 +78,13 @@ impl Default for AbilityRegistry {
                 learned: true,
                 effect: AbilityEffect::Heal {
                     base: 8.0,
-                    scalings: vec![ConvictionScaling{
-                        conviction: ConvictionType::Aeternum,
-                        rate: 1.7,
-                    }],
+                    scalings: AbilityScaling {
+                        primary: ConvictionScaling {
+                            conviction: ConvictionType::Aeternum,
+                            rate: 1.7,
+                        },
+                        secondary: Vec::new(),
+                    },
                 },
             },
             AbilityDefinition {
@@ -79,10 +93,13 @@ impl Default for AbilityRegistry {
                 learned: true,
                 effect: AbilityEffect::Heal {
                     base: 15.0,
-                    scalings: vec![ConvictionScaling {
-                        conviction: ConvictionType::Alligatio,
-                        rate: 1.2,
-                    }],
+                    scalings: AbilityScaling {
+                        primary: ConvictionScaling {
+                            conviction: ConvictionType::Alligatio,
+                            rate: 1.2,
+                        },
+                        secondary: Vec::new(),
+                    },
                 },
             },
         ];

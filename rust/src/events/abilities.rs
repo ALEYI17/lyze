@@ -30,12 +30,16 @@ fn on_ability_event(
         return;
     };
 
+    let Ok(target_convictions) = query.get(trigger.target) else {
+        return;
+    };
+
     match &ability.effect {
         AbilityEffect::Damage {
             base: _,
             scalings: _,
         } => {
-            let damage = calculate_ability_value(ability, convictions);
+            let damage = calculate_ability_value(ability, convictions, target_convictions);
 
             commands.trigger(DamageEvent {
                 source: trigger.source,
@@ -47,7 +51,7 @@ fn on_ability_event(
             base: _,
             scalings: _,
         } => {
-            let heal = calculate_ability_value(ability, convictions);
+            let heal = calculate_ability_value(ability, convictions, target_convictions);
             commands.trigger(HealEvent {
                 source: trigger.source,
                 target: trigger.target,

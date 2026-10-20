@@ -7,7 +7,7 @@ use crate::{
         components::{
             convictions::{Convictions, from_godot_conviction},
             state::Alive,
-            stats::{Damage, Gravity, Health, JumpVelocity, Speed},
+            stats::{Damage, Gravity, Health, JumpVelocity, MaxHealth, Speed},
         },
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
@@ -28,6 +28,7 @@ use godot::classes::class_macros::private::virtuals::ZipReader::Vector2;
     require(jump_velocity: JumpVelocity, as = f32, default = 20.0),
     require(player_gravity: Gravity, as = f32, default = 98.0),
     require(health: Health, as = f32, default = 50.0),
+    require(max_health: MaxHealth, as = f32, default = 50.0),
     require(damage: Damage, as = f32, default = 15.0),
     require(alive: Alive, as = bool, default = true),
     require(convictions: Convictions {
