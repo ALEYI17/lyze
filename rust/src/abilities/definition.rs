@@ -57,12 +57,8 @@ fn format_conviction_scaling(scaling: &ConvictionScaling) -> String {
 
 pub fn format_ability_scaling(effect: &AbilityEffect) -> String {
     let (base, scalings, effect_type) = match effect {
-        AbilityEffect::Damage { base, scalings } => {
-            (base, scalings, "Damage")
-        }
-        AbilityEffect::Heal { base, scalings } => {
-            (base, scalings, "Healing")
-        }
+        AbilityEffect::Damage { base, scalings } => (base, scalings, "Damage"),
+        AbilityEffect::Heal { base, scalings } => (base, scalings, "Healing"),
     };
 
     let primary = format_conviction_scaling(&scalings.primary);

@@ -72,6 +72,30 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="TargetPanelStyle"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(0.075, 0.055, 0.065, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 2
+border_color = Color(0.78, 0.55, 0.24, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="TargetHealthBackground"]
+bg_color = Color(0.19, 0.13, 0.15, 1)
+
+[sub_resource type="StyleBoxFlat" id="TargetHealthFill"]
+bg_color = Color(0.85, 0.22, 0.2, 1)
+
 [node name="CombatHud" type="CombatHud" unique_id=288455881]
 
 [node name="turn" type="Label" parent="." unique_id=1001096463]
@@ -264,3 +288,132 @@ theme_override_styles/fill = SubResource("ReactionTimerFill")
 max_value = 1.0
 value = 1.0
 show_percentage = false
+
+[node name="TargetInfo" type="PanelContainer" parent="." unique_id=1892252212]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -274.0
+offset_top = 90.0
+offset_right = -24.0
+offset_bottom = 350.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("TargetPanelStyle")
+
+[node name="Content" type="VBoxContainer" parent="TargetInfo" unique_id=490702265]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TargetName" type="Label" parent="TargetInfo/Content" unique_id=987432360]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.91, 0.74, 1)
+theme_override_font_sizes/font_size = 20
+text = "CAPE ENEMY"
+
+[node name="HealthLabel" type="Label" parent="TargetInfo/Content" unique_id=458289703]
+layout_mode = 2
+text = "HP    50 / 50"
+
+[node name="HealthBar" type="ProgressBar" parent="TargetInfo/Content" unique_id=1479636673]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+theme_override_styles/background = SubResource("TargetHealthBackground")
+theme_override_styles/fill = SubResource("TargetHealthFill")
+max_value = 50.0
+value = 50.0
+show_percentage = false
+
+[node name="DamageLabel" type="Label" parent="TargetInfo/Content" unique_id=796125894]
+layout_mode = 2
+text = "BASE DAMAGE    5"
+
+[node name="Separator" type="HSeparator" parent="TargetInfo/Content" unique_id=1339514875]
+layout_mode = 2
+
+[node name="ConvictionsTitle" type="Label" parent="TargetInfo/Content" unique_id=902817191]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.91, 0.74, 1)
+theme_override_font_sizes/font_size = 16
+text = "CONVICTIONS"
+
+[node name="ConvictionGrid" type="GridContainer" parent="TargetInfo/Content" unique_id=864508148]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 6
+columns = 3
+
+[node name="HeaderName" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=652383426]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HeaderAttack" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=190315873]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.7, 0.4, 1)
+text = "ATK"
+
+[node name="HeaderDefense" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=247506796]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.75, 1, 1)
+text = "DEF"
+
+[node name="AeternumName" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=771345715]
+layout_mode = 2
+text = "Aeternum"
+
+[node name="AeternumAttack" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=696662055]
+layout_mode = 2
+text = "1.0"
+
+[node name="AeternumDefense" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=2072312513]
+layout_mode = 2
+text = "1.0"
+
+[node name="AlligatioName" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=84467662]
+layout_mode = 2
+text = "Alligatio"
+
+[node name="AlligatioAttack" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=1086382764]
+layout_mode = 2
+text = "1.0"
+
+[node name="AlligatioDefense" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=230511166]
+layout_mode = 2
+text = "1.0"
+
+[node name="AnankeName" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=1943773449]
+layout_mode = 2
+text = "Ananke"
+
+[node name="AnankeAttack" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=1375332201]
+layout_mode = 2
+text = "1.0"
+
+[node name="AnankeDefense" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=1965218841]
+layout_mode = 2
+text = "1.0"
+
+[node name="SekhemName" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=619729793]
+layout_mode = 2
+text = "Sekhem"
+
+[node name="SekhemAttack" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=1260654409]
+layout_mode = 2
+text = "1.0"
+
+[node name="SekhemDefense" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=156124447]
+layout_mode = 2
+text = "1.0"
+
+[node name="AtaraxiaName" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=585352455]
+layout_mode = 2
+text = "Ataraxia"
+
+[node name="AtaraxiaAttack" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=114023763]
+layout_mode = 2
+text = "1.0"
+
+[node name="AtaraxiaDefense" type="Label" parent="TargetInfo/Content/ConvictionGrid" unique_id=1176967084]
+layout_mode = 2
+text = "1.0"

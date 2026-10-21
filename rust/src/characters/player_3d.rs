@@ -1,13 +1,11 @@
 use bevy::prelude::*;
-use godot::classes::Input;
+use godot::classes::{Input, class_macros::private::virtuals::ZipReader::GString};
 use godot_bevy::prelude::*;
 
 use crate::{
     characters::{
         components::{
-            convictions::{Convictions, from_godot_conviction},
-            state::Alive,
-            stats::{Damage, Gravity, Health, JumpVelocity, MaxHealth, Speed},
+            convictions::{Convictions, from_godot_conviction}, identity::{Name, from_godot_string}, state::Alive, stats::{Damage, Gravity, Health, JumpVelocity, MaxHealth, Speed}
         },
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },
@@ -24,6 +22,7 @@ use godot::classes::class_macros::private::virtuals::ZipReader::Vector2;
 #[derive(Component, GodotNode, Default)]
 #[gdbevy(base = CharacterBody3D, class_name = Player3D)]
 #[gdbevy(
+    require(character_name:Name, as = GString, with = from_godot_string ,default = GString::from("Player")),
     require(speed: Speed, as = f32, default = 10.0),
     require(jump_velocity: JumpVelocity, as = f32, default = 20.0),
     require(player_gravity: Gravity, as = f32, default = 98.0),

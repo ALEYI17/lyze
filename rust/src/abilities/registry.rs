@@ -36,7 +36,7 @@ impl Default for AbilityRegistry {
                     scalings: AbilityScaling {
                         primary: ConvictionScaling {
                             conviction: ConvictionType::Ataraxia,
-                            rate: 8.0,
+                            rate: 1.2,
                         },
                         secondary: Vec::new(),
                     },

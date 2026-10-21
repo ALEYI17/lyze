@@ -5,7 +5,10 @@ use godot_bevy::prelude::*;
 
 use crate::abilities::definition::{AbilityId, format_ability_scaling};
 use crate::abilities::registry::AbilityRegistry;
+use crate::characters::components::convictions::Convictions;
+use crate::characters::components::identity::Name;
 use crate::characters::components::state::Alive;
+use crate::characters::components::stats::{Damage, Health, MaxHealth};
 use crate::characters::inventories::abilities::AbilityInventory;
 use crate::combat::attack::FinishAttackEvent;
 use crate::combat::reaction::{ReactionWindow, StartReactionEvent};
@@ -83,9 +86,8 @@ fn get_ability_tooltip(canvas: &Gd<CanvasLayer>) -> Option<Gd<PanelContainer>> {
 }
 
 fn get_ability_name(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
-    let node = canvas.get_node_or_null(
-        "Control/AbilityTooltip/MarginContainer/VBoxContainer/AbilityName",
-    )?;
+    let node = canvas
+        .get_node_or_null("Control/AbilityTooltip/MarginContainer/VBoxContainer/AbilityName")?;
 
     let Ok(label) = node.try_cast::<Label>() else {
         return None;
@@ -95,15 +97,130 @@ fn get_ability_name(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
 }
 
 fn get_ability_scaling(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
-    let label_handle = canvas.get_node_or_null(
-        "Control/AbilityTooltip/MarginContainer/VBoxContainer/AbilityScaling",
-    )?;
+    let label_handle = canvas
+        .get_node_or_null("Control/AbilityTooltip/MarginContainer/VBoxContainer/AbilityScaling")?;
 
     let Ok(label) = label_handle.try_cast::<Label>() else {
         return None;
     };
 
     Some(label)
+}
+
+fn get_target_name(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let label_handle = canvas.get_node_or_null("TargetInfo/Content/TargetName")?;
+
+    let Ok(label) = label_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(label)
+}
+
+fn get_health_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let label_handle = canvas.get_node_or_null("TargetInfo/Content/HealthLabel")?;
+
+    let Ok(label) = label_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(label)
+}
+
+fn get_health_bar(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
+    let bar_handle = canvas.get_node_or_null("TargetInfo/Content/HealthBar")?;
+
+    let Ok(bar) = bar_handle.try_cast::<ProgressBar>() else {
+        return None;
+    };
+
+    Some(bar)
+}
+
+fn get_damage_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let label_handle = canvas.get_node_or_null("TargetInfo/Content/DamageLabel")?;
+
+    let Ok(label) = label_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(label)
+}
+
+fn get_target_info(canvas: &Gd<CanvasLayer>) -> Option<Gd<PanelContainer>> {
+    let target_info_handle = canvas.get_node_or_null("TargetInfo")?;
+
+    let Ok(target_info) = target_info_handle.try_cast::<PanelContainer>() else {
+        return None;
+    };
+
+    Some(target_info)
+}
+
+fn get_conviction_labels(canvas: &Gd<CanvasLayer>) -> Option<[(Gd<Label>, Gd<Label>); 5]> {
+    let grid_path = "TargetInfo/Content/ConvictionGrid/";
+
+    let aeternum_attack_handle = canvas.get_node_or_null(&format!("{grid_path}AeternumAttack"))?;
+    let Ok(aeternum_attack) = aeternum_attack_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    let aeternum_defense_handle =
+        canvas.get_node_or_null(&format!("{grid_path}AeternumDefense"))?;
+    let Ok(aeternum_defense) = aeternum_defense_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    let alligatio_attack_handle =
+        canvas.get_node_or_null(&format!("{grid_path}AlligatioAttack"))?;
+    let Ok(alligatio_attack) = alligatio_attack_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    let alligatio_defense_handle =
+        canvas.get_node_or_null(&format!("{grid_path}AlligatioDefense"))?;
+    let Ok(alligatio_defense) = alligatio_defense_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    let ananke_attack_handle = canvas.get_node_or_null(&format!("{grid_path}AnankeAttack"))?;
+    let Ok(ananke_attack) = ananke_attack_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    let ananke_defense_handle = canvas.get_node_or_null(&format!("{grid_path}AnankeDefense"))?;
+    let Ok(ananke_defense) = ananke_defense_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    let sekhem_attack_handle = canvas.get_node_or_null(&format!("{grid_path}SekhemAttack"))?;
+    let Ok(sekhem_attack) = sekhem_attack_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    let sekhem_defense_handle = canvas.get_node_or_null(&format!("{grid_path}SekhemDefense"))?;
+    let Ok(sekhem_defense) = sekhem_defense_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    let ataraxia_attack_handle = canvas.get_node_or_null(&format!("{grid_path}AtaraxiaAttack"))?;
+    let Ok(ataraxia_attack) = ataraxia_attack_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    let ataraxia_defense_handle =
+        canvas.get_node_or_null(&format!("{grid_path}AtaraxiaDefense"))?;
+    let Ok(ataraxia_defense) = ataraxia_defense_handle.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some([
+        (aeternum_attack, aeternum_defense),
+        (alligatio_attack, alligatio_defense),
+        (ananke_attack, ananke_defense),
+        (sekhem_attack, sekhem_defense),
+        (ataraxia_attack, ataraxia_defense),
+    ])
 }
 
 #[derive(Resource, Default)]
@@ -146,7 +263,7 @@ struct AttackEvent {
 }
 
 #[derive(Event, Debug, Clone)]
-struct AbilityHover{
+struct AbilityHover {
     pub ability_id: AbilityId,
 }
 
@@ -301,29 +418,33 @@ fn on_attack_button(
     commands.trigger(NextTurn);
 }
 
-fn on_hover_enter(trigger: On<AbilityHover>, ability_registry: Res<AbilityRegistry>, mut godot: GodotAccess, combat: Res<CombatHudAssets>){
-
-    let Some(handle) = combat.combat_hud else{
+fn on_hover_enter(
+    trigger: On<AbilityHover>,
+    ability_registry: Res<AbilityRegistry>,
+    mut godot: GodotAccess,
+    combat: Res<CombatHudAssets>,
+) {
+    let Some(handle) = combat.combat_hud else {
         return;
     };
 
-    let Some(canvas) = get_custom_canvas_layer(&handle, &mut godot) else{
+    let Some(canvas) = get_custom_canvas_layer(&handle, &mut godot) else {
         return;
     };
 
-    let Some(ability) = ability_registry.get(trigger.ability_id) else{
+    let Some(ability) = ability_registry.get(trigger.ability_id) else {
         return;
     };
 
-    let Some(mut ability_tooltip) = get_ability_tooltip(&canvas) else{
+    let Some(mut ability_tooltip) = get_ability_tooltip(&canvas) else {
         return;
     };
 
-    let Some(mut name_label) = get_ability_name(&canvas) else{
+    let Some(mut name_label) = get_ability_name(&canvas) else {
         return;
     };
 
-    let Some(mut scaling_label) = get_ability_scaling(&canvas) else{
+    let Some(mut scaling_label) = get_ability_scaling(&canvas) else {
         return;
     };
 
@@ -334,19 +455,22 @@ fn on_hover_enter(trigger: On<AbilityHover>, ability_registry: Res<AbilityRegist
     let scaling_text = format_ability_scaling(&ability.effect);
 
     scaling_label.set_text(&scaling_text);
-
 }
 
-fn on_hover_exit(_trigger: On<AbilityUnHover>, mut godot: GodotAccess, combat: Res<CombatHudAssets>){
-    let Some(handle) = combat.combat_hud else{
+fn on_hover_exit(
+    _trigger: On<AbilityUnHover>,
+    mut godot: GodotAccess,
+    combat: Res<CombatHudAssets>,
+) {
+    let Some(handle) = combat.combat_hud else {
         return;
     };
 
-    let Some(canvas) = get_custom_canvas_layer(&handle, &mut godot) else{
+    let Some(canvas) = get_custom_canvas_layer(&handle, &mut godot) else {
         return;
     };
 
-    let Some(mut ability_tooltip) = get_ability_tooltip(&canvas) else{
+    let Some(mut ability_tooltip) = get_ability_tooltip(&canvas) else {
         return;
     };
 
@@ -401,6 +525,95 @@ fn toogle_combat_hud_visibility(
     } else {
         control.set_visible(true);
     }
+}
+
+fn update_target_information(
+    mut godot: GodotAccess,
+    query: Query<&GodotNodeHandle, With<CombatHudNode>>,
+    query_components: Query<(&Convictions, &Health, &MaxHealth, &Damage, &Name)>,
+    combat_target: Res<CombatTarget>,
+    combat_resource: Res<CombatResource>,
+) {
+    
+    let Some(current_entity) = combat_resource.current_entity() else {
+        return;
+    };
+    let Some(player) = combat_resource.player else {
+        return;
+    };
+
+    let Ok(handle) = query.single() else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut target_info) = get_target_info(&canvas)else {
+        return;
+    };
+
+    if player != current_entity{
+        target_info.set_visible(false);
+        return;
+    }
+
+    let Some(target_entity) = combat_target.target else {
+        return;
+    };
+
+    let Ok((convictions, healt, max_health, damage, name)) = query_components.get(target_entity) else {
+        return;
+    };
+
+    let Some(mut health_label) = get_health_label(&canvas) else {
+        return;
+    };
+
+    let Some(mut health_bar) = get_health_bar(&canvas) else {
+        return;
+    };
+
+    let Some(mut damage_label) = get_damage_label(&canvas) else {
+        return;
+    };
+
+    let Some(mut convictions_labels) = get_conviction_labels(&canvas) else {
+        return;
+    };
+
+    let Some(mut name_label) = get_target_name(&canvas)else {
+        return;
+    };
+
+    let conviction_stats = [
+        &convictions.aeternum,
+        &convictions.alligatio,
+        &convictions.ananke,
+        &convictions.sekhem,
+        &convictions.ataraxia,
+    ];
+
+    for ((attack_label, defense_label), stats) in
+        convictions_labels.iter_mut().zip(conviction_stats)
+    {
+        attack_label.set_text(&stats.attack.to_string());
+        defense_label.set_text(&stats.defense.to_string());
+    }
+
+    target_info.set_visible(true);
+
+    let health_text = format!("HP {:.1}/{}", healt.0, max_health.0);
+    health_label.set_text(&health_text);
+
+    let damage_text = format!("Base Damage {}", damage.0);
+    damage_label.set_text(&damage_text);
+
+    health_bar.set_max(max_health.0.into());
+    health_bar.set_value(healt.0.into());
+
+    name_label.set_text(&name.0);
 }
 
 fn toogle_turn_label(
@@ -562,6 +775,7 @@ impl Plugin for CombatHudPlugin {
                     toogle_combat_hud_visibility,
                     toogle_turn_label,
                     update_reaction_timer,
+                    update_target_information,
                 )
                     .run_if(in_state(GameState::InCombat)),
             )

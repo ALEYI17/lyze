@@ -11,9 +11,7 @@ use godot_bevy::{
 use crate::{
     characters::{
         components::{
-            convictions::{Convictions, from_godot_conviction},
-            state::Alive,
-            stats::{Damage, Gravity, Health, MaxHealth, Speed},
+            convictions::{Convictions, from_godot_conviction}, identity::{Name, from_godot_string}, state::Alive, stats::{Damage, Gravity, Health, MaxHealth, Speed}
         },
         enemies::ai::{
             context::CombatContext, decision::get_attack, personality::EnemyPersonalityComponent,
@@ -34,6 +32,7 @@ use crate::characters::enemies::ai::personality::from_godot_personality;
 #[derive(Component, GodotNode, Default)]
 #[gdbevy(base = CharacterBody3D, class_name = CapeEnemy3D)]
 #[gdbevy(
+    require(character_name:Name, as = GString, with = from_godot_string ,default = GString::from("Cape Enemy")),
     require(speed: Speed, as = f32, default = 150.0),
     require(health: Health, as = f32, default = 50.0),
     require(max_health: MaxHealth, as = f32, default = 50.0),
