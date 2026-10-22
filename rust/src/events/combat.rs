@@ -278,19 +278,33 @@ fn select_target(
         .collect();
 
     if alive_entities.is_empty() {
+        target.target = None;
+        target.index = 0;
         return;
     }
 
-    if target.target.is_none() {
-        let Some(first) = alive_entities.first().copied() else {
-            return;
-        };
-
-        target.target = Some(first);
+    // if target.target.is_none() {
+    //     let Some(first) = alive_entities.first().copied() else {
+    //         return;
+    //     };
+    //
+    //     target.target = Some(first);
+    //     target.index = 0;
+    //
+    //     godot_print!(
+    //         "Actual target: {:?}, actual index: {}",
+    //         target.target,
+    //         target.index
+    //     );
+    // }
+    
+    if let Some(index) = target.target.and_then(|entity| alive_entities.iter().position(|alive| *alive == entity)){
+        target.index = index;
+    }else {
+        target.target = alive_entities.first().copied();
         target.index = 0;
-
         godot_print!(
-            "Actual target: {:?}, actual index: {}",
+            "New target: {:?}, index: {}",
             target.target,
             target.index
         );
