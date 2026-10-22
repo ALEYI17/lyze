@@ -92,7 +92,7 @@ impl Default for AbilityRegistry {
                 name: "Heal",
                 learned: true,
                 effect: AbilityEffect::Heal {
-                    base: 15.0,
+                    base: 8.0,
                     scalings: AbilityScaling {
                         primary: ConvictionScaling {
                             conviction: ConvictionType::Alligatio,

@@ -12,7 +12,7 @@ use crate::characters::components::stats::{Damage, Health, MaxHealth};
 use crate::characters::inventories::abilities::AbilityInventory;
 use crate::combat::attack::FinishAttackEvent;
 use crate::combat::reaction::{ReactionWindow, StartReactionEvent};
-use crate::events::abilities::AbilityEvent;
+use crate::events::abilities::{AbilityEvent, AbilitySource};
 use crate::events::combat::{CombatTarget, NextTurn, TurnTransition, is_player_turn};
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use crate::{events::combat::CombatResource, state::GameState};
@@ -404,7 +404,7 @@ fn on_attack_button(
     }
 
     commands.trigger(AbilityEvent {
-        ability: trigger.ability_id,
+        ability: AbilitySource::Player(trigger.ability_id),
         source: player,
         target: enemy,
     });

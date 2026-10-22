@@ -43,6 +43,14 @@ pub enum AbilityId {
     Heal,
 }
 
+impl AbilityEffect {
+    pub fn base(&self) -> f32 {
+        match self {
+            Self::Damage { base, .. } | Self::Heal { base, .. } => *base,
+        }
+    }
+}
+
 fn format_conviction_scaling(scaling: &ConvictionScaling) -> String {
     let conviction = match scaling.conviction {
         ConvictionType::Aeternum => "Aeternum",
@@ -121,13 +129,35 @@ fn calculate_defense(convictions: &Convictions, scaling: &AbilityScaling) -> f32
             .sum::<f32>()
 }
 
-pub fn calculate_ability_value(
-    ability: &AbilityDefinition,
+// pub fn calculate_ability_value(
+//     ability: &AbilityDefinition,
+//     source_convictions: &Convictions,
+//     target_convictions: &Convictions,
+// ) -> Option<f32> {
+//     let k = 20.0;
+//     match &ability.effect {
+//         AbilityEffect::Damage { base, scalings } => {
+//             let raw_damage = base + calculate_scaling_bonus(source_convictions, scalings);
+//             let defense = calculate_defense(target_convictions, scalings);
+//
+//             let final_damage = raw_damage * (k / (k + defense));
+//             Some(final_damage.max(0.0))
+//         }
+//         AbilityEffect::Heal { base, scalings } => {
+//             let extra_heal = calculate_scaling_bonus(source_convictions, scalings);
+//
+//             Some(base + extra_heal)
+//         }
+//     }
+// }
+
+pub fn calculate_effect_value(
+    effect: &AbilityEffect,
     source_convictions: &Convictions,
     target_convictions: &Convictions,
 ) -> Option<f32> {
     let k = 20.0;
-    match &ability.effect {
+    match &effect {
         AbilityEffect::Damage { base, scalings } => {
             let raw_damage = base + calculate_scaling_bonus(source_convictions, scalings);
             let defense = calculate_defense(target_convictions, scalings);

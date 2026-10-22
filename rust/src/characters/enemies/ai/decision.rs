@@ -1,9 +1,13 @@
+use crate::abilities::definition::AbilityScaling;
+use crate::abilities::definition::ConvictionScaling;
 use crate::characters::enemies::ai::context::CombatContext;
 use crate::characters::enemies::ai::personality::EnemyPersonality;
 use crate::characters::enemies::ai::personality::EnemyPersonalityStats;
 use crate::combat::attack::AttackDefinition;
 use crate::combat::attack::DodgeDirection;
 use crate::combat::attack::ReactionType;
+use crate::abilities::definition::{AbilityEffect};
+use crate::abilities::definition::ConvictionType;
 
 #[derive(Clone)]
 pub struct EnemyCombo {
@@ -25,22 +29,55 @@ pub struct NormalizedComboStatistics {
 }
 
 pub fn enemy_combos() -> Vec<EnemyCombo> {
+
     vec![
         // Basic combos
         EnemyCombo {
             attacks: vec![
                 AttackDefinition {
-                    damage: 6.0,
+                    effect: AbilityEffect::Damage {
+                        base: 6.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Aeternum,
+                                rate: 0.8,
+                            },
+                            secondary: vec![
+                                ConvictionScaling {
+                                    conviction: ConvictionType::Sekhem,
+                                    rate: 0.2,
+                                },
+                            ],
+                        },
+                    },
                     reaction_window: 1.1,
                     reaction: ReactionType::Parry,
                 },
                 AttackDefinition {
-                    damage: 3.0,
+                    effect: AbilityEffect::Damage {
+                        base: 3.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Alligatio,
+                                rate: 0.6,
+                            },
+                            secondary: vec![],
+                        },
+                    },
                     reaction_window: 0.8,
                     reaction: ReactionType::Dodge(vec![DodgeDirection::Forward]),
                 },
                 AttackDefinition {
-                    damage: 3.0,
+                    effect: AbilityEffect::Damage {
+                        base: 3.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Ananke,
+                                rate: 0.7,
+                            },
+                            secondary: vec![],
+                        },
+                    },
                     reaction_window: 0.7,
                     reaction: ReactionType::Dodge(vec![DodgeDirection::Backward]),
                 },
@@ -49,17 +86,49 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
         EnemyCombo {
             attacks: vec![
                 AttackDefinition {
-                    damage: 4.0,
+                    effect: AbilityEffect::Damage {
+                        base: 4.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Sekhem,
+                                rate: 0.7,
+                            },
+                            secondary: vec![],
+                        },
+                    },
                     reaction_window: 0.6,
                     reaction: ReactionType::Parry,
                 },
                 AttackDefinition {
-                    damage: 3.0,
+                    effect: AbilityEffect::Damage {
+                        base: 3.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Aeternum,
+                                rate: 0.5,
+                            },
+                            secondary: vec![
+                                ConvictionScaling {
+                                    conviction: ConvictionType::Ataraxia,
+                                    rate: 0.3,
+                                },
+                            ],
+                        },
+                    },
                     reaction_window: 0.8,
                     reaction: ReactionType::Parry,
                 },
                 AttackDefinition {
-                    damage: 3.0,
+                    effect: AbilityEffect::Damage {
+                        base: 3.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Alligatio,
+                                rate: 0.6,
+                            },
+                            secondary: vec![],
+                        },
+                    },
                     reaction_window: 0.5,
                     reaction: ReactionType::Dodge(vec![DodgeDirection::Right]),
                 },
@@ -68,37 +137,112 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
         EnemyCombo {
             attacks: vec![
                 AttackDefinition {
-                    damage: 4.0,
+                    effect: AbilityEffect::Damage {
+                        base: 4.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Ananke,
+                                rate: 0.8,
+                            },
+                            secondary: vec![],
+                        },
+                    },
                     reaction_window: 0.9,
                     reaction: ReactionType::Dodge(vec![DodgeDirection::Left]),
                 },
                 AttackDefinition {
-                    damage: 3.0,
+                    effect: AbilityEffect::Damage {
+                        base: 3.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Aeternum,
+                                rate: 0.6,
+                            },
+                            secondary: vec![],
+                        },
+                    },
                     reaction_window: 0.8,
                     reaction: ReactionType::Parry,
                 },
                 AttackDefinition {
-                    damage: 3.0,
+                    effect: AbilityEffect::Damage {
+                        base: 3.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Ataraxia,
+                                rate: 0.5,
+                            },
+                            secondary: vec![
+                                ConvictionScaling {
+                                    conviction: ConvictionType::Sekhem,
+                                    rate: 0.2,
+                                },
+                            ],
+                        },
+                    },
                     reaction_window: 1.0,
                     reaction: ReactionType::Dodge(vec![DodgeDirection::Backward]),
                 },
             ],
         },
+
         // Heavy combos
         EnemyCombo {
             attacks: vec![
                 AttackDefinition {
-                    damage: 10.0,
+                    effect: AbilityEffect::Damage {
+                        base: 10.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Aeternum,
+                                rate: 1.2,
+                            },
+                            secondary: vec![
+                                ConvictionScaling {
+                                    conviction: ConvictionType::Sekhem,
+                                    rate: 0.5,
+                                },
+                            ],
+                        },
+                    },
                     reaction_window: 1.0,
                     reaction: ReactionType::Parry,
                 },
                 AttackDefinition {
-                    damage: 7.0,
+                    effect: AbilityEffect::Damage {
+                        base: 7.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Ananke,
+                                rate: 1.0,
+                            },
+                            secondary: vec![
+                                ConvictionScaling {
+                                    conviction: ConvictionType::Alligatio,
+                                    rate: 0.3,
+                                },
+                            ],
+                        },
+                    },
                     reaction_window: 0.7,
                     reaction: ReactionType::Dodge(vec![DodgeDirection::Left]),
                 },
                 AttackDefinition {
-                    damage: 8.0,
+                    effect: AbilityEffect::Damage {
+                        base: 8.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Sekhem,
+                                rate: 1.1,
+                            },
+                            secondary: vec![
+                                ConvictionScaling {
+                                    conviction: ConvictionType::Aeternum,
+                                    rate: 0.4,
+                                },
+                            ],
+                        },
+                    },
                     reaction_window: 0.6,
                     reaction: ReactionType::Parry,
                 },
@@ -107,22 +251,77 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
         EnemyCombo {
             attacks: vec![
                 AttackDefinition {
-                    damage: 8.0,
+                    effect: AbilityEffect::Damage {
+                        base: 8.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Ananke,
+                                rate: 1.0,
+                            },
+                            secondary: vec![
+                                ConvictionScaling {
+                                    conviction: ConvictionType::Ataraxia,
+                                    rate: 0.4,
+                                },
+                            ],
+                        },
+                    },
                     reaction_window: 0.8,
                     reaction: ReactionType::Dodge(vec![DodgeDirection::Backward]),
                 },
                 AttackDefinition {
-                    damage: 10.0,
+                    effect: AbilityEffect::Damage {
+                        base: 10.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Aeternum,
+                                rate: 1.3,
+                            },
+                            secondary: vec![
+                                ConvictionScaling {
+                                    conviction: ConvictionType::Sekhem,
+                                    rate: 0.5,
+                                },
+                            ],
+                        },
+                    },
                     reaction_window: 0.7,
                     reaction: ReactionType::Parry,
                 },
                 AttackDefinition {
-                    damage: 6.0,
+                    effect: AbilityEffect::Damage {
+                        base: 6.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Alligatio,
+                                rate: 0.9,
+                            },
+                            secondary: vec![],
+                        },
+                    },
                     reaction_window: 0.5,
                     reaction: ReactionType::Dodge(vec![DodgeDirection::Right]),
                 },
                 AttackDefinition {
-                    damage: 12.0,
+                    effect: AbilityEffect::Damage {
+                        base: 12.0,
+                        scalings: AbilityScaling {
+                            primary: ConvictionScaling {
+                                conviction: ConvictionType::Sekhem,
+                                rate: 1.4,
+                            },
+                            secondary: vec![
+                                ConvictionScaling {
+                                    conviction: ConvictionType::Aeternum,
+                                    rate: 0.6,
+                                },
+                                ConvictionScaling {
+                                    conviction: ConvictionType::Ananke,
+                                    rate: 0.3,
+                                },
+                            ],
+                        },
+                    },
                     reaction_window: 1.0,
                     reaction: ReactionType::Parry,
                 },
@@ -130,6 +329,7 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
         },
     ]
 }
+
 fn calculate_stadistics(combos: &EnemyCombo) -> Option<ComboStatistics> {
     let num_of_attacks = combos.attacks.len();
 
@@ -143,7 +343,7 @@ fn calculate_stadistics(combos: &EnemyCombo) -> Option<ComboStatistics> {
             .iter()
             .fold((0.0_f32, 0.0_f32), |(damage, reaction_window), attack| {
                 (
-                    damage + attack.damage,
+                    damage + attack.effect.base(),
                     reaction_window + attack.reaction_window,
                 )
             });

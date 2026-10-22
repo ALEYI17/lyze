@@ -2,16 +2,20 @@ use bevy::prelude::*;
 
 use crate::{
     abilities::{
-        definition::{AbilityEffect, AbilityId, calculate_ability_value},
+        definition::{AbilityEffect, AbilityId, calculate_effect_value},
         registry::AbilityRegistry,
-    },
-    characters::components::convictions::Convictions,
-    events::{damage::DamageEvent, heal::HealEvent},
+    }, characters::components::convictions::Convictions, combat::attack::AttackDefinition, events::{damage::DamageEvent, heal::HealEvent}
 };
+
+#[derive(Debug, Clone)]
+pub enum AbilitySource {
+    Player(AbilityId),
+    Enemy(AttackDefinition),
+}
 
 #[derive(Event)]
 pub struct AbilityEvent {
-    pub ability: AbilityId,
+    pub ability: AbilitySource,
     pub source: Entity,
     pub target: Entity,
 }
@@ -22,9 +26,9 @@ fn on_ability_event(
     query: Query<&Convictions>,
     mut commands: Commands,
 ) {
-    let Some(ability) = ability_registry.get(trigger.ability) else {
-        return;
-    };
+    // let Some(ability) = ability_registry.get(trigger.ability) else {
+    //     return;
+    // };
 
     let Ok(convictions) = query.get(trigger.source) else {
         return;
@@ -34,12 +38,24 @@ fn on_ability_event(
         return;
     };
 
-    match &ability.effect {
+    let effect = match &trigger.ability {
+        AbilitySource::Player(ability_id) => {
+            let Some(ability) = ability_registry.get(*ability_id) else{
+                return;
+            };
+            &ability.effect
+        }
+        AbilitySource::Enemy(attack) =>{
+            &attack.effect
+        }
+    };
+
+    match &effect {
         AbilityEffect::Damage {
             base: _,
             scalings: _,
         } => {
-            let damage = calculate_ability_value(ability, convictions, target_convictions);
+            let damage = calculate_effect_value(effect, convictions, target_convictions);
 
             commands.trigger(DamageEvent {
                 source: trigger.source,
@@ -51,7 +67,7 @@ fn on_ability_event(
             base: _,
             scalings: _,
         } => {
-            let heal = calculate_ability_value(ability, convictions, target_convictions);
+            let heal = calculate_effect_value(effect, convictions, target_convictions);
             commands.trigger(HealEvent {
                 source: trigger.source,
                 target: trigger.target,

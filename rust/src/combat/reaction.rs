@@ -6,8 +6,7 @@ use godot_bevy::interop::GodotAccess;
 use crate::{
     combat::attack::{CurrentAttack, DodgeDirection, FinishAttackEvent, ReactionType},
     events::{
-        damage::DamageEvent,
-        effects::{CombatVisualResult, CombatVisulEvent},
+        abilities::{AbilityEvent, AbilitySource}, effects::{CombatVisualResult, CombatVisulEvent}
     },
     state::GameState,
 };
@@ -129,10 +128,16 @@ fn on_reaction_finish(
     match result {
         ReactionResult::Failed => {
             godot_print!("Hit {} - DAMAGE", attack_resource.current_hit + 1);
-            commands.trigger(DamageEvent {
+            // commands.trigger(DamageEvent {
+            //     source,
+            //     target,
+            //     damage: Some(definition.damage),
+            // });
+
+            commands.trigger(AbilityEvent{
                 source,
                 target,
-                damage: Some(definition.damage),
+                ability: AbilitySource::Enemy(definition.clone()),
             });
         }
         ReactionResult::Success => {
