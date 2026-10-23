@@ -11,7 +11,10 @@ use godot_bevy::{
 use crate::{
     characters::{
         components::{
-            convictions::{Convictions, from_godot_conviction}, identity::{Name, from_godot_string}, state::Alive, stats::{Damage, Gravity, Health, MaxHealth, Speed}
+            convictions::{Convictions, from_godot_conviction},
+            identity::{Name, from_godot_string},
+            state::Alive,
+            stats::{Damage, Gravity, Health, MaxHealth, Speed},
         },
         enemies::ai::{
             context::CombatContext, decision::get_attack, personality::EnemyPersonalityComponent,

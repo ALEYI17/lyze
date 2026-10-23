@@ -297,17 +297,16 @@ fn select_target(
     //         target.index
     //     );
     // }
-    
-    if let Some(index) = target.target.and_then(|entity| alive_entities.iter().position(|alive| *alive == entity)){
+
+    if let Some(index) = target
+        .target
+        .and_then(|entity| alive_entities.iter().position(|alive| *alive == entity))
+    {
         target.index = index;
-    }else {
+    } else {
         target.target = alive_entities.first().copied();
         target.index = 0;
-        godot_print!(
-            "New target: {:?}, index: {}",
-            target.target,
-            target.index
-        );
+        godot_print!("New target: {:?}, index: {}", target.target, target.index);
     }
 
     let input = godot.singleton::<Input>();

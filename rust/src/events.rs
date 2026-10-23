@@ -5,6 +5,7 @@ pub mod combat;
 pub mod damage;
 pub mod effects;
 pub mod heal;
+pub mod stat_modifier;
 
 pub struct EventPlugins;
 
@@ -14,6 +15,7 @@ impl Plugin for EventPlugins {
             .add_plugins(combat::CombatPlugin)
             .add_plugins(effects::EffectPlugin)
             .add_plugins(abilities::AbilitiesPlugin)
-            .add_plugins(heal::HealPluign);
+            .add_plugins(heal::HealPluign)
+            .add_plugins(stat_modifier::StatModifierPlugin);
     }
 }

@@ -13,8 +13,8 @@ impl Default for AbilityInventory {
             AbilityId::Slash,
             AbilityId::Kick,
             AbilityId::Heal,
-            AbilityId::Vigor,
-            AbilityId::Strike,
+            AbilityId::Fortify,
+            AbilityId::Weaken,
         ];
         Self {
             abilities: abilities.to_vec(),

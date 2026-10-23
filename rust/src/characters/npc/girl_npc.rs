@@ -12,7 +12,10 @@ use godot::{
 use godot_bevy::prelude::*;
 
 use crate::{
-    characters::components::{identity::{Name, from_godot_string}, state::Initialized},
+    characters::components::{
+        identity::{Name, from_godot_string},
+        state::Initialized,
+    },
     godot_utils::nodes::{get_custom_area_3d, get_custom_canvas_layer},
     state::GameState,
     ui::dialogue_hud::{DialogueHudNode, get_speaker_label, get_text_label},
@@ -49,8 +52,6 @@ struct CurrentInteraction {
     current_line: usize,
     in_interaction: bool,
 }
-
-
 
 fn from_godot_array(value: Array<GString>) -> Vec<String> {
     let mut result = Vec::new();

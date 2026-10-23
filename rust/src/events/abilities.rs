@@ -4,7 +4,10 @@ use crate::{
     abilities::{
         definition::{AbilityEffect, AbilityId, calculate_effect_value},
         registry::AbilityRegistry,
-    }, characters::components::convictions::Convictions, combat::attack::AttackDefinition, events::{damage::DamageEvent, heal::HealEvent}
+    },
+    characters::components::convictions::Convictions,
+    combat::attack::AttackDefinition,
+    events::{damage::DamageEvent, heal::HealEvent, stat_modifier::StatModifierEvent},
 };
 
 #[derive(Debug, Clone)]
@@ -40,14 +43,12 @@ fn on_ability_event(
 
     let effect = match &trigger.ability {
         AbilitySource::Player(ability_id) => {
-            let Some(ability) = ability_registry.get(*ability_id) else{
+            let Some(ability) = ability_registry.get(*ability_id) else {
                 return;
             };
             &ability.effect
         }
-        AbilitySource::Enemy(attack) =>{
-            &attack.effect
-        }
+        AbilitySource::Enemy(attack) => &attack.effect,
     };
 
     match &effect {
@@ -72,6 +73,18 @@ fn on_ability_event(
                 source: trigger.source,
                 target: trigger.target,
                 heal,
+            });
+        }
+        AbilityEffect::StatModifier {
+            conviction,
+            stat,
+            modifier,
+        } => {
+            commands.trigger(StatModifierEvent {
+                target: trigger.target,
+                conviction: *conviction,
+                stat: *stat,
+                modifier: modifier.clone(),
             });
         }
     }

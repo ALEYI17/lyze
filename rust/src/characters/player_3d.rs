@@ -5,7 +5,10 @@ use godot_bevy::prelude::*;
 use crate::{
     characters::{
         components::{
-            convictions::{Convictions, from_godot_conviction}, identity::{Name, from_godot_string}, state::Alive, stats::{Damage, Gravity, Health, JumpVelocity, MaxHealth, Speed}
+            convictions::{Convictions, from_godot_conviction},
+            identity::{Name, from_godot_string},
+            state::Alive,
+            stats::{Damage, Gravity, Health, JumpVelocity, MaxHealth, Speed},
         },
         helpers::sprite::{get_sprite, set_shader_false, set_shader_true},
     },

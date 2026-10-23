@@ -6,7 +6,8 @@ use godot_bevy::interop::GodotAccess;
 use crate::{
     combat::attack::{CurrentAttack, DodgeDirection, FinishAttackEvent, ReactionType},
     events::{
-        abilities::{AbilityEvent, AbilitySource}, effects::{CombatVisualResult, CombatVisulEvent}
+        abilities::{AbilityEvent, AbilitySource},
+        effects::{CombatVisualResult, CombatVisulEvent},
     },
     state::GameState,
 };
@@ -134,7 +135,7 @@ fn on_reaction_finish(
             //     damage: Some(definition.damage),
             // });
 
-            commands.trigger(AbilityEvent{
+            commands.trigger(AbilityEvent {
                 source,
                 target,
                 ability: AbilitySource::Enemy(definition.clone()),

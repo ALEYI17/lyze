@@ -1,13 +1,13 @@
+use crate::abilities::definition::AbilityEffect;
 use crate::abilities::definition::AbilityScaling;
 use crate::abilities::definition::ConvictionScaling;
+use crate::abilities::definition::ConvictionType;
 use crate::characters::enemies::ai::context::CombatContext;
 use crate::characters::enemies::ai::personality::EnemyPersonality;
 use crate::characters::enemies::ai::personality::EnemyPersonalityStats;
 use crate::combat::attack::AttackDefinition;
 use crate::combat::attack::DodgeDirection;
 use crate::combat::attack::ReactionType;
-use crate::abilities::definition::{AbilityEffect};
-use crate::abilities::definition::ConvictionType;
 
 #[derive(Clone)]
 pub struct EnemyCombo {
@@ -29,7 +29,6 @@ pub struct NormalizedComboStatistics {
 }
 
 pub fn enemy_combos() -> Vec<EnemyCombo> {
-
     vec![
         // Basic combos
         EnemyCombo {
@@ -42,12 +41,10 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
                                 conviction: ConvictionType::Aeternum,
                                 rate: 0.8,
                             },
-                            secondary: vec![
-                                ConvictionScaling {
-                                    conviction: ConvictionType::Sekhem,
-                                    rate: 0.2,
-                                },
-                            ],
+                            secondary: vec![ConvictionScaling {
+                                conviction: ConvictionType::Sekhem,
+                                rate: 0.2,
+                            }],
                         },
                     },
                     reaction_window: 1.1,
@@ -107,12 +104,10 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
                                 conviction: ConvictionType::Aeternum,
                                 rate: 0.5,
                             },
-                            secondary: vec![
-                                ConvictionScaling {
-                                    conviction: ConvictionType::Ataraxia,
-                                    rate: 0.3,
-                                },
-                            ],
+                            secondary: vec![ConvictionScaling {
+                                conviction: ConvictionType::Ataraxia,
+                                rate: 0.3,
+                            }],
                         },
                     },
                     reaction_window: 0.8,
@@ -172,12 +167,10 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
                                 conviction: ConvictionType::Ataraxia,
                                 rate: 0.5,
                             },
-                            secondary: vec![
-                                ConvictionScaling {
-                                    conviction: ConvictionType::Sekhem,
-                                    rate: 0.2,
-                                },
-                            ],
+                            secondary: vec![ConvictionScaling {
+                                conviction: ConvictionType::Sekhem,
+                                rate: 0.2,
+                            }],
                         },
                     },
                     reaction_window: 1.0,
@@ -185,7 +178,6 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
                 },
             ],
         },
-
         // Heavy combos
         EnemyCombo {
             attacks: vec![
@@ -197,12 +189,10 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
                                 conviction: ConvictionType::Aeternum,
                                 rate: 1.2,
                             },
-                            secondary: vec![
-                                ConvictionScaling {
-                                    conviction: ConvictionType::Sekhem,
-                                    rate: 0.5,
-                                },
-                            ],
+                            secondary: vec![ConvictionScaling {
+                                conviction: ConvictionType::Sekhem,
+                                rate: 0.5,
+                            }],
                         },
                     },
                     reaction_window: 1.0,
@@ -216,12 +206,10 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
                                 conviction: ConvictionType::Ananke,
                                 rate: 1.0,
                             },
-                            secondary: vec![
-                                ConvictionScaling {
-                                    conviction: ConvictionType::Alligatio,
-                                    rate: 0.3,
-                                },
-                            ],
+                            secondary: vec![ConvictionScaling {
+                                conviction: ConvictionType::Alligatio,
+                                rate: 0.3,
+                            }],
                         },
                     },
                     reaction_window: 0.7,
@@ -235,12 +223,10 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
                                 conviction: ConvictionType::Sekhem,
                                 rate: 1.1,
                             },
-                            secondary: vec![
-                                ConvictionScaling {
-                                    conviction: ConvictionType::Aeternum,
-                                    rate: 0.4,
-                                },
-                            ],
+                            secondary: vec![ConvictionScaling {
+                                conviction: ConvictionType::Aeternum,
+                                rate: 0.4,
+                            }],
                         },
                     },
                     reaction_window: 0.6,
@@ -258,12 +244,10 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
                                 conviction: ConvictionType::Ananke,
                                 rate: 1.0,
                             },
-                            secondary: vec![
-                                ConvictionScaling {
-                                    conviction: ConvictionType::Ataraxia,
-                                    rate: 0.4,
-                                },
-                            ],
+                            secondary: vec![ConvictionScaling {
+                                conviction: ConvictionType::Ataraxia,
+                                rate: 0.4,
+                            }],
                         },
                     },
                     reaction_window: 0.8,
@@ -277,12 +261,10 @@ pub fn enemy_combos() -> Vec<EnemyCombo> {
                                 conviction: ConvictionType::Aeternum,
                                 rate: 1.3,
                             },
-                            secondary: vec![
-                                ConvictionScaling {
-                                    conviction: ConvictionType::Sekhem,
-                                    rate: 0.5,
-                                },
-                            ],
+                            secondary: vec![ConvictionScaling {
+                                conviction: ConvictionType::Sekhem,
+                                rate: 0.5,
+                            }],
                         },
                     },
                     reaction_window: 0.7,
@@ -343,7 +325,7 @@ fn calculate_stadistics(combos: &EnemyCombo) -> Option<ComboStatistics> {
             .iter()
             .fold((0.0_f32, 0.0_f32), |(damage, reaction_window), attack| {
                 (
-                    damage + attack.effect.base(),
+                    damage + attack.effect.base().unwrap_or(0.0),
                     reaction_window + attack.reaction_window,
                 )
             });

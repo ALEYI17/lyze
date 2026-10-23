@@ -534,7 +534,6 @@ fn update_target_information(
     combat_target: Res<CombatTarget>,
     combat_resource: Res<CombatResource>,
 ) {
-    
     let Some(current_entity) = combat_resource.current_entity() else {
         return;
     };
@@ -550,11 +549,11 @@ fn update_target_information(
         return;
     };
 
-    let Some(mut target_info) = get_target_info(&canvas)else {
+    let Some(mut target_info) = get_target_info(&canvas) else {
         return;
     };
 
-    if player != current_entity{
+    if player != current_entity {
         target_info.set_visible(false);
         return;
     }
@@ -563,7 +562,8 @@ fn update_target_information(
         return;
     };
 
-    let Ok((convictions, healt, max_health, damage, name)) = query_components.get(target_entity) else {
+    let Ok((convictions, healt, max_health, damage, name)) = query_components.get(target_entity)
+    else {
         return;
     };
 
@@ -583,7 +583,7 @@ fn update_target_information(
         return;
     };
 
-    let Some(mut name_label) = get_target_name(&canvas)else {
+    let Some(mut name_label) = get_target_name(&canvas) else {
         return;
     };
 

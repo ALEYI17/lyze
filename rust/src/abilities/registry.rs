@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use crate::abilities::definition::AbilityScaling;
+use crate::{
+    abilities::definition::{AbilityScaling, ModifierType},
+    characters::components::convictions::ConvictionStats,
+};
 
 use super::definition::{
     AbilityDefinition, AbilityEffect, AbilityId, ConvictionScaling, ConvictionType,
@@ -100,6 +103,32 @@ impl Default for AbilityRegistry {
                         },
                         secondary: Vec::new(),
                     },
+                },
+            },
+            AbilityDefinition {
+                id: AbilityId::Weaken,
+                name: "Weaken",
+                learned: true,
+                effect: AbilityEffect::StatModifier {
+                    conviction: ConvictionType::Sekhem,
+                    stat: ConvictionStats {
+                        attack: 4.0,
+                        defense: 5.0,
+                    },
+                    modifier: ModifierType::Debuff,
+                },
+            },
+            AbilityDefinition {
+                id: AbilityId::Fortify,
+                name: "Fortify",
+                learned: true,
+                effect: AbilityEffect::StatModifier {
+                    conviction: ConvictionType::Aeternum,
+                    stat: ConvictionStats {
+                        attack: 3.0,
+                        defense: 5.0,
+                    },
+                    modifier: ModifierType::Buff,
                 },
             },
         ];

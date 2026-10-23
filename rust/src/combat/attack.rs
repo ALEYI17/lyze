@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use godot::global::godot_print;
 
-use crate::{abilities::definition::AbilityEffect, combat::reaction::StartReactionEvent, events::combat::NextTurn, state::GameState};
+use crate::{
+    abilities::definition::AbilityEffect, combat::reaction::StartReactionEvent,
+    events::combat::NextTurn, state::GameState,
+};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum DodgeDirection {
@@ -19,7 +22,7 @@ pub enum ReactionType {
 
 #[derive(Debug, Clone)]
 pub struct AttackDefinition {
-    pub effect: AbilityEffect, 
+    pub effect: AbilityEffect,
     pub reaction_window: f32,
     pub reaction: ReactionType,
 }
