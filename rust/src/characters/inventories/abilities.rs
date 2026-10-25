@@ -5,6 +5,7 @@ use crate::abilities::{definition::AbilityId, registry::AbilityRegistry};
 #[derive(Resource, Debug)]
 pub struct AbilityInventory {
     pub abilities: Vec<AbilityId>,
+    pub avaible_points: u32,
 }
 
 impl Default for AbilityInventory {
@@ -18,6 +19,7 @@ impl Default for AbilityInventory {
         ];
         Self {
             abilities: abilities.to_vec(),
+            avaible_points: 4,
         }
     }
 }

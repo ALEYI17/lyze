@@ -51,6 +51,7 @@ pub struct AbilityDefinition {
     pub name: &'static str,
     pub effect: AbilityEffect,
     pub learned: bool,
+    pub point_cost: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

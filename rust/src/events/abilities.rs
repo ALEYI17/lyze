@@ -1,13 +1,15 @@
 use bevy::prelude::*;
+use godot::global::godot_print;
 
 use crate::{
     abilities::{
         definition::{AbilityEffect, AbilityId, calculate_effect_value},
         registry::AbilityRegistry,
     },
-    characters::components::convictions::Convictions,
+    characters::{components::convictions::Convictions, inventories::abilities::AbilityInventory},
     combat::attack::AttackDefinition,
     events::{damage::DamageEvent, heal::HealEvent, stat_modifier::StatModifierEvent},
+    ui::hud::ReloadAbilityListEvent,
 };
 
 #[derive(Debug, Clone)]
@@ -21,6 +23,12 @@ pub struct AbilityEvent {
     pub ability: AbilitySource,
     pub source: Entity,
     pub target: Entity,
+}
+
+#[derive(Event)]
+pub struct LearnAbilityEvent {
+    pub ability: AbilityId,
+    pub avaible_points: u32,
 }
 
 fn on_ability_event(
@@ -90,10 +98,30 @@ fn on_ability_event(
     }
 }
 
+fn on_learn_ability_event(
+    trigger: On<LearnAbilityEvent>,
+    mut ability_registry: ResMut<AbilityRegistry>,
+    mut ability_inventory: ResMut<AbilityInventory>,
+    mut commands: Commands,
+) {
+    godot_print!("get learn ability event");
+    let Some(ability) = ability_registry.get_mut(trigger.ability) else {
+        return;
+    };
+
+    if trigger.avaible_points >= ability.point_cost {
+        ability_inventory.avaible_points -= ability.point_cost;
+        ability.point_cost = 0;
+        ability.learned = true;
+        commands.trigger(ReloadAbilityListEvent);
+    }
+}
+
 pub struct AbilitiesPlugin;
 
 impl Plugin for AbilitiesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_observer(on_ability_event);
+        app.add_observer(on_ability_event)
+            .add_observer(on_learn_ability_event);
     }
 }

@@ -1,11 +1,15 @@
-use crate::abilities::definition::AbilityDefinition;
+use crate::abilities::definition::{AbilityId, format_ability_scaling};
 use crate::abilities::registry::AbilityRegistry;
 use crate::characters::components::convictions::Convictions;
 use crate::characters::components::identity::Name;
+use crate::characters::inventories::abilities::AbilityInventory;
 use crate::characters::player_3d::Player3DNode;
+use crate::events::abilities::LearnAbilityEvent;
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use bevy::prelude::*;
-use godot::classes::{CanvasLayer, ItemList, Label, PanelContainer, ProgressBar};
+use godot::classes::{
+    Button, CanvasLayer, Label, PanelContainer, ProgressBar, ResourceLoader, VBoxContainer,
+};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
 
@@ -38,6 +42,15 @@ struct HudUi {
 
 #[derive(Event, Debug, Clone)]
 struct OpenChatacterMenuEvent;
+
+#[derive(Event, Debug, Clone)]
+struct LearnAbilitySelect {
+    ability: AbilityId,
+    avaible_points: u32,
+}
+
+#[derive(Event)]
+pub struct ReloadAbilityListEvent;
 
 fn get_health_bar(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
     let node = canvas.get_node_or_null("Control/PlayerStatus/VBoxContainer/HealthRow/HealthBar")?;
@@ -146,18 +159,123 @@ fn get_conviction_labels(canvas: &Gd<CanvasLayer>) -> Option<[(Gd<Label>, Gd<Lab
     ])
 }
 
-fn get_ability_list(canvas: &Gd<CanvasLayer>) -> Option<Gd<ItemList>> {
-    let path = "Control/CharacterMenu/VBoxContainer/Tabs/Abilities/VBoxContainer/AbilityList";
+fn get_ability_list(canvas: &Gd<CanvasLayer>) -> Option<Gd<VBoxContainer>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Abilities/VBoxContainer/AbilityScroll/AbilityList"
+    );
 
     let node = canvas.get_node_or_null(path)?;
 
-    let Ok(ability_list) = node.try_cast::<ItemList>() else {
+    let Ok(container) = node.try_cast::<VBoxContainer>() else {
         return None;
     };
 
-    Some(ability_list)
+    Some(container)
 }
 
+fn populate_ability_list(
+    ability_list: &mut Gd<VBoxContainer>,
+    ability_registry: &AbilityRegistry,
+    ability_inventory: &AbilityInventory,
+    signal_learn: &GodotSignals<LearnAbilitySelect>,
+) {
+    let Some(mut points_label) = ability_list
+        .get_parent()
+        .and_then(|node| node.get_parent())
+        .and_then(|node| node.get_node_or_null("Header/AvailablePoints"))
+        .and_then(|node| node.try_cast::<Label>().ok())
+    else {
+        return;
+    };
+
+    let avaible_points = ability_inventory.avaible_points;
+
+    points_label.set_text(&format!("Points: {}", avaible_points,));
+
+    let mut loader = ResourceLoader::singleton();
+
+    let Ok(scene) = loader
+        .load("res://scenes/ui/components/AbilityRow.tscn")
+        .ok_or(())
+        .and_then(|resource| resource.try_cast::<PackedScene>().map_err(|_| ()))
+    else {
+        return;
+    };
+
+    for ability in ability_registry.abilities.values() {
+        let Some(row) = scene.instantiate() else {
+            continue;
+        };
+
+        let Some(mut name_label) = row
+            .get_node_or_null("MarginContainer/VBoxContainer/Header/AbilityName")
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            continue;
+        };
+
+        name_label.set_text(ability.name);
+
+        let Some(mut scaling_label) = row
+            .get_node_or_null("MarginContainer/VBoxContainer/ScalingInfo")
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            continue;
+        };
+
+        scaling_label.set_text(&format_ability_scaling(&ability.effect));
+
+        let Some(mut cost_label) = row
+            .get_node_or_null("MarginContainer/VBoxContainer/AbilityCost")
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            continue;
+        };
+
+        cost_label.set_text(&format!("Cost: {} points", ability.point_cost));
+
+        let Some(mut status_label) = row
+            .get_node_or_null("MarginContainer/VBoxContainer/Header/LearnedStatus")
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            continue;
+        };
+
+        let Some(mut learn_button) = row
+            .get_node_or_null("MarginContainer/VBoxContainer/Actions/LearnButton")
+            .and_then(|node| node.try_cast::<Button>().ok())
+        else {
+            continue;
+        };
+
+        let ability_id = ability.id;
+
+        if ability.learned {
+            status_label.set_text("Learned");
+            learn_button.set_text("Learned");
+            learn_button.set_disabled(true);
+        } else {
+            status_label.set_text("Not learned");
+            learn_button.set_text("Learn");
+            learn_button.set_disabled(false);
+
+            signal_learn.connect(
+                learn_button.into(),
+                BaseButtonSignals::PRESSED,
+                None,
+                move |_args, _node_handle, _ent| {
+                    Some(LearnAbilitySelect {
+                        ability: ability_id,
+                        avaible_points,
+                    })
+                },
+            );
+        }
+
+        ability_list.add_child(&row);
+    }
+}
 fn reset_hud_assets(mut hud_assets: ResMut<HudAssets>) {
     hud_assets.hud = None;
     hud_assets.menu_button = None;
@@ -312,7 +430,9 @@ fn set_convictions_stats(
 fn set_ability_list(
     mut hud_assets: ResMut<HudAssets>,
     ability_registry: Res<AbilityRegistry>,
+    ability_inventory: Res<AbilityInventory>,
     mut godot: GodotAccess,
+    signal_learn: GodotSignals<LearnAbilitySelect>,
 ) {
     let Some(hud_handle) = hud_assets.hud else {
         return;
@@ -326,17 +446,54 @@ fn set_ability_list(
         return;
     };
 
-    let learned_abilities: Vec<&AbilityDefinition> = ability_registry
-        .abilities
-        .values()
-        .filter(|v| v.learned)
-        .collect();
-
-    for ability in learned_abilities {
-        ability_list.add_item(ability.name);
-    }
+    populate_ability_list(
+        &mut ability_list,
+        &ability_registry,
+        &ability_inventory,
+        &signal_learn,
+    );
 
     hud_assets.ability_list_initialized = true;
+}
+fn on_learn_ability_select(trigger: On<LearnAbilitySelect>, mut commands: Commands) {
+    godot_print!("Learn Pressed");
+    commands.trigger(LearnAbilityEvent {
+        ability: trigger.ability,
+        avaible_points: trigger.avaible_points,
+    });
+}
+
+fn on_reload_ability(
+    _trigger: On<ReloadAbilityListEvent>,
+    hud_assets: Res<HudAssets>,
+    ability_registry: Res<AbilityRegistry>,
+    mut godot: GodotAccess,
+    signal_learn: GodotSignals<LearnAbilitySelect>,
+    ability_inventory: Res<AbilityInventory>,
+) {
+    let Some(hud_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut ability_list) = get_ability_list(&canvas) else {
+        return;
+    };
+
+    for mut child in ability_list.get_children().iter_shared() {
+        ability_list.remove_child(&child);
+        child.queue_free();
+    }
+
+    populate_ability_list(
+        &mut ability_list,
+        &ability_registry,
+        &ability_inventory,
+        &signal_learn,
+    );
 }
 
 fn hud_is_not_initialized(hud_assets: Res<HudAssets>) -> bool {
@@ -372,6 +529,8 @@ impl Plugin for HudPlugin {
                     .run_if(in_state(GameState::Ingame3D).and_then(ability_list_not_initialized)),
             )
             .add_systems(OnEnter(GameState::Ingame3D), reset_hud_assets)
-            .add_observer(on_open_character_menu_event);
+            .add_observer(on_open_character_menu_event)
+            .add_observer(on_learn_ability_select)
+            .add_observer(on_reload_ability);
     }
 }

@@ -1,0 +1,112 @@
+[gd_scene format=3 uid="uid://dltm84wwmifvb"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.075, 0.055, 0.065, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.38, 0.19, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.16, 0.13, 0.1, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.78, 0.55, 0.24, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pressed"]
+bg_color = Color(0.1, 0.08, 0.07, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover"]
+bg_color = Color(0.29, 0.21, 0.12, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.75, 0.35, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_disabled"]
+bg_color = Color(0.12, 0.1, 0.1, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="AbilityRow" type="PanelContainer" unique_id=2131189686]
+custom_minimum_size = Vector2(0, 140)
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=361513062]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1787396211]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1353183387]
+layout_mode = 2
+
+[node name="AbilityName" type="Label" parent="MarginContainer/VBoxContainer/Header" unique_id=1840240562]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.77, 0.51, 1)
+theme_override_font_sizes/font_size = 18
+text = "Ability Name"
+
+[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/Header" unique_id=1682712950]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="LearnedStatus" type="Label" parent="MarginContainer/VBoxContainer/Header" unique_id=790609609]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.8, 0.61, 1)
+text = "Learned"
+
+[node name="ScalingInfo" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1673919191]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.76, 0.64, 0.47, 1)
+text = "Damage: 10 | Aeternum x 1.0"
+autowrap_mode = 3
+
+[node name="AbilityCost" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1673919192]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_font_sizes/font_size = 14
+text = "Cost: 5 points"
+
+[node name="Actions" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1360808027]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="LearnButton" type="Button" parent="MarginContainer/VBoxContainer/Actions" unique_id=1101595430]
+custom_minimum_size = Vector2(90, 30)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.83, 0.65, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_disabled")
+text = "Learn"

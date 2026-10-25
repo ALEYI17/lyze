@@ -20,10 +20,8 @@ impl AbilityRegistry {
     pub fn get(&self, id: AbilityId) -> Option<&AbilityDefinition> {
         self.abilities.get(&id)
     }
-    pub fn is_learned(&self, id: AbilityId) -> Option<bool> {
-        let ability = self.abilities.get(&id)?;
-
-        Some(ability.learned)
+    pub fn get_mut(&mut self, id: AbilityId) -> Option<&mut AbilityDefinition> {
+        self.abilities.get_mut(&id)
     }
 }
 
@@ -34,6 +32,7 @@ impl Default for AbilityRegistry {
                 id: AbilityId::Strike,
                 name: "Strike",
                 learned: true,
+                point_cost: 0,
                 effect: AbilityEffect::Damage {
                     base: 10.0,
                     scalings: AbilityScaling {
@@ -49,6 +48,7 @@ impl Default for AbilityRegistry {
                 id: AbilityId::Kick,
                 name: "Kick",
                 learned: true,
+                point_cost: 0,
                 effect: AbilityEffect::Damage {
                     base: 12.0,
                     scalings: AbilityScaling {
@@ -64,6 +64,7 @@ impl Default for AbilityRegistry {
                 id: AbilityId::Slash,
                 name: "Slash",
                 learned: true,
+                point_cost: 0,
                 effect: AbilityEffect::Damage {
                     base: 15.0,
                     scalings: AbilityScaling {
@@ -78,7 +79,8 @@ impl Default for AbilityRegistry {
             AbilityDefinition {
                 id: AbilityId::Vigor,
                 name: "Vigor",
-                learned: true,
+                learned: false,
+                point_cost: 2,
                 effect: AbilityEffect::Heal {
                     base: 8.0,
                     scalings: AbilityScaling {
@@ -94,6 +96,7 @@ impl Default for AbilityRegistry {
                 id: AbilityId::Heal,
                 name: "Heal",
                 learned: true,
+                point_cost: 0,
                 effect: AbilityEffect::Heal {
                     base: 8.0,
                     scalings: AbilityScaling {
@@ -109,6 +112,7 @@ impl Default for AbilityRegistry {
                 id: AbilityId::Weaken,
                 name: "Weaken",
                 learned: true,
+                point_cost: 0,
                 effect: AbilityEffect::StatModifier {
                     conviction: ConvictionType::Sekhem,
                     stat: ConvictionStats {
@@ -122,6 +126,7 @@ impl Default for AbilityRegistry {
                 id: AbilityId::Fortify,
                 name: "Fortify",
                 learned: true,
+                point_cost: 0,
                 effect: AbilityEffect::StatModifier {
                     conviction: ConvictionType::Aeternum,
                     stat: ConvictionStats {
