@@ -226,10 +226,9 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_tab_panel")
 theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_tab_unselected")
 theme_override_styles/tab_hovered = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
-current_tab = 1
+current_tab = 0
 
 [node name="Convictions" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=1313707353]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -342,6 +341,7 @@ theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
 text = "0"
 
 [node name="Abilities" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=887680064]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 
@@ -349,22 +349,22 @@ metadata/_tab_index = 1
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Header" type="HBoxContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Abilities/VBoxContainer"]
+[node name="Header" type="HBoxContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Abilities/VBoxContainer" unique_id=1444542321]
 layout_mode = 2
 
-[node name="Heading" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Abilities/VBoxContainer" unique_id=223154752]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
-theme_override_font_sizes/font_size = 18
-size_flags_horizontal = 3
-text = "Abilities"
-
-[node name="AvailablePoints" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Abilities/VBoxContainer/Header"]
+[node name="AvailablePoints" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Abilities/VBoxContainer/Header" unique_id=1502327925]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.72, 0.45, 1)
 theme_override_font_sizes/font_size = 16
 text = "Points: 5"
 horizontal_alignment = 2
+
+[node name="Heading" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Abilities/VBoxContainer" unique_id=223154752]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
+theme_override_font_sizes/font_size = 18
+text = "Abilities"
 
 [node name="AbilityScroll" type="ScrollContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Abilities/VBoxContainer" unique_id=1231016275]
 custom_minimum_size = Vector2(0, 270)
@@ -378,22 +378,45 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="Equipment" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=2147451436]
+[node name="Loadout" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=2147451436]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Equipment" unique_id=802366178]
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Loadout" unique_id=802366178]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Heading" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Equipment/VBoxContainer" unique_id=574320306]
+[node name="EquippedHeading" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Loadout/VBoxContainer" unique_id=352796285]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.35, 1)
+theme_override_font_sizes/font_size = 18
+text = "Equipped Abilities"
+
+[node name="EquippedGrid" type="GridContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Loadout/VBoxContainer" unique_id=758819034]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="AvailableHeading" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Loadout/VBoxContainer" unique_id=384276609]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
 theme_override_font_sizes/font_size = 18
-text = "Equipment"
+text = "Available Abilities"
 
-[node name="Placeholder" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Equipment/VBoxContainer" unique_id=1182585297]
+[node name="AvailableScroll" type="ScrollContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Loadout/VBoxContainer" unique_id=361196683]
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.67, 0.6, 0.54, 1)
-text = "Equipment will be available later."
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="AvailableGrid" type="GridContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Loadout/VBoxContainer/AvailableScroll" unique_id=694177006]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 2

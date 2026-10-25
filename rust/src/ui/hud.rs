@@ -8,7 +8,8 @@ use crate::events::abilities::LearnAbilityEvent;
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use bevy::prelude::*;
 use godot::classes::{
-    Button, CanvasLayer, Label, PanelContainer, ProgressBar, ResourceLoader, VBoxContainer,
+    Button, CanvasLayer, GridContainer, Label, PanelContainer, ProgressBar, ResourceLoader,
+    VBoxContainer,
 };
 use godot::prelude::*;
 use godot_bevy::prelude::*;
@@ -28,6 +29,8 @@ struct HudAssets {
     pub initialized: bool,
     pub signal_connected: bool,
     pub ability_list_initialized: bool,
+    pub equiped_abilities_grid_initialized: bool,
+    pub avaible_abilities_grid_initialized: bool,
 }
 
 #[derive(NodeTreeView)]
@@ -47,6 +50,16 @@ struct OpenChatacterMenuEvent;
 struct LearnAbilitySelect {
     ability: AbilityId,
     avaible_points: u32,
+}
+
+#[derive(Event, Debug, Clone)]
+struct UnequipAbilitySelect {
+    ability: AbilityId,
+}
+
+#[derive(Event, Debug, Clone)]
+pub struct EquipAbilitySelect {
+    ability: AbilityId,
 }
 
 #[derive(Event)]
@@ -174,6 +187,36 @@ fn get_ability_list(canvas: &Gd<CanvasLayer>) -> Option<Gd<VBoxContainer>> {
     Some(container)
 }
 
+fn get_equipped_grid(canvas: &Gd<CanvasLayer>) -> Option<Gd<GridContainer>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Loadout/VBoxContainer/EquippedGrid"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+
+    let Ok(container) = node.try_cast::<GridContainer>() else {
+        return None;
+    };
+
+    Some(container)
+}
+
+fn get_available_grid(canvas: &Gd<CanvasLayer>) -> Option<Gd<GridContainer>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Loadout/VBoxContainer/AvailableScroll/AvailableGrid"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+
+    let Ok(container) = node.try_cast::<GridContainer>() else {
+        return None;
+    };
+
+    Some(container)
+}
+
 fn populate_ability_list(
     ability_list: &mut Gd<VBoxContainer>,
     ability_registry: &AbilityRegistry,
@@ -276,11 +319,140 @@ fn populate_ability_list(
         ability_list.add_child(&row);
     }
 }
+
+fn populate_equipped_abilities(
+    equipped_grid: &mut Gd<GridContainer>,
+    ability_registry: &AbilityRegistry,
+    ability_inventory: &AbilityInventory,
+    signal_unequip: &GodotSignals<UnequipAbilitySelect>,
+) {
+    let mut loader = ResourceLoader::singleton();
+
+    let Ok(scene) = loader
+        .load("res://scenes/ui/components/AbilitySlot.tscn")
+        .ok_or(())
+        .and_then(|resource| resource.try_cast::<PackedScene>().map_err(|_| ()))
+    else {
+        return;
+    };
+
+    for ability_id in ability_inventory.abilities.iter().take(5) {
+        let Some(ability) = ability_registry.get(*ability_id) else {
+            continue;
+        };
+
+        let Some(slot) = scene.instantiate() else {
+            continue;
+        };
+
+        let Some(mut name_label) = slot
+            .get_node_or_null("MarginContainer/VBoxContainer/AbilityName")
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            continue;
+        };
+
+        name_label.set_text(ability.name);
+
+        let Some(mut action_button) = slot
+            .get_node_or_null("MarginContainer/VBoxContainer/ActionButton")
+            .and_then(|node| node.try_cast::<Button>().ok())
+        else {
+            continue;
+        };
+
+        action_button.set_text("Unequip");
+
+        let ability_id = *ability_id;
+
+        signal_unequip.connect(
+            action_button.into(),
+            BaseButtonSignals::PRESSED,
+            None,
+            move |_args, _node_handle, _ent| {
+                Some(UnequipAbilitySelect {
+                    ability: ability_id,
+                })
+            },
+        );
+
+        equipped_grid.add_child(&slot);
+    }
+}
+
+fn populate_available_abilities(
+    available_grid: &mut Gd<GridContainer>,
+    ability_registry: &AbilityRegistry,
+    ability_inventory: &AbilityInventory,
+    signal_equip: &GodotSignals<EquipAbilitySelect>,
+) {
+    let mut loader = ResourceLoader::singleton();
+
+    let Ok(scene) = loader
+        .load("res://scenes/ui/components/AbilitySlot.tscn")
+        .ok_or(())
+        .and_then(|resource| resource.try_cast::<PackedScene>().map_err(|_| ()))
+    else {
+        return;
+    };
+
+    for ability in ability_registry
+        .abilities
+        .values()
+        .filter(|ability| ability.learned)
+        .filter(|ability| !ability_inventory.abilities.contains(&ability.id))
+    {
+        godot_print!("find ability not equiped");
+        let Some(slot) = scene.instantiate() else {
+            godot_print!("dont find 1");
+            continue;
+        };
+
+        let Some(mut name_label) = slot
+            .get_node_or_null("MarginContainer/VBoxContainer/AbilityName")
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            godot_print!("dont find 2");
+            continue;
+        };
+
+        name_label.set_text(ability.name);
+
+        let Some(mut action_button) = slot
+            .get_node_or_null("MarginContainer/VBoxContainer/ActionButton")
+            .and_then(|node| node.try_cast::<Button>().ok())
+        else {
+            godot_print!("dont find 3");
+            continue;
+        };
+
+        action_button.set_text("Equip");
+
+        let ability_id = ability.id;
+
+        signal_equip.connect(
+            action_button.into(),
+            BaseButtonSignals::PRESSED,
+            None,
+            move |_args, _node_handle, _ent| {
+                Some(EquipAbilitySelect {
+                    ability: ability_id,
+                })
+            },
+        );
+
+        available_grid.add_child(&slot);
+    }
+}
+
 fn reset_hud_assets(mut hud_assets: ResMut<HudAssets>) {
     hud_assets.hud = None;
     hud_assets.menu_button = None;
     hud_assets.close_button = None;
     hud_assets.initialized = false;
+    hud_assets.equiped_abilities_grid_initialized = false;
+    hud_assets.ability_list_initialized = false;
+    hud_assets.avaible_abilities_grid_initialized = false;
 }
 
 fn initialized_hud(mut hud_assets: ResMut<HudAssets>, mut scene_tree: SceneTreeRef) {
@@ -455,6 +627,66 @@ fn set_ability_list(
 
     hud_assets.ability_list_initialized = true;
 }
+
+fn set_equiped_ability(
+    mut hud_assets: ResMut<HudAssets>,
+    ability_resgistry: Res<AbilityRegistry>,
+    ability_inventory: Res<AbilityInventory>,
+    mut godot: GodotAccess,
+    signal_unequip: GodotSignals<UnequipAbilitySelect>,
+) {
+    let Some(hud_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut equiped_grid) = get_equipped_grid(&canvas) else {
+        return;
+    };
+
+    populate_equipped_abilities(
+        &mut equiped_grid,
+        &ability_resgistry,
+        &ability_inventory,
+        &signal_unequip,
+    );
+
+    hud_assets.equiped_abilities_grid_initialized = true;
+}
+
+fn set_avaible_abilities(
+    mut hud_assets: ResMut<HudAssets>,
+    ability_resgistry: Res<AbilityRegistry>,
+    ability_inventory: Res<AbilityInventory>,
+    mut godot: GodotAccess,
+    signal_unequip: GodotSignals<EquipAbilitySelect>,
+) {
+    let Some(hud_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut avaible_grid) = get_available_grid(&canvas) else {
+        godot_print!("ERROR: AvailableGrid not found!");
+        return;
+    };
+
+    populate_available_abilities(
+        &mut avaible_grid,
+        &ability_resgistry,
+        &ability_inventory,
+        &signal_unequip,
+    );
+
+    hud_assets.avaible_abilities_grid_initialized = true;
+}
+
 fn on_learn_ability_select(trigger: On<LearnAbilitySelect>, mut commands: Commands) {
     godot_print!("Learn Pressed");
     commands.trigger(LearnAbilityEvent {
@@ -463,12 +695,15 @@ fn on_learn_ability_select(trigger: On<LearnAbilitySelect>, mut commands: Comman
     });
 }
 
+#[allow(clippy::too_many_arguments)]
 fn on_reload_ability(
     _trigger: On<ReloadAbilityListEvent>,
     hud_assets: Res<HudAssets>,
     ability_registry: Res<AbilityRegistry>,
     mut godot: GodotAccess,
     signal_learn: GodotSignals<LearnAbilitySelect>,
+    signal_unequip: GodotSignals<UnequipAbilitySelect>,
+    signal_equip: GodotSignals<EquipAbilitySelect>,
     ability_inventory: Res<AbilityInventory>,
 ) {
     let Some(hud_handle) = hud_assets.hud else {
@@ -483,8 +718,26 @@ fn on_reload_ability(
         return;
     };
 
+    let Some(mut avaible_grid) = get_available_grid(&canvas) else {
+        return;
+    };
+
+    let Some(mut equiped_grid) = get_equipped_grid(&canvas) else {
+        return;
+    };
+
     for mut child in ability_list.get_children().iter_shared() {
         ability_list.remove_child(&child);
+        child.queue_free();
+    }
+
+    for mut child in avaible_grid.get_children().iter_shared() {
+        avaible_grid.remove_child(&child);
+        child.queue_free();
+    }
+
+    for mut child in equiped_grid.get_children().iter_shared() {
+        equiped_grid.remove_child(&child);
         child.queue_free();
     }
 
@@ -494,6 +747,40 @@ fn on_reload_ability(
         &ability_inventory,
         &signal_learn,
     );
+    populate_available_abilities(
+        &mut avaible_grid,
+        &ability_registry,
+        &ability_inventory,
+        &signal_equip,
+    );
+
+    populate_equipped_abilities(
+        &mut equiped_grid,
+        &ability_registry,
+        &ability_inventory,
+        &signal_unequip,
+    );
+}
+
+fn on_unequip_ability_select(
+    trigger: On<UnequipAbilitySelect>,
+    mut ability_inventory: ResMut<AbilityInventory>,
+    mut commands: Commands,
+) {
+    ability_inventory
+        .abilities
+        .retain(|&x| x != trigger.ability);
+
+    commands.trigger(ReloadAbilityListEvent);
+}
+
+fn on_equip_ability_select(trigger: On<EquipAbilitySelect>, mut ability_inventory: ResMut<AbilityInventory>, mut commands: Commands){
+
+    if ability_inventory.abilities.len() < 5{
+        ability_inventory.abilities.push(trigger.ability);
+    }
+
+    commands.trigger(ReloadAbilityListEvent);
 }
 
 fn hud_is_not_initialized(hud_assets: Res<HudAssets>) -> bool {
@@ -506,6 +793,14 @@ fn hud_initialized_but_signals_not_connected(hud_assets: Res<HudAssets>) -> bool
 
 fn ability_list_not_initialized(hud_assets: Res<HudAssets>) -> bool {
     !hud_assets.ability_list_initialized
+}
+
+fn equiped_abilities_grid_not_initialized(hud_assets: Res<HudAssets>) -> bool {
+    !hud_assets.equiped_abilities_grid_initialized
+}
+
+fn avaible_abilities_grid_not_initialized(hud_assets: Res<HudAssets>) -> bool {
+    !hud_assets.avaible_abilities_grid_initialized
 }
 
 pub struct HudPlugin;
@@ -528,9 +823,23 @@ impl Plugin for HudPlugin {
                 set_ability_list
                     .run_if(in_state(GameState::Ingame3D).and_then(ability_list_not_initialized)),
             )
+            .add_systems(
+                Update,
+                set_equiped_ability.run_if(
+                    in_state(GameState::Ingame3D).and_then(equiped_abilities_grid_not_initialized),
+                ),
+            )
+            .add_systems(
+                Update,
+                set_avaible_abilities.run_if(
+                    in_state(GameState::Ingame3D).and_then(avaible_abilities_grid_not_initialized),
+                ),
+            )
             .add_systems(OnEnter(GameState::Ingame3D), reset_hud_assets)
             .add_observer(on_open_character_menu_event)
             .add_observer(on_learn_ability_select)
+            .add_observer(on_unequip_ability_select)
+            .add_observer(on_equip_ability_select)
             .add_observer(on_reload_ability);
     }
 }
