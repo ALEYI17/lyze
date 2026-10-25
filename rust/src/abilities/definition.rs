@@ -181,7 +181,6 @@ fn calculate_defense(convictions: &Convictions, scaling: &AbilityScaling) -> f32
     defense.max(0.0)
 }
 
-
 pub fn calculate_effect_value(
     effect: &AbilityEffect,
     source_convictions: &Convictions,
@@ -190,23 +189,27 @@ pub fn calculate_effect_value(
     let k = 20.0;
     match &effect {
         AbilityEffect::Damage { base, scalings } => {
-             let scaling_bonus = calculate_scaling_bonus(source_convictions, scalings);
+            let scaling_bonus = calculate_scaling_bonus(source_convictions, scalings);
             let raw_damage = base + calculate_scaling_bonus(source_convictions, scalings);
             let defense = calculate_defense(target_convictions, scalings);
             let multiplier = k / (k + defense);
 
             let final_damage = (raw_damage * multiplier).max(0.0);
-            godot_print!("[Damage] Base: {base:.2}, Scaling: {scaling_bonus:.2}, \
+            godot_print!(
+                "[Damage] Base: {base:.2}, Scaling: {scaling_bonus:.2}, \
                  Raw: {raw_damage:.2}, Defense: {defense:.2}, \
-                 Multiplier: {multiplier:.4}, Final: {final_damage:.2}");
+                 Multiplier: {multiplier:.4}, Final: {final_damage:.2}"
+            );
             Some(final_damage.max(0.0))
         }
         AbilityEffect::Heal { base, scalings } => {
             let scaling_bonus = calculate_scaling_bonus(source_convictions, scalings);
             let final_heal = base + scaling_bonus;
 
-            godot_print!("[Healing] Base: {base:.2}, Scaling: {scaling_bonus:.2}, \
-                 Final: {final_heal:.2}");
+            godot_print!(
+                "[Healing] Base: {base:.2}, Scaling: {scaling_bonus:.2}, \
+                 Final: {final_heal:.2}"
+            );
             Some(final_heal)
         }
         AbilityEffect::StatModifier { .. } => None,

@@ -1,17 +1,381 @@
 [gd_scene format=3 uid="uid://cf0lhf2dibm1w"]
 
-[node name="Hud" type="CanvasLayer" unique_id=2131845399]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0, 0, 0, 0)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
 
-[node name="Control" type="Control" parent="." unique_id=1351114830]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_bg"]
+bg_color = Color(0.19, 0.13, 0.15, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_fill"]
+bg_color = Color(0.85, 0.22, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.16, 0.13, 0.1, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 3
+border_color = Color(0.78, 0.55, 0.24, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
+bg_color = Color(0.1, 0.08, 0.07, 1)
+border_width_left = 1
+border_width_top = 2
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.78, 0.55, 0.24, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.29, 0.21, 0.12, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 3
+border_color = Color(1, 0.75, 0.35, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+content_margin_left = 18.0
+content_margin_top = 18.0
+content_margin_right = 18.0
+content_margin_bottom = 18.0
+bg_color = Color(0.075, 0.055, 0.065, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 2
+border_color = Color(0.78, 0.55, 0.24, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_panel"]
+content_margin_left = 18.0
+content_margin_top = 18.0
+content_margin_right = 18.0
+content_margin_bottom = 18.0
+bg_color = Color(0.075, 0.055, 0.065, 0.97)
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_unselected"]
+content_margin_left = 14.0
+content_margin_top = 9.0
+content_margin_right = 14.0
+content_margin_bottom = 9.0
+bg_color = Color(0.16, 0.13, 0.1, 0.98)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_selected"]
+content_margin_left = 14.0
+content_margin_top = 9.0
+content_margin_right = 14.0
+content_margin_bottom = 9.0
+bg_color = Color(0.29, 0.21, 0.12, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+
+[node name="Hud" type="CanvasLayer" unique_id=1202237991]
+
+[node name="Control" type="Control" parent="." unique_id=88490641]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="player_healt" type="Label" parent="Control" unique_id=251018535]
-layout_mode = 0
-offset_left = 1135.0
-offset_top = 32.0
-offset_right = 1237.0
-offset_bottom = 73.0
-text = "Health:"
+[node name="PlayerStatus" type="PanelContainer" parent="Control" unique_id=1162936848]
+layout_mode = 1
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 294.0
+offset_bottom = 106.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/PlayerStatus" unique_id=115631852]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="PlayerName" type="Label" parent="Control/PlayerStatus/VBoxContainer" unique_id=508940653]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
+theme_override_font_sizes/font_size = 16
+text = "PLAYER"
+
+[node name="HealthRow" type="HBoxContainer" parent="Control/PlayerStatus/VBoxContainer" unique_id=1449274629]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="HealthBar" type="ProgressBar" parent="Control/PlayerStatus/VBoxContainer/HealthRow" unique_id=615907364]
+custom_minimum_size = Vector2(165, 16)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_bar_fill")
+value = 75.0
+show_percentage = false
+
+[node name="player_healt" type="Label" parent="Control/PlayerStatus/VBoxContainer/HealthRow" unique_id=1055531508]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
+text = "75 / 100"
+
+[node name="MenuButton" type="Button" parent="Control" unique_id=569630356]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -163.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 64.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+text = "CHARACTER"
+
+[node name="CharacterMenu" type="PanelContainer" parent="Control" unique_id=1100756309]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -245.0
+offset_right = 340.0
+offset_bottom = 245.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/CharacterMenu" unique_id=1727818456]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="Control/CharacterMenu/VBoxContainer" unique_id=422442692]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Control/CharacterMenu/VBoxContainer/Header" unique_id=2100928091]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.75, 0.35, 1)
+theme_override_font_sizes/font_size = 23
+text = "CHARACTER"
+
+[node name="CloseButton" type="Button" parent="Control/CharacterMenu/VBoxContainer/Header" unique_id=2047749219]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+text = "X"
+
+[node name="Tabs" type="TabContainer" parent="Control/CharacterMenu/VBoxContainer" unique_id=215839105]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_selected_color = Color(1, 0.75, 0.35, 1)
+theme_override_colors/font_unselected_color = Color(0.67, 0.6, 0.54, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_tab_panel")
+theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_tab_unselected")
+theme_override_styles/tab_hovered = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
+current_tab = 0
+
+[node name="Convictions" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=1313707353]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions" unique_id=591058459]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer" unique_id=1704919186]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
+theme_override_font_sizes/font_size = 18
+text = "Conviction attributes"
+
+[node name="StatsGrid" type="GridContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer" unique_id=452209335]
+layout_mode = 2
+theme_override_constants/h_separation = 35
+theme_override_constants/v_separation = 15
+columns = 3
+
+[node name="NameHeader" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1177206052]
+custom_minimum_size = Vector2(190, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.35, 1)
+text = "CONVICTION"
+
+[node name="AttackHeader" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=941166546]
+custom_minimum_size = Vector2(105, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.35, 1)
+text = "ATTACK"
+
+[node name="DefenseHeader" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1880937634]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.35, 1)
+text = "DEFENSE"
+
+[node name="AeternumName" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=880582661]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "Aeternum"
+
+[node name="AeternumAttack" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=520945420]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "0"
+
+[node name="AeternumDefense" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=638526409]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "0"
+
+[node name="AlligatioName" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1702568669]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "Alligatio"
+
+[node name="AlligatioAttack" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=409064424]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "0"
+
+[node name="AlligatioDefense" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=159234382]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "0"
+
+[node name="AnankeName" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=540598277]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "Ananke"
+
+[node name="AnankeAttack" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=846602492]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "0"
+
+[node name="AnankeDefense" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1503963119]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "0"
+
+[node name="SekhemName" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1489843128]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "Sekhem"
+
+[node name="SekhemAttack" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1959548252]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "0"
+
+[node name="SekhemDefense" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1647814464]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "0"
+
+[node name="AtaraxiaName" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1866448712]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "Ataraxia"
+
+[node name="AtaraxiaAttack" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=114414049]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "0"
+
+[node name="AtaraxiaDefense" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=2088889322]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
+text = "0"
+
+[node name="Abilities" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=887680064]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Abilities" unique_id=27085553]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Heading" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Abilities/VBoxContainer" unique_id=223154752]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
+theme_override_font_sizes/font_size = 18
+text = "Abilities"
+
+[node name="AbilityList" type="ItemList" parent="Control/CharacterMenu/VBoxContainer/Tabs/Abilities/VBoxContainer" unique_id=1390016130]
+custom_minimum_size = Vector2(0, 270)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Equipment" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=2147451436]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Equipment" unique_id=802366178]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Heading" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Equipment/VBoxContainer" unique_id=574320306]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
+theme_override_font_sizes/font_size = 18
+text = "Equipment"
+
+[node name="Placeholder" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Equipment/VBoxContainer" unique_id=1182585297]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.67, 0.6, 0.54, 1)
+text = "Equipment will be available later."
