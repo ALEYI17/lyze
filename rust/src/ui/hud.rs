@@ -1,10 +1,12 @@
-use crate::abilities::definition::{AbilityId, format_ability_scaling};
+use crate::abilities::definition::{AbilityId, ConvictionType, format_ability_scaling};
 use crate::abilities::registry::AbilityRegistry;
 use crate::characters::components::convictions::Convictions;
 use crate::characters::components::identity::Name;
 use crate::characters::inventories::abilities::AbilityInventory;
+use crate::characters::inventories::convictions::ConvictionPoints;
 use crate::characters::player_3d::Player3DNode;
 use crate::events::abilities::LearnAbilityEvent;
+use crate::events::upgrade_convictions::UpgradeConvictionEvent;
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use bevy::prelude::*;
 use godot::classes::{
@@ -31,6 +33,7 @@ struct HudAssets {
     pub ability_list_initialized: bool,
     pub equiped_abilities_grid_initialized: bool,
     pub avaible_abilities_grid_initialized: bool,
+    pub convictions_upgrade_buttons_connected: bool,
 }
 
 #[derive(NodeTreeView)]
@@ -60,6 +63,11 @@ struct UnequipAbilitySelect {
 #[derive(Event, Debug, Clone)]
 pub struct EquipAbilitySelect {
     ability: AbilityId,
+}
+
+#[derive(Event, Debug, Clone)]
+pub struct UpgradeConvictionButtonEvent {
+    conviction: ConvictionType,
 }
 
 #[derive(Event)]
@@ -170,6 +178,51 @@ fn get_conviction_labels(canvas: &Gd<CanvasLayer>) -> Option<[(Gd<Label>, Gd<Lab
         (sekhem_attack, sekhem_defense),
         (ataraxia_attack, ataraxia_defense),
     ])
+}
+
+fn get_available_conviction_points(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Convictions/VBoxContainer/Heading/AvailablePoints"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+    let Ok(label) = node.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(label)
+}
+
+fn get_conviction_upgrade_buttons(canvas: &Gd<CanvasLayer>) -> Option<[Gd<Button>; 5]> {
+    let grid_path = "Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid/";
+
+    let aeternum_handle = canvas.get_node_or_null(&format!("{grid_path}AeternumUpgrade"))?;
+    let Ok(aeternum) = aeternum_handle.try_cast::<Button>() else {
+        return None;
+    };
+
+    let alligatio_handle = canvas.get_node_or_null(&format!("{grid_path}AlligatioUpgrade"))?;
+    let Ok(alligatio) = alligatio_handle.try_cast::<Button>() else {
+        return None;
+    };
+
+    let ananke_handle = canvas.get_node_or_null(&format!("{grid_path}AnankeUpgrade"))?;
+    let Ok(ananke) = ananke_handle.try_cast::<Button>() else {
+        return None;
+    };
+
+    let sekhem_handle = canvas.get_node_or_null(&format!("{grid_path}SekhemUpgrade"))?;
+    let Ok(sekhem) = sekhem_handle.try_cast::<Button>() else {
+        return None;
+    };
+
+    let ataraxia_handle = canvas.get_node_or_null(&format!("{grid_path}AtaraxiaUpgrade"))?;
+    let Ok(ataraxia) = ataraxia_handle.try_cast::<Button>() else {
+        return None;
+    };
+
+    Some([aeternum, alligatio, ananke, sekhem, ataraxia])
 }
 
 fn get_ability_list(canvas: &Gd<CanvasLayer>) -> Option<Gd<VBoxContainer>> {
@@ -453,6 +506,7 @@ fn reset_hud_assets(mut hud_assets: ResMut<HudAssets>) {
     hud_assets.equiped_abilities_grid_initialized = false;
     hud_assets.ability_list_initialized = false;
     hud_assets.avaible_abilities_grid_initialized = false;
+    hud_assets.convictions_upgrade_buttons_connected = false;
 }
 
 fn initialized_hud(mut hud_assets: ResMut<HudAssets>, mut scene_tree: SceneTreeRef) {
@@ -524,6 +578,7 @@ fn set_player_health(
     hud_assets: Res<HudAssets>,
     query: Query<(&Health, &MaxHealth, &Name), With<Player3DNode>>,
     mut godot: GodotAccess,
+    convictions_points: Res<ConvictionPoints>,
 ) {
     let Ok((health, max_health, name)) = query.single() else {
         return;
@@ -550,6 +605,12 @@ fn set_player_health(
     let Some(mut name_label) = get_player_name(&hud_node) else {
         return;
     };
+
+    let Some(mut avaible_points) = get_available_conviction_points(&hud_node) else {
+        return;
+    };
+
+    avaible_points.set_text(&convictions_points.avaible_points.to_string());
 
     health_bar.set_max(max_health.0.as_f64());
     health_bar.set_value(health.0.as_f64());
@@ -597,6 +658,43 @@ fn set_convictions_stats(
         attack_label.set_text(&stats.attack.to_string());
         defense_label.set_text(&stats.defense.to_string());
     }
+}
+
+fn connect_convictions_buttons(
+    mut hud_assets: ResMut<HudAssets>,
+    mut godot: GodotAccess,
+    signal_upgrade: GodotSignals<UpgradeConvictionButtonEvent>,
+) {
+    let Some(hud_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(conviction_buttons) = get_conviction_upgrade_buttons(&canvas) else {
+        return;
+    };
+
+    let convictions = [
+        ConvictionType::Aeternum,
+        ConvictionType::Alligatio,
+        ConvictionType::Ananke,
+        ConvictionType::Sekhem,
+        ConvictionType::Ataraxia,
+    ];
+
+    for (button, conviction) in conviction_buttons.into_iter().zip(convictions) {
+        signal_upgrade.connect(
+            button.into(),
+            BaseButtonSignals::PRESSED,
+            None,
+            move |_args, _node_handle, _ent| Some(UpgradeConvictionButtonEvent { conviction }),
+        );
+    }
+
+    hud_assets.convictions_upgrade_buttons_connected = true;
 }
 
 fn set_ability_list(
@@ -695,6 +793,21 @@ fn on_learn_ability_select(trigger: On<LearnAbilitySelect>, mut commands: Comman
     });
 }
 
+fn on_upgrade_conviction(
+    trigger: On<UpgradeConvictionButtonEvent>,
+    mut commands: Commands,
+    conviction_points: Res<ConvictionPoints>,
+) {
+    godot_print!("Press upgrade in {:?}", trigger.conviction);
+
+    if conviction_points.avaible_points == 0 {
+        return;
+    }
+    commands.trigger(UpgradeConvictionEvent {
+        conviction: trigger.conviction,
+    });
+}
+
 #[allow(clippy::too_many_arguments)]
 fn on_reload_ability(
     _trigger: On<ReloadAbilityListEvent>,
@@ -774,9 +887,12 @@ fn on_unequip_ability_select(
     commands.trigger(ReloadAbilityListEvent);
 }
 
-fn on_equip_ability_select(trigger: On<EquipAbilitySelect>, mut ability_inventory: ResMut<AbilityInventory>, mut commands: Commands){
-
-    if ability_inventory.abilities.len() < 5{
+fn on_equip_ability_select(
+    trigger: On<EquipAbilitySelect>,
+    mut ability_inventory: ResMut<AbilityInventory>,
+    mut commands: Commands,
+) {
+    if ability_inventory.abilities.len() < 5 {
         ability_inventory.abilities.push(trigger.ability);
     }
 
@@ -801,6 +917,10 @@ fn equiped_abilities_grid_not_initialized(hud_assets: Res<HudAssets>) -> bool {
 
 fn avaible_abilities_grid_not_initialized(hud_assets: Res<HudAssets>) -> bool {
     !hud_assets.avaible_abilities_grid_initialized
+}
+
+fn convictions_upgrade_not_connected(hud_assets: Res<HudAssets>) -> bool {
+    !hud_assets.convictions_upgrade_buttons_connected
 }
 
 pub struct HudPlugin;
@@ -835,11 +955,18 @@ impl Plugin for HudPlugin {
                     in_state(GameState::Ingame3D).and_then(avaible_abilities_grid_not_initialized),
                 ),
             )
+            .add_systems(
+                Update,
+                connect_convictions_buttons.run_if(
+                    in_state(GameState::Ingame3D).and_then(convictions_upgrade_not_connected),
+                ),
+            )
             .add_systems(OnEnter(GameState::Ingame3D), reset_hud_assets)
             .add_observer(on_open_character_menu_event)
             .add_observer(on_learn_ability_select)
             .add_observer(on_unequip_ability_select)
             .add_observer(on_equip_ability_select)
+            .add_observer(on_upgrade_conviction)
             .add_observer(on_reload_ability);
     }
 }

@@ -236,17 +236,27 @@ metadata/_tab_index = 0
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="Heading" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer" unique_id=1704919186]
+[node name="Heading" type="HBoxContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeadingLabel" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/Heading"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
 theme_override_font_sizes/font_size = 18
-text = "Conviction attributes"
+text = "Available points"
+
+[node name="AvailablePoints" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/Heading"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.35, 1)
+theme_override_font_sizes/font_size = 18
+text = "4"
 
 [node name="StatsGrid" type="GridContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer" unique_id=452209335]
 layout_mode = 2
-theme_override_constants/h_separation = 35
+theme_override_constants/h_separation = 20
 theme_override_constants/v_separation = 15
-columns = 3
+columns = 4
 
 [node name="NameHeader" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1177206052]
 custom_minimum_size = Vector2(190, 0)
@@ -261,9 +271,16 @@ theme_override_colors/font_color = Color(1, 0.75, 0.35, 1)
 text = "ATTACK"
 
 [node name="DefenseHeader" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1880937634]
+custom_minimum_size = Vector2(105, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.75, 0.35, 1)
 text = "DEFENSE"
+
+[node name="UpgradeHeader" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.35, 1)
+text = "UPGRADE"
 
 [node name="AeternumName" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=880582661]
 layout_mode = 2
@@ -280,6 +297,11 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
 text = "0"
 
+[node name="AeternumUpgrade" type="Button" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "+"
+
 [node name="AlligatioName" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1702568669]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
@@ -294,6 +316,11 @@ text = "0"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
 text = "0"
+
+[node name="AlligatioUpgrade" type="Button" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "+"
 
 [node name="AnankeName" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=540598277]
 layout_mode = 2
@@ -310,6 +337,11 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
 text = "0"
 
+[node name="AnankeUpgrade" type="Button" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "+"
+
 [node name="SekhemName" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1489843128]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
@@ -325,6 +357,11 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
 text = "0"
 
+[node name="SekhemUpgrade" type="Button" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "+"
+
 [node name="AtaraxiaName" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid" unique_id=1866448712]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
@@ -339,6 +376,11 @@ text = "0"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.85, 0.78, 1)
 text = "0"
+
+[node name="AtaraxiaUpgrade" type="Button" parent="Control/CharacterMenu/VBoxContainer/Tabs/Convictions/VBoxContainer/StatsGrid"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "+"
 
 [node name="Abilities" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=887680064]
 visible = false
