@@ -498,11 +498,19 @@ fn populate_available_abilities(
     }
 }
 
-fn reset_hud_assets(mut hud_assets: ResMut<HudAssets>) {
+fn reset_hud_assets(
+    mut hud_assets: ResMut<HudAssets>,
+    previous_state: Res<PreviousState<GameState>>,
+) {
+    if **previous_state != GameState::MainMenu {
+        return;
+    }
+
     hud_assets.hud = None;
     hud_assets.menu_button = None;
     hud_assets.close_button = None;
     hud_assets.initialized = false;
+    hud_assets.signal_connected = false;
     hud_assets.equiped_abilities_grid_initialized = false;
     hud_assets.ability_list_initialized = false;
     hud_assets.avaible_abilities_grid_initialized = false;
@@ -549,6 +557,26 @@ fn connect_button(
 
         hud_assets.signal_connected = true;
     }
+}
+
+fn set_character_menu_visibility(hud_assets: &HudAssets, godot: &mut GodotAccess, visible: bool) {
+    let Some(canvas_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(mut canvas) = get_custom_canvas_layer(&canvas_handle, godot) else {
+        return;
+    };
+
+    canvas.set_visible(visible);
+}
+
+fn show_character_menu(hud_assets: Res<HudAssets>, mut godot: GodotAccess) {
+    set_character_menu_visibility(&hud_assets, &mut godot, true);
+}
+
+fn hide_character_menu(hud_assets: Res<HudAssets>, mut godot: GodotAccess) {
+    set_character_menu_visibility(&hud_assets, &mut godot, false);
 }
 
 fn on_open_character_menu_event(
@@ -793,16 +821,7 @@ fn on_learn_ability_select(trigger: On<LearnAbilitySelect>, mut commands: Comman
     });
 }
 
-fn on_upgrade_conviction(
-    trigger: On<UpgradeConvictionButtonEvent>,
-    mut commands: Commands,
-    conviction_points: Res<ConvictionPoints>,
-) {
-    godot_print!("Press upgrade in {:?}", trigger.conviction);
-
-    if conviction_points.avaible_points == 0 {
-        return;
-    }
+fn on_upgrade_conviction(trigger: On<UpgradeConvictionButtonEvent>, mut commands: Commands) {
     commands.trigger(UpgradeConvictionEvent {
         conviction: trigger.conviction,
     });
@@ -962,6 +981,8 @@ impl Plugin for HudPlugin {
                 ),
             )
             .add_systems(OnEnter(GameState::Ingame3D), reset_hud_assets)
+            .add_systems(OnEnter(GameState::Ingame3D), show_character_menu)
+            .add_systems(OnExit(GameState::Ingame3D), hide_character_menu)
             .add_observer(on_open_character_menu_event)
             .add_observer(on_learn_ability_select)
             .add_observer(on_unequip_ability_select)

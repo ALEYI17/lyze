@@ -65,6 +65,18 @@ pub enum AbilityId {
     Weaken,
 }
 
+impl ConvictionType {
+    pub fn synthesis(self) -> [Self; 2] {
+        match self {
+            Self::Aeternum => [Self::Ataraxia, Self::Sekhem],
+            Self::Ananke => [Self::Sekhem, Self::Alligatio],
+            Self::Ataraxia => [Self::Aeternum, Self::Alligatio],
+            Self::Sekhem => [Self::Aeternum, Self::Ananke],
+            Self::Alligatio => [Self::Ananke, Self::Ataraxia],
+        }
+    }
+}
+
 impl AbilityEffect {
     pub fn base(&self) -> Option<f32> {
         match self {

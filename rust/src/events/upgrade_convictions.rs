@@ -8,6 +8,10 @@ use crate::{
     },
 };
 
+const PRIMARY_UPGRADE: f32 = 3.0;
+const SYNTHESIS_UPGRADE: f32 = 1.0;
+const UPGRADE_COST: u32 = 1;
+
 #[derive(Event)]
 pub struct UpgradeConvictionEvent {
     pub conviction: ConvictionType,
@@ -18,34 +22,29 @@ fn on_upgrade_conviction(
     mut query: Query<&mut Convictions, With<Player3DNode>>,
     mut conviction_points: ResMut<ConvictionPoints>,
 ) {
+    if conviction_points.avaible_points == 0 {
+        return;
+    }
+
     let Ok(mut convictions) = query.single_mut() else {
         return;
     };
 
-    match &trigger.conviction {
-        ConvictionType::Ananke => {
-            convictions.ananke.attack += 1.0;
-            convictions.ananke.defense += 1.0;
-        }
-        ConvictionType::Sekhem => {
-            convictions.sekhem.attack += 1.0;
-            convictions.sekhem.defense += 1.0;
-        }
-        ConvictionType::Aeternum => {
-            convictions.aeternum.attack += 1.0;
-            convictions.aeternum.defense += 1.0;
-        }
-        ConvictionType::Ataraxia => {
-            convictions.ataraxia.attack += 1.0;
-            convictions.ataraxia.defense += 1.0;
-        }
-        ConvictionType::Alligatio => {
-            convictions.alligatio.attack += 1.0;
-            convictions.alligatio.defense += 1.0;
-        }
+    let selected = trigger.conviction;
+
+    let stats = convictions.get_mut(selected);
+
+    stats.attack += PRIMARY_UPGRADE;
+    stats.defense += PRIMARY_UPGRADE;
+
+    for conviction in selected.synthesis() {
+        let stats = convictions.get_mut(conviction);
+
+        stats.attack += SYNTHESIS_UPGRADE;
+        stats.defense += SYNTHESIS_UPGRADE;
     }
 
-    conviction_points.avaible_points -= 1;
+    conviction_points.avaible_points -= UPGRADE_COST;
 }
 
 pub struct UpgradeConvictionPlugin;
