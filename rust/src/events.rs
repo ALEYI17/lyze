@@ -4,6 +4,7 @@ pub mod abilities;
 pub mod combat;
 pub mod damage;
 pub mod effects;
+pub mod experience;
 pub mod heal;
 pub mod stat_modifier;
 pub mod upgrade_convictions;
@@ -18,6 +19,7 @@ impl Plugin for EventPlugins {
             .add_plugins(abilities::AbilitiesPlugin)
             .add_plugins(heal::HealPluign)
             .add_plugins(stat_modifier::StatModifierPlugin)
-            .add_plugins(upgrade_convictions::UpgradeConvictionPlugin);
+            .add_plugins(upgrade_convictions::UpgradeConvictionPlugin)
+            .add_plugins(experience::ExperiencePlugin);
     }
 }

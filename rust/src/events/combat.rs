@@ -8,6 +8,7 @@ use crate::{
         enemies::enemy_encounter::{EnemyEncounterNode, get_player_starting_position},
         player_3d::Player3DNode,
     },
+    events::experience::GainExperienceEvent,
     godot_utils::nodes::{get_custom_area_3d, get_custom_character_body_3d},
     state::GameState,
 };
@@ -17,6 +18,7 @@ pub struct EnterCombatEvent {
     pub player: Entity,
     pub enemy: Vec<Entity>,
     pub encounter: Entity,
+    pub given_experience: u32,
 }
 
 #[derive(Event)]
@@ -62,6 +64,7 @@ pub struct CombatResource {
     activate: bool,
     pub turn_order: Vec<Entity>,
     pub current_turn: usize,
+    pub given_experience: u32,
 }
 
 impl CombatResource {
@@ -107,6 +110,8 @@ fn on_enter_combat(
     combat_resource.encounter = Some(trigger.event().encounter);
 
     combat_resource.current_turn = 0;
+
+    combat_resource.given_experience = trigger.given_experience;
 
     app_state.set(GameState::InCombat);
 }
@@ -251,6 +256,15 @@ fn on_end_combat(
     } else if let Some(player) = combat_resource.player {
         commands.entity(player).despawn();
     }
+
+    let Some(player) = combat_resource.player else {
+        return;
+    };
+
+    commands.trigger(GainExperienceEvent {
+        target: player,
+        experience: combat_resource.given_experience,
+    });
     combat_resource.enemy.clear();
     combat_resource.player = None;
     combat_resource.activate = false;

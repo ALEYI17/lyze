@@ -49,8 +49,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.035919905, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5519638, 0, 0.44086456)
 
 [node name="CapeEnemy3d" parent="EnemyEncounter" unique_id=492072302 instance=ExtResource("6_lc0ey")]
+personality = "aggressive"
 
 [node name="CapeEnemy3d2" parent="EnemyEncounter" unique_id=247171508 instance=ExtResource("6_lc0ey")]
+personality = "defensive"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.5720358)
 
 [node name="Hud" parent="." unique_id=2131845399 instance=ExtResource("9_yq26l")]

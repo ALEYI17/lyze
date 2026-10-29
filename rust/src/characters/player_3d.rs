@@ -7,6 +7,7 @@ use crate::{
         components::{
             convictions::{Convictions, from_godot_conviction},
             identity::{Name, from_godot_string},
+            progression::{Experience, Level},
             state::Alive,
             stats::{Damage, Gravity, Health, JumpVelocity, MaxHealth, Speed},
         },
@@ -33,6 +34,8 @@ use godot::classes::class_macros::private::virtuals::ZipReader::Vector2;
     require(max_health: MaxHealth, as = f32, default = 50.0),
     require(damage: Damage, as = f32, default = 15.0),
     require(alive: Alive, as = bool, default = true),
+    require(level: Level , as = u32, default = 1),
+    require(experience: Experience , as = u32, default = 0),
     require(convictions: Convictions {
         aeternum(
             as = Vector2,

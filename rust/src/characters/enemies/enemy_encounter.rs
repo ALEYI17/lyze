@@ -7,7 +7,7 @@ use godot_bevy::prelude::*;
 
 use crate::{
     characters::{
-        components::state::Initialized, enemies::cape_enemy_3d::CapeEnemy3D,
+        components::{progression::RewardedExperience, state::Initialized}, enemies::cape_enemy_3d::CapeEnemy3D,
         player_3d::Player3DNode,
     },
     events::combat::EnterCombatEvent,
@@ -105,6 +105,7 @@ fn on_enter_encounter(
     mut commands: Commands,
     player_query: Query<Entity, With<Player3DNode>>,
     registry: Res<EnemyEncounterRegistry>,
+    experience_query: Query<&RewardedExperience>,
 ) {
     godot_print!("Enter on encounter");
     let Some(encounter) = trigger.event().entity else {
@@ -120,10 +121,15 @@ fn on_enter_encounter(
     };
     godot_print!("Enemies list: {:?}:", enemies);
 
+    let final_experience: u32 = enemies.iter().filter_map(|entity|{
+        experience_query.get(*entity).ok().map(|experience| experience.0)
+    }).sum();
+
     commands.trigger(EnterCombatEvent {
         enemy: enemies.to_vec(),
         player: entity_player,
         encounter,
+        given_experience: final_experience,
     });
 }
 

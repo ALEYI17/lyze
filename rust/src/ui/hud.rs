@@ -560,17 +560,15 @@ fn connect_button(
 }
 
 fn set_character_menu_visibility(hud_assets: &HudAssets, godot: &mut GodotAccess, visible: bool) {
-
     let Some(menu_handle) = hud_assets.menu_button else {
         return;
     };
-    
-    let Some(mut menu_button) = godot.try_get::<Button>(menu_handle) else{
+
+    let Some(mut menu_button) = godot.try_get::<Button>(menu_handle) else {
         return;
     };
 
     menu_button.set_visible(visible);
-
 }
 
 fn show_character_menu(hud_assets: Res<HudAssets>, mut godot: GodotAccess) {

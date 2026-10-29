@@ -13,6 +13,7 @@ use crate::{
         components::{
             convictions::{Convictions, from_godot_conviction},
             identity::{Name, from_godot_string},
+            progression::RewardedExperience,
             state::Alive,
             stats::{Damage, Gravity, Health, MaxHealth, Speed},
         },
@@ -42,7 +43,10 @@ use crate::characters::enemies::ai::personality::from_godot_personality;
     require(damage: Damage, as = f32, default = 5.0),
     require(enemy_gravity: Gravity, as = f32, default = 980.0),
     require(alive: Alive, as = bool, default = true),
-    require(personality: EnemyPersonalityComponent,as = GString, with = from_godot_personality, default = GString::from("neutral"), hint = ENUM, hint_string = "neutral,aggressive,defensive,crazy"),
+    require(rewarded_exp: RewardedExperience, as = u32, default = 3),
+    require(personality: EnemyPersonalityComponent,as = GString,
+        with = from_godot_personality, default = GString::from("neutral"),
+        hint = ENUM, hint_string = "neutral,aggressive,defensive,crazy"),
     require(convictions: Convictions {
         aeternum(
             as = Vector2,

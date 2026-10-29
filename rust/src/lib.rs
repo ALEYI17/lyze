@@ -6,6 +6,7 @@ mod characters;
 mod combat;
 mod events;
 mod godot_utils;
+mod progression;
 mod state;
 mod ui;
 
