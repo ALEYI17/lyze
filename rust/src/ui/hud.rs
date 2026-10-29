@@ -2,12 +2,14 @@ use crate::abilities::definition::{AbilityId, ConvictionType, format_ability_sca
 use crate::abilities::registry::AbilityRegistry;
 use crate::characters::components::convictions::Convictions;
 use crate::characters::components::identity::Name;
+use crate::characters::components::progression::{Experience, Level};
 use crate::characters::inventories::abilities::AbilityInventory;
 use crate::characters::inventories::convictions::ConvictionPoints;
 use crate::characters::player_3d::Player3DNode;
 use crate::events::abilities::LearnAbilityEvent;
 use crate::events::upgrade_convictions::UpgradeConvictionEvent;
 use crate::godot_utils::nodes::get_custom_canvas_layer;
+use crate::progression::experience::experience_to_next_level;
 use bevy::prelude::*;
 use godot::classes::{
     Button, CanvasLayer, GridContainer, Label, PanelContainer, ProgressBar, ResourceLoader,
@@ -81,6 +83,27 @@ fn get_health_bar(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
     };
 
     Some(health_bar)
+}
+
+fn get_experience_bar(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
+    let node = canvas.get_node_or_null("Control/PlayerStatus/VBoxContainer/ExperienceRow/ExperienceBar")?;
+
+    let Ok(health_bar) = node.try_cast::<ProgressBar>() else {
+        return None;
+    };
+
+    Some(health_bar)
+}
+
+fn get_playear_level(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let node =
+        canvas.get_node_or_null("Control/PlayerStatus/VBoxContainer/ExperienceRow/LevelLabel")?;
+
+    let Ok(label) = node.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(label)
 }
 
 fn get_player_health(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
@@ -604,11 +627,11 @@ fn on_open_character_menu_event(
 
 fn set_player_health(
     hud_assets: Res<HudAssets>,
-    query: Query<(&Health, &MaxHealth, &Name), With<Player3DNode>>,
+    query: Query<(&Health, &MaxHealth, &Name, &Experience, &Level), With<Player3DNode>>,
     mut godot: GodotAccess,
     convictions_points: Res<ConvictionPoints>,
 ) {
-    let Ok((health, max_health, name)) = query.single() else {
+    let Ok((health, max_health, name, experience, level)) = query.single() else {
         return;
     };
 
@@ -638,6 +661,14 @@ fn set_player_health(
         return;
     };
 
+    let Some(mut experience_bar) = get_experience_bar(&hud_node) else {
+        return;
+    };
+
+    let Some(mut experience_label) = get_playear_level(&hud_node) else {
+        return;
+    };
+
     avaible_points.set_text(&convictions_points.avaible_points.to_string());
 
     health_bar.set_max(max_health.0.as_f64());
@@ -647,7 +678,16 @@ fn set_player_health(
     health_label.set_text(&health_text);
 
     name_label.set_text(&name.0);
+
+    let level_text = format!("LV {}", level.0);
+    experience_label.set_text(&level_text);
+
+    let experience_to_next = experience_to_next_level(level.0);
+
+    experience_bar.set_max(experience_to_next.into());
+    experience_bar.set_value(experience.0.into());
 }
+
 
 fn set_convictions_stats(
     hud_assets: Res<HudAssets>,

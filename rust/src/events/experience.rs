@@ -2,9 +2,12 @@ use bevy::prelude::*;
 use godot::global::godot_print;
 
 use crate::{
-    characters::components::progression::{Experience, Level},
-    progression::experience::process_level_up,
+    characters::{components::progression::{Experience, Level}, inventories::{abilities::AbilityInventory, convictions::ConvictionPoints}},
+    progression::experience::process_level_up, ui::hud::ReloadAbilityListEvent,
 };
+
+const CONVICTION_POINTS_ADDED: u32 = 3;
+const ABILITY_POINTS_ADDED: u32 = 1;
 
 #[derive(Event)]
 pub struct GainExperienceEvent {
@@ -15,6 +18,9 @@ pub struct GainExperienceEvent {
 fn on_gain_experience_event(
     trigger: On<GainExperienceEvent>,
     mut query: Query<(&mut Experience, &mut Level)>,
+    mut conviction_inventory: ResMut<ConvictionPoints>,
+    mut ability_inventory: ResMut<AbilityInventory>,
+    mut commands: Commands,
 ) {
     let Ok((mut experience, mut level)) = query.get_mut(trigger.target) else {
         return;
@@ -28,6 +34,9 @@ fn on_gain_experience_event(
 
     if level_gained > 0 {
         godot_print!("Level up {} levels", level_gained);
+        conviction_inventory.avaible_points += CONVICTION_POINTS_ADDED;
+        ability_inventory.avaible_points += ABILITY_POINTS_ADDED;
+        commands.trigger(ReloadAbilityListEvent)
     }
 }
 

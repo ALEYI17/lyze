@@ -115,6 +115,20 @@ bg_color = Color(0.29, 0.21, 0.12, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exp_bg"]
+bg_color = Color(0.13, 0.11, 0.09, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exp_fill"]
+bg_color = Color(0.85, 0.65, 0.3, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
 [node name="Hud" type="CanvasLayer" unique_id=1202237991]
 
 [node name="Control" type="Control" parent="." unique_id=88490641]
@@ -162,6 +176,28 @@ show_percentage = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.94, 0.88, 0.81, 1)
 text = "75 / 100"
+
+[node name="ExperienceRow" type="HBoxContainer" parent="Control/PlayerStatus/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="ExperienceBar" type="ProgressBar" parent="Control/PlayerStatus/VBoxContainer/ExperienceRow"]
+custom_minimum_size = Vector2(165, 7)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/background = SubResource("StyleBoxFlat_exp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_exp_fill")
+max_value = 100.0
+value = 35.0
+show_percentage = false
+
+[node name="LevelLabel" type="Label" parent="Control/PlayerStatus/VBoxContainer/ExperienceRow"]
+custom_minimum_size = Vector2(65, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.65, 0.3, 1)
+theme_override_font_sizes/font_size = 12
+text = "LV 1"
+horizontal_alignment = 1
 
 [node name="MenuButton" type="Button" parent="Control" unique_id=569630356]
 layout_mode = 1
