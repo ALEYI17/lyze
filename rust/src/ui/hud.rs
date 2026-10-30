@@ -323,7 +323,10 @@ fn populate_ability_list(
         return;
     };
 
-    for ability in ability_registry.abilities.values() {
+    let mut abilities: Vec<_> = ability_registry.abilities.values().collect();
+    abilities.sort_by_key(|ability| ability.id);
+
+    for ability in abilities {
         let Some(row) = scene.instantiate() else {
             continue;
         };

@@ -54,7 +54,7 @@ pub struct AbilityDefinition {
     pub point_cost: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum AbilityId {
     Strike,
     Kick,
