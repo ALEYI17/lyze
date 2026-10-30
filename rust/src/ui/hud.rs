@@ -86,7 +86,8 @@ fn get_health_bar(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
 }
 
 fn get_experience_bar(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
-    let node = canvas.get_node_or_null("Control/PlayerStatus/VBoxContainer/ExperienceRow/ExperienceBar")?;
+    let node = canvas
+        .get_node_or_null("Control/PlayerStatus/VBoxContainer/ExperienceRow/ExperienceBar")?;
 
     let Ok(health_bar) = node.try_cast::<ProgressBar>() else {
         return None;
@@ -687,7 +688,6 @@ fn set_player_health(
     experience_bar.set_max(experience_to_next.into());
     experience_bar.set_value(experience.0.into());
 }
-
 
 fn set_convictions_stats(
     hud_assets: Res<HudAssets>,

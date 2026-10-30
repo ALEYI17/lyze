@@ -7,7 +7,8 @@ use godot_bevy::prelude::*;
 
 use crate::{
     characters::{
-        components::{progression::RewardedExperience, state::Initialized}, enemies::cape_enemy_3d::CapeEnemy3D,
+        components::{progression::RewardedExperience, state::Initialized},
+        enemies::cape_enemy_3d::CapeEnemy3D,
         player_3d::Player3DNode,
     },
     events::combat::EnterCombatEvent,
@@ -121,9 +122,15 @@ fn on_enter_encounter(
     };
     godot_print!("Enemies list: {:?}:", enemies);
 
-    let final_experience: u32 = enemies.iter().filter_map(|entity|{
-        experience_query.get(*entity).ok().map(|experience| experience.0)
-    }).sum();
+    let final_experience: u32 = enemies
+        .iter()
+        .filter_map(|entity| {
+            experience_query
+                .get(*entity)
+                .ok()
+                .map(|experience| experience.0)
+        })
+        .sum();
 
     commands.trigger(EnterCombatEvent {
         enemy: enemies.to_vec(),

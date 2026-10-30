@@ -2,8 +2,12 @@ use bevy::prelude::*;
 use godot::global::godot_print;
 
 use crate::{
-    characters::{components::progression::{Experience, Level}, inventories::{abilities::AbilityInventory, convictions::ConvictionPoints}},
-    progression::experience::process_level_up, ui::hud::ReloadAbilityListEvent,
+    characters::{
+        components::progression::{Experience, Level},
+        inventories::{abilities::AbilityInventory, convictions::ConvictionPoints},
+    },
+    progression::experience::process_level_up,
+    ui::hud::ReloadAbilityListEvent,
 };
 
 const CONVICTION_POINTS_ADDED: u32 = 3;

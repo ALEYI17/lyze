@@ -4,7 +4,7 @@ use godot_bevy::interop::{GodotAccess, GodotNodeHandle};
 
 use crate::{
     characters::{
-        components::state::Alive,
+        components::{convictions::Convictions, state::Alive},
         enemies::enemy_encounter::{EnemyEncounterNode, get_player_starting_position},
         player_3d::Player3DNode,
     },
@@ -67,6 +67,11 @@ pub struct CombatResource {
     pub given_experience: u32,
 }
 
+#[derive(Resource, Default)]
+pub struct CombatConvictionsBackup {
+    pub player: Option<Convictions>,
+}
+
 impl CombatResource {
     pub fn next_turn(&mut self) {
         self.current_turn = (self.current_turn + 1) % self.turn_order.len();
@@ -82,6 +87,8 @@ fn on_enter_combat(
     mut combat_resource: ResMut<CombatResource>,
     state: Res<State<GameState>>,
     mut app_state: ResMut<NextState<GameState>>,
+    mut combat_convictions: ResMut<CombatConvictionsBackup>,
+    convictions: Query<&Convictions>,
 ) {
     if combat_resource.activate {
         return;
@@ -112,6 +119,8 @@ fn on_enter_combat(
     combat_resource.current_turn = 0;
 
     combat_resource.given_experience = trigger.given_experience;
+
+    combat_convictions.player = convictions.get(player).ok().cloned();
 
     app_state.set(GameState::InCombat);
 }
@@ -245,6 +254,8 @@ fn on_end_combat(
     mut commands: Commands,
     mut combat_resource: ResMut<CombatResource>,
     mut target: ResMut<CombatTarget>,
+    mut combat_convictions: ResMut<CombatConvictionsBackup>,
+    mut convictions: Query<&mut Convictions>,
 ) {
     if trigger.event().win {
         for enemy in &combat_resource.enemy {
@@ -265,6 +276,13 @@ fn on_end_combat(
         target: player,
         experience: combat_resource.given_experience,
     });
+
+    if let Some(original) = combat_convictions.player.take()
+        && let Some(player) = combat_resource.player
+        && let Ok(mut current) = convictions.get_mut(player)
+    {
+        *current = original;
+    }
     combat_resource.enemy.clear();
     combat_resource.player = None;
     combat_resource.activate = false;
@@ -374,6 +392,7 @@ impl Plugin for CombatPlugin {
         app.init_resource::<CombatResource>()
             .init_resource::<CombatTarget>()
             .init_resource::<TurnTransition>()
+            .init_resource::<CombatConvictionsBackup>()
             .add_observer(on_died_in_combat)
             .add_observer(on_enter_combat)
             .add_observer(on_next_turn)
