@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-mod girl_npc;
+pub mod girl_npc;
 
 use girl_npc::GirlNpcPlugin;
 

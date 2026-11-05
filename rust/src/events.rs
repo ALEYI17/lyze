@@ -3,6 +3,7 @@ use bevy::prelude::*;
 pub mod abilities;
 pub mod combat;
 pub mod damage;
+pub mod dialogue;
 pub mod effects;
 pub mod experience;
 pub mod heal;
@@ -20,6 +21,7 @@ impl Plugin for EventPlugins {
             .add_plugins(heal::HealPluign)
             .add_plugins(stat_modifier::StatModifierPlugin)
             .add_plugins(upgrade_convictions::UpgradeConvictionPlugin)
-            .add_plugins(experience::ExperiencePlugin);
+            .add_plugins(experience::ExperiencePlugin)
+            .add_plugins(dialogue::DialogueEventPlugin);
     }
 }

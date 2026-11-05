@@ -1,6 +1,6 @@
 pub mod components;
 pub mod enemies;
-mod npc;
+pub mod npc;
 pub mod player_3d;
 pub mod players;
 use bevy::prelude::*;

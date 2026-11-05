@@ -1,12 +1,18 @@
 use bevy::prelude::*;
-use godot::{classes::{Node, PackedScene, class_macros::private::virtuals::ZipReader::Vector3}, global::godot_print};
+use godot::{
+    classes::{Node, PackedScene, class_macros::private::virtuals::ZipReader::Vector3},
+    global::godot_print,
+};
 use godot_bevy::{
     interop::{GodotAccess, GodotNodeHandle},
     plugins::{assets::GodotResource, scene_tree::SceneTreeRef},
     prelude::NodeTreeView,
 };
 
-use crate::{characters::player_3d::Player3DNode, godot_utils::nodes::get_custom_character_body_3d, state::GameState};
+use crate::{
+    characters::player_3d::Player3DNode, godot_utils::nodes::get_custom_character_body_3d,
+    state::GameState,
+};
 
 #[derive(Message, Debug, Clone)]
 pub struct WorldOperationMessage {
@@ -15,7 +21,7 @@ pub struct WorldOperationMessage {
 }
 impl WorldOperationMessage {
     pub fn change_level(scene: Handle<GodotResource>, destination: Vector3) -> Self {
-        Self { scene , destination}
+        Self { scene, destination }
     }
 }
 
@@ -38,7 +44,11 @@ fn reset_world_assets(mut world_assets: ResMut<WorldAssets>) {
     world_assets.initialized = false;
 }
 
-fn initialized_world(mut world_assets: ResMut<WorldAssets>, mut scene_tree: SceneTreeRef, mut godot: GodotAccess) {
+fn initialized_world(
+    mut world_assets: ResMut<WorldAssets>,
+    mut scene_tree: SceneTreeRef,
+    mut godot: GodotAccess,
+) {
     if let Some(root) = scene_tree.get().get_root()
         && let Ok(world_nodes) = WorldNodes::from_node(root)
     {
@@ -50,7 +60,7 @@ fn initialized_world(mut world_assets: ResMut<WorldAssets>, mut scene_tree: Scen
             world_assets.level = Some(level.into())
         }
         world_assets.initialized = true;
-    } 
+    }
 }
 
 fn world_assets_not_initialized(world_assets: Res<WorldAssets>) -> bool {
@@ -81,12 +91,12 @@ fn process_world_operation(
             continue;
         };
 
-        let Some(packed_scene) = resource.try_cast::<PackedScene>() else{
+        let Some(packed_scene) = resource.try_cast::<PackedScene>() else {
             godot_print!("continue4");
             continue;
         };
 
-        let Some(mut world) = godot.try_get::<Node>(world_handle)else{
+        let Some(mut world) = godot.try_get::<Node>(world_handle) else {
             godot_print!("continue5");
             continue;
         };
@@ -101,10 +111,10 @@ fn process_world_operation(
             continue;
         };
 
-        let Ok(player_handle) = query_player.single() else{
+        let Ok(player_handle) = query_player.single() else {
             continue;
         };
-    
+
         let Some(mut player) = get_custom_character_body_3d(player_handle, &mut godot) else {
             continue;
         };
@@ -127,10 +137,14 @@ impl Plugin for WorldNodesPlugin {
         app.init_resource::<WorldAssets>()
             .add_message::<WorldOperationMessage>()
             .add_systems(
-            Update,
-            (initialized_world.run_if(world_assets_not_initialized)).run_if(in_state(GameState::Ingame3D)),
-        )
-        .add_systems(OnEnter(GameState::Ingame3D), reset_world_assets)
-        .add_systems(Update, process_world_operation.run_if(in_state(GameState::Ingame3D)));
+                Update,
+                (initialized_world.run_if(world_assets_not_initialized))
+                    .run_if(in_state(GameState::Ingame3D)),
+            )
+            .add_systems(OnEnter(GameState::Ingame3D), reset_world_assets)
+            .add_systems(
+                Update,
+                process_world_operation.run_if(in_state(GameState::Ingame3D)),
+            );
     }
 }

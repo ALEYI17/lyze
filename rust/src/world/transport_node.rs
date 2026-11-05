@@ -1,11 +1,15 @@
 use bevy::{asset::LoadState, prelude::*};
-use godot::{classes::class_macros::private::virtuals::ZipReader::{GString, Vector3}, global::godot_print};
+use godot::{
+    classes::class_macros::private::virtuals::ZipReader::{GString, Vector3},
+    global::godot_print,
+};
 use godot_bevy::prelude::*;
 
 use crate::{
     characters::components::{identity::from_godot_string, state::Initialized},
     godot_utils::nodes::get_custom_area_3d,
-    state::GameState, world::world_manager::WorldOperationMessage,
+    state::GameState,
+    world::world_manager::WorldOperationMessage,
 };
 
 #[derive(Component, GodotNode, Default)]
@@ -39,7 +43,15 @@ pub struct PendingLevelChange {
 }
 
 fn initialized_target_level_node(
-    query: Query<(&GodotNodeHandle, &mut Initialized, &TargetScene, &Destination), With<TransportLevelNode>>,
+    query: Query<
+        (
+            &GodotNodeHandle,
+            &mut Initialized,
+            &TargetScene,
+            &Destination,
+        ),
+        With<TransportLevelNode>,
+    >,
     mut godot: GodotAccess,
     signal_transition: GodotSignals<EnterLevelTransitionNode>,
 ) {
@@ -80,7 +92,6 @@ fn on_enter_level_transition(
 
     pending.scene = Some(asset_server.load(trigger.scene_path.clone()));
     pending.destination = trigger.destination;
-    
 }
 
 fn wait_for_level_load(
@@ -96,7 +107,10 @@ fn wait_for_level_load(
         Some(LoadState::Loaded) => {
             godot_print!("Level loaded successfully");
 
-            operations.write(WorldOperationMessage::change_level(scene.clone(), pending.destination));
+            operations.write(WorldOperationMessage::change_level(
+                scene.clone(),
+                pending.destination,
+            ));
 
             pending.scene = None;
         }
@@ -117,11 +131,14 @@ pub struct LevelTransitionPlugin;
 impl Plugin for LevelTransitionPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<PendingLevelChange>()
-            .add_systems(Update, wait_for_level_load.run_if(in_state(GameState::Ingame3D)))
             .add_systems(
-            Update,
-            initialized_target_level_node.run_if(in_state(GameState::Ingame3D)),
-        )
-        .add_observer(on_enter_level_transition);
+                Update,
+                wait_for_level_load.run_if(in_state(GameState::Ingame3D)),
+            )
+            .add_systems(
+                Update,
+                initialized_target_level_node.run_if(in_state(GameState::Ingame3D)),
+            )
+            .add_observer(on_enter_level_transition);
     }
 }
