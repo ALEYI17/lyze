@@ -9,6 +9,7 @@ mod godot_utils;
 mod progression;
 mod state;
 mod ui;
+mod world;
 
 use crate::characters::CharactersPlugin;
 
@@ -21,5 +22,6 @@ fn build_app(app: &mut App) {
         .add_plugins(ui::UiPlugin)
         .add_plugins(events::EventPlugins)
         .add_plugins(GodotCollisionsPlugin)
-        .add_plugins(combat::CombatPlugin);
+        .add_plugins(combat::CombatPlugin)
+        .add_plugins(world::WorldPlugin);
 }

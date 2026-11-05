@@ -1,13 +1,10 @@
 [gd_scene format=3 uid="uid://cbq7n8itqhh75"]
 
-[ext_resource type="PackedScene" uid="uid://bhpeqm6h5nfi7" path="res://scenes/3d/first_map.tscn" id="1_luxtp"]
 [ext_resource type="PackedScene" uid="uid://c81wegri1vcnr" path="res://scenes/3d/player_3d.tscn" id="2_2nldp"]
-[ext_resource type="PackedScene" uid="uid://dycrpavd0cpf6" path="res://scenes/3d/girl_npc.tscn" id="3_756dp"]
 [ext_resource type="PackedScene" uid="uid://bm1mq2osfbow4" path="res://scenes/ui/dialogue_hud.tscn" id="4_a55pu"]
 [ext_resource type="PackedScene" uid="uid://chufwnv6d2j5v" path="res://scenes/ui/pause_menu.tscn" id="5_f8di4"]
-[ext_resource type="PackedScene" uid="uid://c6yxa7whisfrg" path="res://scenes/enemies/cape_enemy_3d.tscn" id="6_lc0ey"]
+[ext_resource type="PackedScene" uid="uid://cbkr3e4un0v2p" path="res://scenes/levels/level_1.tscn" id="6_lc0ey"]
 [ext_resource type="PackedScene" uid="uid://byfq4cwb7wawl" path="res://scenes/ui/combat_hud.tscn" id="7_cg2mx"]
-[ext_resource type="PackedScene" uid="uid://daxh1s0qboux8" path="res://scenes/enemies/enemy_Encounter.tscn" id="8_5cho4"]
 [ext_resource type="PackedScene" uid="uid://cf0lhf2dibm1w" path="res://scenes/ui/HUD.tscn" id="9_yq26l"]
 
 [node name="main_isometric" type="Node3D" unique_id=1895004924]
@@ -15,23 +12,8 @@
 [node name="Player3D" parent="." unique_id=383785677 instance=ExtResource("2_2nldp")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4110746, 1.5059953, 5.353391)
 
-[node name="FirstMap" parent="." unique_id=491776442 instance=ExtResource("1_luxtp")]
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=972145743]
-transform = Transform3D(0.0042845597, -0.7917198, 0.61086947, 0.0055528823, 0.6108845, 0.7917003, -0.99997544, -9.313227e-10, 0.007013698, 10.150911, 7.8697157, 0)
-shadow_enabled = true
-
-[node name="GirlNpc" parent="." unique_id=1025273568 instance=ExtResource("3_756dp")]
-npc_name = "girl 8"
-npc_dialogue = Array[String](["Hola", "Gordo", "soy ", "un ", "npc"])
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5468006, 1.4964411, -5.6209707)
-
 [node name="DialogueHud" parent="." unique_id=173181493 instance=ExtResource("4_a55pu")]
 visible = false
-
-[node name="GirlNpc2" parent="." unique_id=1600391451 instance=ExtResource("3_756dp")]
-npc_dialogue = Array[String](["Hola ", "Adri", "soy ", "un", "npc"])
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0186825, -3.1569061)
 
 [node name="Pause_menu" parent="." unique_id=1547655908 instance=ExtResource("5_f8di4")]
 visible = false
@@ -39,22 +21,8 @@ visible = false
 [node name="CombatHud" parent="." unique_id=288455881 instance=ExtResource("7_cg2mx")]
 visible = false
 
-[node name="EnemyEncounter" parent="." unique_id=697673259 instance=ExtResource("8_5cho4")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.07051, 1.6226668, 0)
-
-[node name="CollisionShape3D" parent="EnemyEncounter" index="0" unique_id=2134172080]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.035919905, 0)
-
-[node name="player_position" parent="EnemyEncounter" index="1" unique_id=1493014604]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5519638, 0, 0.44086456)
-
-[node name="CapeEnemy3d" parent="EnemyEncounter" unique_id=492072302 instance=ExtResource("6_lc0ey")]
-personality = "aggressive"
-
-[node name="CapeEnemy3d2" parent="EnemyEncounter" unique_id=247171508 instance=ExtResource("6_lc0ey")]
-personality = "defensive"
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.5720358)
-
 [node name="Hud" parent="." unique_id=2131845399 instance=ExtResource("9_yq26l")]
 
-[editable path="EnemyEncounter"]
+[node name="world" type="Node3D" parent="." unique_id=431099645]
+
+[node name="Level1" parent="world" unique_id=2097745759 instance=ExtResource("6_lc0ey")]
