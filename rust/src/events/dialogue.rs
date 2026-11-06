@@ -3,8 +3,9 @@ use godot::{classes::Label3D, global::godot_print};
 use godot_bevy::interop::{GodotAccess, GodotNodeHandle};
 
 use crate::{
-    characters::npc::girl_npc::{ GirlNpcNode, get_interacion_label},
-    godot_utils::nodes::get_custom_area_3d, interactions::dialogue::CurrentDialogueInteraction,
+    characters::npc::girl_npc::{GirlNpcNode, get_interacion_label},
+    godot_utils::nodes::get_custom_area_3d,
+    interactions::dialogue::CurrentDialogueInteraction,
 };
 
 //Events

@@ -88,6 +88,11 @@ pub struct DialogueInteractionPlugin;
 impl Plugin for DialogueInteractionPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CurrentDialogueInteraction>()
-            .add_systems(Update, start_interaction.run_if(in_state(GameState::Ingame3D).or_eager(in_state(GameState::Indialogue))));
+            .add_systems(
+                Update,
+                start_interaction.run_if(
+                    in_state(GameState::Ingame3D).or_eager(in_state(GameState::Indialogue)),
+                ),
+            );
     }
 }

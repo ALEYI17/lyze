@@ -47,5 +47,18 @@ target_scene = "res://scenes/levels/level_2.tscn"
 coordinates = Vector3(-2, 2, -2)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.622553, 1.7117963, 17.964928)
 
+[node name="EnemyEncounter2" parent="." unique_id=132219912 instance=ExtResource("4_5cho4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.392683, 0, 18.501858)
+
+[node name="CollisionShape3D" parent="EnemyEncounter2" index="0" unique_id=2134172080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5265203, 3.4175167)
+
+[node name="player_position" parent="EnemyEncounter2" index="1" unique_id=1493014604]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8141785, 1.459244, 3.0936947)
+
+[node name="CapeEnemy3d" parent="EnemyEncounter2" unique_id=1423648350 instance=ExtResource("3_lc0ey")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6477098, 3.3729076)
+
 [editable path="EnemyEncounter"]
 [editable path="LevelChange"]
+[editable path="EnemyEncounter2"]

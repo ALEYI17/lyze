@@ -17,7 +17,7 @@ use crate::{
         state::Initialized,
     },
     events::dialogue::{EnterDialogueZone, ExitDialogueZone},
-    godot_utils::nodes::{get_custom_area_3d},
+    godot_utils::nodes::get_custom_area_3d,
     state::GameState,
 };
 
@@ -92,8 +92,8 @@ pub struct GirlNpcPlugin;
 impl Plugin for GirlNpcPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-                Update,
-                initialized_girl_npc.run_if(in_state(GameState::Ingame3D)),
-            );
+            Update,
+            initialized_girl_npc.run_if(in_state(GameState::Ingame3D)),
+        );
     }
 }

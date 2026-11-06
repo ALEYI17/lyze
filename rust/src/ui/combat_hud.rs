@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use godot::classes::{Button, CanvasLayer, Control, Label, PanelContainer, ProgressBar};
 use godot::prelude::*;
 use godot_bevy::prelude::*;
+use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 
 use crate::abilities::definition::{AbilityId, format_ability_scaling};
 use crate::abilities::registry::AbilityRegistry;
@@ -257,14 +259,19 @@ pub struct CombatHUdUi {
     pub attack_button_e: GodotNodeHandle,
 }
 
+#[derive(Resource, Default)]
+pub struct AbilityButtonMap {
+    pub abilities: HashMap<GodotNodeHandle, AbilityId>,
+}
+
 #[derive(Event, Debug, Clone)]
 struct AttackEvent {
-    pub ability_id: AbilityId,
+    pub handle: GodotNodeHandle,
 }
 
 #[derive(Event, Debug, Clone)]
 struct AbilityHover {
-    pub ability_id: AbilityId,
+    pub handle: GodotNodeHandle,
 }
 
 #[derive(Event, Debug, Clone)]
@@ -301,8 +308,10 @@ fn initialized_combat_hud(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn connect_button(
     mut combat_assets: ResMut<CombatHudAssets>,
+    mut ability_button_map: ResMut<AbilityButtonMap>,
     signals_attack: GodotSignals<AttackEvent>,
     signals_hover: GodotSignals<AbilityHover>,
     signals_unhover: GodotSignals<AbilityUnHover>,
@@ -327,25 +336,40 @@ fn connect_button(
             continue;
         };
 
-        let Some(mut button) = get_attack_button(&button_handle, &mut godot) else {
-            return;
-        };
-
         let Some(ability_id) = ability_inventory.abilities.get(index).copied() else {
             continue;
         };
 
+        let Some(mut button) = get_attack_button(&button_handle, &mut godot) else {
+            return;
+        };
+
+        
         let Some(ability) = ability_registry.get(ability_id) else {
             return;
         };
 
         button.set_text(ability.name);
 
+        if let Entry::Occupied(mut entry) = ability_button_map.abilities.entry(button_handle) {
+            entry.insert(ability_id);
+            continue;
+        }
+
+
+        ability_button_map
+            .abilities
+            .insert(button_handle, ability_id);
+
         signals_attack.connect(
             button_handle,
             BaseButtonSignals::PRESSED,
             None,
-            move |_args, _node_handle, _ent| Some(AttackEvent { ability_id }),
+            move |_args, node_handle, _ent| {
+                Some(AttackEvent {
+                    handle: node_handle,
+                })
+            },
         );
 
         signals_unhover.connect(
@@ -359,7 +383,7 @@ fn connect_button(
             button_handle,
             ControlSignals::MOUSE_ENTERED,
             None,
-            move |_args, _node_handle, _ent| Some(AbilityHover { ability_id }),
+            move |_args, node_handle, _ent| Some(AbilityHover { handle: node_handle }),
         );
     }
 
@@ -381,10 +405,11 @@ fn connect_button(
 
 fn on_attack_button(
     trigger: On<AttackEvent>,
-    combat_resource: ResMut<CombatResource>,
+    combat_resource: Res<CombatResource>,
     mut commands: Commands,
     _alive_query: Query<&Alive>,
     target: Res<CombatTarget>,
+    button_map: Res<AbilityButtonMap>,
 ) {
     let Some(current_entity) = combat_resource.current_entity() else {
         return;
@@ -398,22 +423,20 @@ fn on_attack_button(
         return;
     };
 
+    let Some(ability_id) = button_map.abilities.get(&trigger.handle) else {
+        return;
+    };
+
     if player != current_entity {
         godot_print!("Not your turn");
         return;
     }
 
     commands.trigger(AbilityEvent {
-        ability: AbilitySource::Player(trigger.ability_id),
+        ability: AbilitySource::Player(*ability_id),
         source: player,
         target: enemy,
     });
-
-    // commands.trigger(DamageEvent {
-    //     source: player,
-    //     target: enemy,
-    //     damage: None,
-    // });
 
     commands.trigger(NextTurn);
 }
@@ -423,6 +446,7 @@ fn on_hover_enter(
     ability_registry: Res<AbilityRegistry>,
     mut godot: GodotAccess,
     combat: Res<CombatHudAssets>,
+    button_map: Res<AbilityButtonMap>,
 ) {
     let Some(handle) = combat.combat_hud else {
         return;
@@ -431,8 +455,12 @@ fn on_hover_enter(
     let Some(canvas) = get_custom_canvas_layer(&handle, &mut godot) else {
         return;
     };
+    
+    let Some(ability_id) = button_map.abilities.get(&trigger.handle) else {
+        return;
+    };
 
-    let Some(ability) = ability_registry.get(trigger.ability_id) else {
+    let Some(ability) = ability_registry.get(*ability_id) else {
         return;
     };
 
@@ -763,6 +791,7 @@ pub struct CombatHudPlugin;
 impl Plugin for CombatHudPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CombatHudAssets>()
+            .init_resource::<AbilityButtonMap>()
             .add_plugins(GodotSignalsPlugin::<AttackEvent>::default())
             .add_systems(OnEnter(GameState::InCombat), reset_combat_assets)
             .add_systems(OnExit(GameState::InCombat), exit_combat_hud)

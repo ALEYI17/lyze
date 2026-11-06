@@ -7,5 +7,4 @@ impl Plugin for InteractionPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(dialogue::DialogueInteractionPlugin);
     }
-    
 }
