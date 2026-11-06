@@ -344,7 +344,6 @@ fn connect_button(
             return;
         };
 
-        
         let Some(ability) = ability_registry.get(ability_id) else {
             return;
         };
@@ -355,7 +354,6 @@ fn connect_button(
             entry.insert(ability_id);
             continue;
         }
-
 
         ability_button_map
             .abilities
@@ -383,7 +381,11 @@ fn connect_button(
             button_handle,
             ControlSignals::MOUSE_ENTERED,
             None,
-            move |_args, node_handle, _ent| Some(AbilityHover { handle: node_handle }),
+            move |_args, node_handle, _ent| {
+                Some(AbilityHover {
+                    handle: node_handle,
+                })
+            },
         );
     }
 
@@ -455,7 +457,7 @@ fn on_hover_enter(
     let Some(canvas) = get_custom_canvas_layer(&handle, &mut godot) else {
         return;
     };
-    
+
     let Some(ability_id) = button_map.abilities.get(&trigger.handle) else {
         return;
     };
