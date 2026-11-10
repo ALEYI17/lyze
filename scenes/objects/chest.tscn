@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://dkxm4y8fb6d2v"]
+
+[ext_resource type="PackedScene" uid="uid://2uid0eb12da7" path="res://assets/3d_assets/Reclaim_Cache.glb" id="1_bas4e"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_u5bk5"]
+size = Vector3(2, 1.5, 3)
+
+[node name="ChestNode" type="ChestNode" unique_id=1323888917]
+collision_mask = 2
+
+[node name="RECLAIM CACHE | Asset Studio" parent="." unique_id=323290428 instance=ExtResource("1_bas4e")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3036692, 0, 0.4225874)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=278693134]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3036692, 0.75, 1.072257)
+shape = SubResource("BoxShape3D_u5bk5")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=2013759846]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.27179825, 1.8065382, 0.37171364)
+billboard = 1
+text = "E Open"
+
+[editable path="RECLAIM CACHE | Asset Studio"]

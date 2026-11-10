@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://c6yxa7whisfrg" path="res://scenes/enemies/cape_enemy_3d.tscn" id="3_lc0ey"]
 [ext_resource type="PackedScene" uid="uid://daxh1s0qboux8" path="res://scenes/enemies/enemy_Encounter.tscn" id="4_5cho4"]
 [ext_resource type="PackedScene" uid="uid://k0q0sc3dij36" path="res://scenes/levels/level_change.tscn" id="5_6761a"]
+[ext_resource type="PackedScene" uid="uid://dkxm4y8fb6d2v" path="res://scenes/objects/chest.tscn" id="6_sk5k4"]
 
 [node name="Level1" type="Node3D" unique_id=2097745759]
 
@@ -59,6 +60,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8141785, 1.459244, 3.09369
 
 [node name="CapeEnemy3d" parent="EnemyEncounter2" unique_id=1423648350 instance=ExtResource("3_lc0ey")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6477098, 3.3729076)
+
+[node name="ChestNode" parent="." unique_id=1323888917 instance=ExtResource("6_sk5k4")]
+transform = Transform3D(0.048244175, 0, -0.99883556, 0, 1, 0, 0.99883556, 0, 0.048244175, 24.173845, 1.1836889, 8.705257)
 
 [editable path="EnemyEncounter"]
 [editable path="EnemyEncounter2"]
