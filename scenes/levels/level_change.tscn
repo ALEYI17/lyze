@@ -1,17 +1,24 @@
 [gd_scene format=3 uid="uid://k0q0sc3dij36"]
 
+[ext_resource type="PackedScene" uid="uid://d1agtr3wvqgnf" path="res://assets/3d_assets/Reclaim_Regional_6Car.glb" id="1_habmg"]
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_u5bk5"]
+size = Vector3(3, 2, 30)
 
 [node name="LevelChange" type="TransportNode" unique_id=1826287305]
 target_scene = "Hello"
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1782266168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5879321, 1.7057333, 0.757313)
 shape = SubResource("BoxShape3D_u5bk5")
 debug_color = Color(0.64705884, 0.52156866, 0.11372549, 0.8627451)
 
 [node name="Label3D" type="Label3D" parent="." unique_id=413701549]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78489363, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.9030962, 0)
 visible = false
 billboard = 1
 text = "E Transport"
+
+[node name="RECLAIM REGIONAL | Six-car commuter" parent="." unique_id=1743862523 instance=ExtResource("1_habmg")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -0.5879321, 0, 0.757313)
