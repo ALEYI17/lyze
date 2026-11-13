@@ -58,7 +58,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8141785, 1.459244, 3.09369
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6477098, 3.3729076)
 
 [node name="ChestNode" parent="." unique_id=1323888917 instance=ExtResource("6_sk5k4")]
-transform = Transform3D(0.048244175, 0, -0.99883556, 0, 1, 0, 0.99883556, 0, 0.048244175, 24.173845, 1.1836889, 8.705257)
+transform = Transform3D(0.048244175, 0, -0.99883556, 0, 1, 0, 0.99883556, 0, 0.048244175, 24.173845, 1.0015764, 8.705257)
 
 [editable path="EnemyEncounter"]
 [editable path="EnemyEncounter2"]

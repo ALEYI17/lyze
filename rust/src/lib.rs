@@ -7,6 +7,7 @@ mod combat;
 mod events;
 mod godot_utils;
 mod interactions;
+mod items;
 mod progression;
 mod state;
 mod ui;

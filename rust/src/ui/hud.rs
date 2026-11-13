@@ -5,10 +5,13 @@ use crate::characters::components::identity::Name;
 use crate::characters::components::progression::{Experience, Level};
 use crate::characters::inventories::abilities::AbilityInventory;
 use crate::characters::inventories::convictions::ConvictionPoints;
+use crate::characters::inventories::items::ItemInventory;
 use crate::characters::player_3d::Player3DNode;
 use crate::events::abilities::LearnAbilityEvent;
 use crate::events::upgrade_convictions::UpgradeConvictionEvent;
 use crate::godot_utils::nodes::get_custom_canvas_layer;
+use crate::items::definition::{ItemId, ItemKind, ProstheticSlot};
+use crate::items::registry::ItemRegistry;
 use crate::progression::experience::experience_to_next_level;
 use bevy::prelude::*;
 use godot::classes::{
@@ -36,6 +39,15 @@ struct HudAssets {
     pub equiped_abilities_grid_initialized: bool,
     pub avaible_abilities_grid_initialized: bool,
     pub convictions_upgrade_buttons_connected: bool,
+    pub prosthetic_slots_initialized: bool,
+    pub items_list_initialized: bool,
+    pub connect_items_filter_button: bool,
+    pub prosthetic_buttons_connected: bool,
+}
+
+#[derive(Resource, Debug, Default)]
+pub struct ItemListFilter {
+    pub selected: ChangeItemListFilter,
 }
 
 #[derive(NodeTreeView)]
@@ -72,8 +84,35 @@ pub struct UpgradeConvictionButtonEvent {
     conviction: ConvictionType,
 }
 
+#[derive(Event, Debug, Clone)]
+pub struct UnequipProsthetic {
+    slot: ProstheticSlot,
+}
+
+#[derive(Event, Debug, Clone)]
+pub struct EquipProsthetic {
+    item: ItemId,
+}
+
+#[derive(Event, Debug, Clone)]
+pub struct UseConsumableItem {
+    item: ItemId,
+}
+
+#[derive(Event, Debug, Clone, Copy, Default)]
+pub enum ChangeItemListFilter {
+    #[default]
+    All,
+    Consumable,
+    Prosthetic,
+    Material,
+}
+
 #[derive(Event)]
 pub struct ReloadAbilityListEvent;
+
+#[derive(Event)]
+pub struct ReloadItemListEvent;
 
 fn get_health_bar(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
     let node = canvas.get_node_or_null("Control/PlayerStatus/VBoxContainer/HealthRow/HealthBar")?;
@@ -288,6 +327,104 @@ fn get_available_grid(canvas: &Gd<CanvasLayer>) -> Option<Gd<GridContainer>> {
     let node = canvas.get_node_or_null(path)?;
 
     let Ok(container) = node.try_cast::<GridContainer>() else {
+        return None;
+    };
+
+    Some(container)
+}
+
+fn get_left_prosthetic_slot(canvas: &Gd<CanvasLayer>) -> Option<Gd<PanelContainer>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Items/VBoxContainer/ProstheticSlots/LeftArmSlot"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+    let Ok(panel) = node.try_cast::<PanelContainer>() else {
+        return None;
+    };
+
+    Some(panel)
+}
+
+fn get_right_prosthetic_slot(canvas: &Gd<CanvasLayer>) -> Option<Gd<PanelContainer>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Items/VBoxContainer/ProstheticSlots/RightLegSlot"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+    let Ok(panel) = node.try_cast::<PanelContainer>() else {
+        return None;
+    };
+
+    Some(panel)
+}
+
+fn get_all_button(canvas: &Gd<CanvasLayer>) -> Option<Gd<Button>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Items/VBoxContainer/CategoryFilters/AllButton"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+    let Ok(button) = node.try_cast::<Button>() else {
+        return None;
+    };
+
+    Some(button)
+}
+
+fn get_consumables_button(canvas: &Gd<CanvasLayer>) -> Option<Gd<Button>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Items/VBoxContainer/CategoryFilters/ConsumablesButton"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+    let Ok(button) = node.try_cast::<Button>() else {
+        return None;
+    };
+
+    Some(button)
+}
+
+fn get_prosthetics_button(canvas: &Gd<CanvasLayer>) -> Option<Gd<Button>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Items/VBoxContainer/CategoryFilters/ProstheticsButton"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+    let Ok(button) = node.try_cast::<Button>() else {
+        return None;
+    };
+
+    Some(button)
+}
+
+fn get_materials_button(canvas: &Gd<CanvasLayer>) -> Option<Gd<Button>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Items/VBoxContainer/CategoryFilters/MaterialsButton"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+    let Ok(button) = node.try_cast::<Button>() else {
+        return None;
+    };
+
+    Some(button)
+}
+
+fn get_item_list(canvas: &Gd<CanvasLayer>) -> Option<Gd<VBoxContainer>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Items/VBoxContainer/InventoryScroll/ItemList"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+    let Ok(container) = node.try_cast::<VBoxContainer>() else {
         return None;
     };
 
@@ -525,6 +662,275 @@ fn populate_available_abilities(
     }
 }
 
+fn populate_prosthetic_slot(
+    slot: &mut Gd<PanelContainer>,
+    equipped_item: Option<ItemId>,
+    slot_name: &str,
+    item_registry: &ItemRegistry,
+) {
+    let base_path = "MarginContainer/VBoxContainer";
+
+    let Some(mut slot_label) = slot
+        .get_node_or_null(&format!("{base_path}/Header/SlotName"))
+        .and_then(|node| node.try_cast::<Label>().ok())
+    else {
+        return;
+    };
+
+    let Some(mut level_label) = slot
+        .get_node_or_null(&format!("{base_path}/Header/Level"))
+        .and_then(|node| node.try_cast::<Label>().ok())
+    else {
+        return;
+    };
+
+    let Some(mut item_name) = slot
+        .get_node_or_null(&format!("{base_path}/ItemName"))
+        .and_then(|node| node.try_cast::<Label>().ok())
+    else {
+        return;
+    };
+
+    let Some(mut bonuses_label) = slot
+        .get_node_or_null(&format!("{base_path}/Bonuses"))
+        .and_then(|node| node.try_cast::<Label>().ok())
+    else {
+        return;
+    };
+
+    let Some(mut action_button) = slot
+        .get_node_or_null(&format!("{base_path}/Actions/ActionButton"))
+        .and_then(|node| node.try_cast::<Button>().ok())
+    else {
+        return;
+    };
+
+    slot_label.set_text(slot_name);
+
+    level_label.set_visible(false);
+
+    let Some(item_id) = equipped_item else {
+        item_name.set_text("Empty Slot");
+        bonuses_label.set_text("No prosthetic equipped");
+        action_button.set_text("Equip");
+        action_button.set_disabled(true);
+        return;
+    };
+
+    let Some(definition) = item_registry.get(item_id) else {
+        return;
+    };
+
+    let ItemKind::Prosthetic(prosthetic) = &definition.kind else {
+        return;
+    };
+
+    item_name.set_text(definition.name);
+
+    let bonuses = prosthetic
+        .bonuses
+        .iter()
+        .map(|bonus| {
+            format!(
+                "{:?}: +{} ATK | +{} DEF",
+                bonus.conviction, bonus.attack, bonus.defense
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    bonuses_label.set_text(&bonuses);
+
+    action_button.set_text("Unequip");
+    action_button.set_disabled(false);
+}
+
+fn populate_all_items(
+    item_list: &mut Gd<VBoxContainer>,
+    item_registry: &ItemRegistry,
+    item_inventory: &ItemInventory,
+    filter: ChangeItemListFilter,
+    signal_equip: &GodotSignals<EquipProsthetic>,
+    signal_use_item: &GodotSignals<UseConsumableItem>,
+) {
+    let mut loader = ResourceLoader::singleton();
+
+    let Ok(scene) = loader
+        .load("res://scenes/ui/components/ItemRow.tscn")
+        .ok_or(())
+        .and_then(|resource| resource.try_cast::<PackedScene>().map_err(|_| ()))
+    else {
+        godot_print!("ERROR: ItemRow.tscn not found");
+        return;
+    };
+
+    let mut displayed = std::collections::HashSet::new();
+
+    for item_id in &item_inventory.items {
+        if !displayed.insert(*item_id) {
+            continue;
+        }
+
+        let Some(definition) = item_registry.get(*item_id) else {
+            continue;
+        };
+
+        let matches_filter = matches!(
+            (&filter, &definition.kind),
+            (ChangeItemListFilter::All, _)
+                | (ChangeItemListFilter::Consumable, ItemKind::Consumable(_))
+                | (ChangeItemListFilter::Prosthetic, ItemKind::Prosthetic(_))
+                | (ChangeItemListFilter::Material, ItemKind::Materials)
+        );
+
+        if !matches_filter {
+            continue;
+        }
+
+        let Some(row) = scene.instantiate() else {
+            continue;
+        };
+
+        let base_path = "MarginContainer/VBoxContainer";
+
+        let Some(mut name_label) = row
+            .get_node_or_null(&format!("{base_path}/Header/ItemName"))
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            continue;
+        };
+
+        name_label.set_text(definition.name);
+
+        let Some(mut description_label) = row
+            .get_node_or_null(&format!("{base_path}/Description"))
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            continue;
+        };
+
+        description_label.set_text(definition.description);
+
+        let Some(mut info_label) = row
+            .get_node_or_null(&format!("{base_path}/ItemInfo"))
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            continue;
+        };
+
+        let Some(mut status_label) = row
+            .get_node_or_null(&format!("{base_path}/Header/ItemStatus"))
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            continue;
+        };
+
+        let Some(mut quantity_label) = row
+            .get_node_or_null(&format!("{base_path}/Footer/Quantity"))
+            .and_then(|node| node.try_cast::<Label>().ok())
+        else {
+            continue;
+        };
+
+        let Some(mut primary_button) = row
+            .get_node_or_null(&format!("{base_path}/Footer/Actions/PrimaryButton"))
+            .and_then(|node| node.try_cast::<Button>().ok())
+        else {
+            continue;
+        };
+
+        let Some(mut upgrade_button) = row
+            .get_node_or_null(&format!("{base_path}/Footer/Actions/UpgradeButton"))
+            .and_then(|node| node.try_cast::<Button>().ok())
+        else {
+            continue;
+        };
+
+        upgrade_button.set_visible(false);
+
+        let quantity = item_inventory
+            .items
+            .iter()
+            .filter(|owned_id| **owned_id == *item_id)
+            .count();
+
+        quantity_label.set_text(&format!("Quantity: {quantity}"));
+
+        match &definition.kind {
+            ItemKind::Consumable(effect) => {
+                status_label.set_text("Consumable");
+                info_label.set_text(&format!("{effect:?}"));
+
+                primary_button.set_text("Use");
+                primary_button.set_visible(true);
+
+                let selected_item = *item_id;
+
+                signal_use_item.connect(
+                    primary_button.into(),
+                    BaseButtonSignals::PRESSED,
+                    None,
+                    move |_args, _node_handle, _ent| {
+                        Some(UseConsumableItem {
+                            item: selected_item,
+                        })
+                    },
+                );
+            }
+
+            ItemKind::Prosthetic(prosthetic) => {
+                let equipped = item_inventory.left_arm == Some(*item_id)
+                    || item_inventory.right_leg == Some(*item_id);
+
+                status_label.set_text(if equipped { "Equipped" } else { "Prosthetic" });
+
+                let bonuses = prosthetic
+                    .bonuses
+                    .iter()
+                    .map(|bonus| {
+                        format!(
+                            "{:?}: +{} ATK | +{} DEF",
+                            bonus.conviction, bonus.attack, bonus.defense
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n");
+
+                info_label.set_text(&bonuses);
+
+                primary_button.set_visible(true);
+
+                if equipped {
+                    primary_button.set_text("Equipped");
+                    primary_button.set_disabled(true);
+                } else {
+                    primary_button.set_text("Equip");
+                    primary_button.set_disabled(false);
+                    let selected_item = *item_id;
+                    signal_equip.connect(
+                        primary_button.into(),
+                        BaseButtonSignals::PRESSED,
+                        None,
+                        move |_args, _node_handle, _ent| {
+                            Some(EquipProsthetic {
+                                item: selected_item,
+                            })
+                        },
+                    );
+                }
+            }
+
+            ItemKind::Materials => {
+                status_label.set_text("Material");
+                info_label.set_text("Crafting material");
+                primary_button.set_visible(false);
+            }
+        }
+
+        item_list.add_child(&row);
+    }
+}
+
 fn reset_hud_assets(
     mut hud_assets: ResMut<HudAssets>,
     previous_state: Res<PreviousState<GameState>>,
@@ -542,6 +948,8 @@ fn reset_hud_assets(
     hud_assets.ability_list_initialized = false;
     hud_assets.avaible_abilities_grid_initialized = false;
     hud_assets.convictions_upgrade_buttons_connected = false;
+    hud_assets.prosthetic_slots_initialized = false;
+    hud_assets.items_list_initialized = false;
 }
 
 fn initialized_hud(mut hud_assets: ResMut<HudAssets>, mut scene_tree: SceneTreeRef) {
@@ -856,6 +1264,207 @@ fn set_avaible_abilities(
     hud_assets.avaible_abilities_grid_initialized = true;
 }
 
+fn set_prosthetics_slots(
+    mut hud_assets: ResMut<HudAssets>,
+    item_registry: Res<ItemRegistry>,
+    item_inventory: Res<ItemInventory>,
+    mut godot: GodotAccess,
+) {
+    let Some(hud_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut left_slot) = get_left_prosthetic_slot(&canvas) else {
+        godot_print!("ERROR: LeftProsthetic slot not found");
+        return;
+    };
+
+    let Some(mut right_slot) = get_right_prosthetic_slot(&canvas) else {
+        godot_print!("ERROR: LeftProsthetic slot not found");
+        return;
+    };
+
+    populate_prosthetic_slot(
+        &mut left_slot,
+        item_inventory.left_arm,
+        "LEFT ARM",
+        &item_registry,
+    );
+
+    populate_prosthetic_slot(
+        &mut right_slot,
+        item_inventory.right_leg,
+        "RIGHT LEG",
+        &item_registry,
+    );
+
+    hud_assets.prosthetic_slots_initialized = true;
+}
+
+fn set_all_items_list(
+    mut hud_assets: ResMut<HudAssets>,
+    item_registry: Res<ItemRegistry>,
+    item_inventory: Res<ItemInventory>,
+    filter: Res<ItemListFilter>,
+    mut godot: GodotAccess,
+    signal_equip: GodotSignals<EquipProsthetic>,
+    signal_use_item: GodotSignals<UseConsumableItem>,
+) {
+    let Some(hud_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut item_list) = get_item_list(&canvas) else {
+        godot_print!("ERROR: LeftProsthetic slot not found");
+        return;
+    };
+
+    populate_all_items(
+        &mut item_list,
+        &item_registry,
+        &item_inventory,
+        filter.selected,
+        &signal_equip,
+        &signal_use_item,
+    );
+
+    hud_assets.items_list_initialized = true;
+}
+
+fn connect_item_inventory_buttons(
+    mut hud_assets: ResMut<HudAssets>,
+    mut godot: GodotAccess,
+    signal_filter: GodotSignals<ChangeItemListFilter>,
+) {
+    let Some(hud_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(all_button) = get_all_button(&canvas) else {
+        godot_print!("ERROR: cannot find all button");
+        return;
+    };
+
+    let Some(consumables_button) = get_consumables_button(&canvas) else {
+        godot_print!("ERROR: cannot find consumable button");
+        return;
+    };
+
+    let Some(prosthetic_button) = get_prosthetics_button(&canvas) else {
+        godot_print!("ERROR: cannot find prosthetic button");
+        return;
+    };
+
+    let Some(material_button) = get_materials_button(&canvas) else {
+        godot_print!("ERROR: cannot find materials button");
+        return;
+    };
+
+    signal_filter.connect(
+        all_button.into(),
+        BaseButtonSignals::PRESSED,
+        None,
+        |_args, _node_handle, _ent| Some(ChangeItemListFilter::All),
+    );
+
+    signal_filter.connect(
+        consumables_button.into(),
+        BaseButtonSignals::PRESSED,
+        None,
+        |_args, _node_handle, _ent| Some(ChangeItemListFilter::Consumable),
+    );
+
+    signal_filter.connect(
+        material_button.into(),
+        BaseButtonSignals::PRESSED,
+        None,
+        |_args, _node_handle, _ent| Some(ChangeItemListFilter::Material),
+    );
+
+    signal_filter.connect(
+        prosthetic_button.into(),
+        BaseButtonSignals::PRESSED,
+        None,
+        |_args, _node_handle, _ent| Some(ChangeItemListFilter::Prosthetic),
+    );
+
+    hud_assets.connect_items_filter_button = true;
+}
+
+fn connect_prosthetic_buttons(
+    mut hud_assets: ResMut<HudAssets>,
+    mut godot: GodotAccess,
+    signal_unequip: GodotSignals<UnequipProsthetic>,
+) {
+    let Some(hud_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(left_slot) = get_left_prosthetic_slot(&canvas) else {
+        return;
+    };
+
+    let Some(right_slot) = get_right_prosthetic_slot(&canvas) else {
+        return;
+    };
+
+    let path = "MarginContainer/VBoxContainer/Actions/ActionButton";
+
+    let Some(left_button) = left_slot
+        .get_node_or_null(path)
+        .and_then(|node| node.try_cast::<Button>().ok())
+    else {
+        return;
+    };
+
+    let Some(right_button) = right_slot
+        .get_node_or_null(path)
+        .and_then(|node| node.try_cast::<Button>().ok())
+    else {
+        return;
+    };
+
+    signal_unequip.connect(
+        left_button.into(),
+        BaseButtonSignals::PRESSED,
+        None,
+        |_args, _node_handle, _ent| {
+            Some(UnequipProsthetic {
+                slot: ProstheticSlot::LeftArm,
+            })
+        },
+    );
+
+    signal_unequip.connect(
+        right_button.into(),
+        BaseButtonSignals::PRESSED,
+        None,
+        |_args, _node_handle, _ent| {
+            Some(UnequipProsthetic {
+                slot: ProstheticSlot::RightLeg,
+            })
+        },
+    );
+
+    hud_assets.prosthetic_buttons_connected = true;
+}
+
 fn on_learn_ability_select(trigger: On<LearnAbilitySelect>, mut commands: Commands) {
     godot_print!("Learn Pressed");
     commands.trigger(LearnAbilityEvent {
@@ -875,11 +1484,11 @@ fn on_reload_ability(
     _trigger: On<ReloadAbilityListEvent>,
     hud_assets: Res<HudAssets>,
     ability_registry: Res<AbilityRegistry>,
+    ability_inventory: Res<AbilityInventory>,
     mut godot: GodotAccess,
     signal_learn: GodotSignals<LearnAbilitySelect>,
     signal_unequip: GodotSignals<UnequipAbilitySelect>,
     signal_equip: GodotSignals<EquipAbilitySelect>,
-    ability_inventory: Res<AbilityInventory>,
 ) {
     let Some(hud_handle) = hud_assets.hud else {
         return;
@@ -937,6 +1546,66 @@ fn on_reload_ability(
     );
 }
 
+#[allow(clippy::too_many_arguments)]
+fn on_reload_items(
+    _trigger: On<ReloadItemListEvent>,
+    hud_assets: Res<HudAssets>,
+    item_registry: Res<ItemRegistry>,
+    item_inventory: Res<ItemInventory>,
+    current_filter: Res<ItemListFilter>,
+    mut godot: GodotAccess,
+    signal_equip_prosthetic: GodotSignals<EquipProsthetic>,
+    signal_use_item: GodotSignals<UseConsumableItem>,
+) {
+    let Some(hud_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut item_list) = get_item_list(&canvas) else {
+        return;
+    };
+
+    let Some(mut left_slot) = get_left_prosthetic_slot(&canvas) else {
+        return;
+    };
+
+    let Some(mut right_slot) = get_right_prosthetic_slot(&canvas) else {
+        return;
+    };
+
+    for mut child in item_list.get_children().iter_shared() {
+        item_list.remove_child(&child);
+        child.queue_free();
+    }
+
+    populate_all_items(
+        &mut item_list,
+        &item_registry,
+        &item_inventory,
+        current_filter.selected,
+        &signal_equip_prosthetic,
+        &signal_use_item,
+    );
+
+    populate_prosthetic_slot(
+        &mut left_slot,
+        item_inventory.left_arm,
+        "LEFT ARM",
+        &item_registry,
+    );
+
+    populate_prosthetic_slot(
+        &mut right_slot,
+        item_inventory.right_leg,
+        "RIGHT LEG",
+        &item_registry,
+    );
+}
+
 fn on_unequip_ability_select(
     trigger: On<UnequipAbilitySelect>,
     mut ability_inventory: ResMut<AbilityInventory>,
@@ -959,6 +1628,66 @@ fn on_equip_ability_select(
     }
 
     commands.trigger(ReloadAbilityListEvent);
+}
+
+fn on_change_item_filter(
+    trigger: On<ChangeItemListFilter>,
+    mut current_filter: ResMut<ItemListFilter>,
+    mut commands: Commands,
+) {
+    godot_print!("Get event to change filter");
+    current_filter.selected = *trigger.event();
+    commands.trigger(ReloadItemListEvent);
+}
+
+fn on_equip_prosthetic(
+    trigger: On<EquipProsthetic>,
+    mut item_inventory: ResMut<ItemInventory>,
+    item_registry: Res<ItemRegistry>,
+    mut commands: Commands,
+) {
+    godot_print!("Get equip item event");
+    let Some(item_definition) = item_registry.get(trigger.item) else {
+        return;
+    };
+
+    if let ItemKind::Prosthetic(definition) = &item_definition.kind {
+        match &definition.slot {
+            ProstheticSlot::LeftArm => {
+                if item_inventory.left_arm.is_none() {
+                    item_inventory.left_arm = Some(item_definition.id);
+                }
+            }
+            ProstheticSlot::RightLeg => {
+                if item_inventory.right_leg.is_none() {
+                    item_inventory.right_leg = Some(item_definition.id);
+                }
+            }
+        }
+        commands.trigger(ReloadItemListEvent);
+    }
+}
+
+fn on_use_consumable_item(trigger: On<UseConsumableItem>) {
+    godot_print!("Get use onsumable item event {:?}", trigger.item);
+}
+
+fn on_unequip_prosthetic(
+    trigger: On<UnequipProsthetic>,
+    mut item_inventory: ResMut<ItemInventory>,
+    mut commands: Commands,
+) {
+    godot_print!("Get unequip item event");
+    let equipped_item = match trigger.slot {
+        ProstheticSlot::LeftArm => &mut item_inventory.left_arm,
+        ProstheticSlot::RightLeg => &mut item_inventory.right_leg,
+    };
+
+    if equipped_item.take().is_none() {
+        return;
+    }
+
+    commands.trigger(ReloadItemListEvent);
 }
 
 fn hud_is_not_initialized(hud_assets: Res<HudAssets>) -> bool {
@@ -985,11 +1714,28 @@ fn convictions_upgrade_not_connected(hud_assets: Res<HudAssets>) -> bool {
     !hud_assets.convictions_upgrade_buttons_connected
 }
 
+fn prosthetic_slot_not_initialized(hud_assets: Res<HudAssets>) -> bool {
+    !hud_assets.prosthetic_slots_initialized
+}
+
+fn item_list_not_initialized(hud_assets: Res<HudAssets>) -> bool {
+    !hud_assets.items_list_initialized
+}
+
+fn item_filter_not_connected(hud_assets: Res<HudAssets>) -> bool {
+    !hud_assets.connect_items_filter_button
+}
+
+fn prosthetic_buttons_not_connected(hud_assets: Res<HudAssets>) -> bool {
+    hud_assets.initialized && !hud_assets.prosthetic_buttons_connected
+}
+
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<HudAssets>()
+            .init_resource::<ItemListFilter>()
             .add_systems(Update, set_player_health)
             .add_systems(Update, initialized_hud.run_if(hud_is_not_initialized))
             .add_systems(
@@ -1023,6 +1769,28 @@ impl Plugin for HudPlugin {
                     in_state(GameState::Ingame3D).and_then(convictions_upgrade_not_connected),
                 ),
             )
+            .add_systems(
+                Update,
+                connect_item_inventory_buttons
+                    .run_if(in_state(GameState::Ingame3D).and_then(item_filter_not_connected)),
+            )
+            .add_systems(
+                Update,
+                set_prosthetics_slots.run_if(
+                    in_state(GameState::Ingame3D).and_then(prosthetic_slot_not_initialized),
+                ),
+            )
+            .add_systems(
+                Update,
+                set_all_items_list
+                    .run_if(in_state(GameState::Ingame3D).and_then(item_list_not_initialized)),
+            )
+            .add_systems(
+                Update,
+                connect_prosthetic_buttons.run_if(
+                    in_state(GameState::Ingame3D).and_then(prosthetic_buttons_not_connected),
+                ),
+            )
             .add_systems(OnEnter(GameState::Ingame3D), reset_hud_assets)
             .add_systems(OnEnter(GameState::Ingame3D), show_character_menu)
             .add_systems(OnExit(GameState::Ingame3D), hide_character_menu)
@@ -1031,6 +1799,11 @@ impl Plugin for HudPlugin {
             .add_observer(on_unequip_ability_select)
             .add_observer(on_equip_ability_select)
             .add_observer(on_upgrade_conviction)
-            .add_observer(on_reload_ability);
+            .add_observer(on_reload_ability)
+            .add_observer(on_change_item_filter)
+            .add_observer(on_equip_prosthetic)
+            .add_observer(on_unequip_prosthetic)
+            .add_observer(on_reload_items)
+            .add_observer(on_use_consumable_item);
     }
 }
