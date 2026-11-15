@@ -9,6 +9,7 @@ use crate::characters::inventories::items::ItemInventory;
 use crate::characters::player_3d::Player3DNode;
 use crate::events::abilities::LearnAbilityEvent;
 use crate::events::consumable::ConsumableEvent;
+use crate::events::prosthetic::{EquipProstheticEvent, UnEquipProstheticEvent};
 use crate::events::upgrade_convictions::UpgradeConvictionEvent;
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use crate::items::definition::{ItemId, ItemKind, ProstheticSlot};
@@ -83,16 +84,6 @@ pub struct EquipAbilitySelect {
 #[derive(Event, Debug, Clone)]
 pub struct UpgradeConvictionButtonEvent {
     conviction: ConvictionType,
-}
-
-#[derive(Event, Debug, Clone)]
-pub struct UnequipProsthetic {
-    slot: ProstheticSlot,
-}
-
-#[derive(Event, Debug, Clone)]
-pub struct EquipProsthetic {
-    item: ItemId,
 }
 
 #[derive(Event, Debug, Clone)]
@@ -751,7 +742,7 @@ fn populate_all_items(
     item_registry: &ItemRegistry,
     item_inventory: &ItemInventory,
     filter: ChangeItemListFilter,
-    signal_equip: &GodotSignals<EquipProsthetic>,
+    signal_equip: &GodotSignals<EquipProstheticEvent>,
     signal_use_item: &GodotSignals<UseConsumableItem>,
 ) {
     let mut loader = ResourceLoader::singleton();
@@ -905,7 +896,7 @@ fn populate_all_items(
                         BaseButtonSignals::PRESSED,
                         None,
                         move |_args, _node_handle, _ent| {
-                            Some(EquipProsthetic {
+                            Some(EquipProstheticEvent {
                                 item: selected_item,
                             })
                         },
@@ -1304,7 +1295,7 @@ fn set_all_items_list(
     item_inventory: Res<ItemInventory>,
     filter: Res<ItemListFilter>,
     mut godot: GodotAccess,
-    signal_equip: GodotSignals<EquipProsthetic>,
+    signal_equip: GodotSignals<EquipProstheticEvent>,
     signal_use_item: GodotSignals<UseConsumableItem>,
 ) {
     let Some(hud_handle) = hud_assets.hud else {
@@ -1399,7 +1390,7 @@ fn connect_item_inventory_buttons(
 fn connect_prosthetic_buttons(
     mut hud_assets: ResMut<HudAssets>,
     mut godot: GodotAccess,
-    signal_unequip: GodotSignals<UnequipProsthetic>,
+    signal_unequip: GodotSignals<UnEquipProstheticEvent>,
 ) {
     let Some(hud_handle) = hud_assets.hud else {
         return;
@@ -1438,7 +1429,7 @@ fn connect_prosthetic_buttons(
         BaseButtonSignals::PRESSED,
         None,
         |_args, _node_handle, _ent| {
-            Some(UnequipProsthetic {
+            Some(UnEquipProstheticEvent {
                 slot: ProstheticSlot::LeftArm,
             })
         },
@@ -1449,7 +1440,7 @@ fn connect_prosthetic_buttons(
         BaseButtonSignals::PRESSED,
         None,
         |_args, _node_handle, _ent| {
-            Some(UnequipProsthetic {
+            Some(UnEquipProstheticEvent {
                 slot: ProstheticSlot::RightLeg,
             })
         },
@@ -1547,7 +1538,7 @@ fn on_reload_items(
     item_inventory: Res<ItemInventory>,
     current_filter: Res<ItemListFilter>,
     mut godot: GodotAccess,
-    signal_equip_prosthetic: GodotSignals<EquipProsthetic>,
+    signal_equip_prosthetic: GodotSignals<EquipProstheticEvent>,
     signal_use_item: GodotSignals<UseConsumableItem>,
 ) {
     let Some(hud_handle) = hud_assets.hud else {
@@ -1633,38 +1624,35 @@ fn on_change_item_filter(
     commands.trigger(ReloadItemListEvent);
 }
 
-fn on_equip_prosthetic(
-    trigger: On<EquipProsthetic>,
-    mut item_inventory: ResMut<ItemInventory>,
-    item_registry: Res<ItemRegistry>,
-    mut commands: Commands,
-) {
-    godot_print!("Get equip item event");
-    let Some(item_definition) = item_registry.get(trigger.item) else {
-        return;
-    };
+// fn on_equip_prosthetic(
+//     trigger: On<EquipProsthetic>,
+//     mut item_inventory: ResMut<ItemInventory>,
+//     item_registry: Res<ItemRegistry>,
+//     mut commands: Commands,
+// ) {
+//     godot_print!("Get equip item event");
+//     let Some(item_definition) = item_registry.get(trigger.item) else {
+//         return;
+//     };
+//
+//     if let ItemKind::Prosthetic(definition) = &item_definition.kind {
+//         match &definition.slot {
+//             ProstheticSlot::LeftArm => {
+//                 if item_inventory.left_arm.is_none() {
+//                     item_inventory.left_arm = Some(item_definition.id);
+//                 }
+//             }
+//             ProstheticSlot::RightLeg => {
+//                 if item_inventory.right_leg.is_none() {
+//                     item_inventory.right_leg = Some(item_definition.id);
+//                 }
+//             }
+//         }
+//         commands.trigger(ReloadItemListEvent);
+//     }
+// }
 
-    if let ItemKind::Prosthetic(definition) = &item_definition.kind {
-        match &definition.slot {
-            ProstheticSlot::LeftArm => {
-                if item_inventory.left_arm.is_none() {
-                    item_inventory.left_arm = Some(item_definition.id);
-                }
-            }
-            ProstheticSlot::RightLeg => {
-                if item_inventory.right_leg.is_none() {
-                    item_inventory.right_leg = Some(item_definition.id);
-                }
-            }
-        }
-        commands.trigger(ReloadItemListEvent);
-    }
-}
-
-fn on_use_consumable_item(
-    trigger: On<UseConsumableItem>,
-    mut commands: Commands,
-) {
+fn on_use_consumable_item(trigger: On<UseConsumableItem>, mut commands: Commands) {
     godot_print!("Get use onsumable item event {:?}", trigger.item);
 
     commands.trigger(ConsumableEvent { item: trigger.item });
@@ -1672,23 +1660,23 @@ fn on_use_consumable_item(
     commands.trigger(ReloadItemListEvent);
 }
 
-fn on_unequip_prosthetic(
-    trigger: On<UnequipProsthetic>,
-    mut item_inventory: ResMut<ItemInventory>,
-    mut commands: Commands,
-) {
-    godot_print!("Get unequip item event");
-    let equipped_item = match trigger.slot {
-        ProstheticSlot::LeftArm => &mut item_inventory.left_arm,
-        ProstheticSlot::RightLeg => &mut item_inventory.right_leg,
-    };
-
-    if equipped_item.take().is_none() {
-        return;
-    }
-
-    commands.trigger(ReloadItemListEvent);
-}
+// fn on_unequip_prosthetic(
+//     trigger: On<UnequipProsthetic>,
+//     mut item_inventory: ResMut<ItemInventory>,
+//     mut commands: Commands,
+// ) {
+//     godot_print!("Get unequip item event");
+//     let equipped_item = match trigger.slot {
+//         ProstheticSlot::LeftArm => &mut item_inventory.left_arm,
+//         ProstheticSlot::RightLeg => &mut item_inventory.right_leg,
+//     };
+//
+//     if equipped_item.take().is_none() {
+//         return;
+//     }
+//
+//     commands.trigger(ReloadItemListEvent);
+// }
 
 fn hud_is_not_initialized(hud_assets: Res<HudAssets>) -> bool {
     !hud_assets.initialized
@@ -1801,8 +1789,8 @@ impl Plugin for HudPlugin {
             .add_observer(on_upgrade_conviction)
             .add_observer(on_reload_ability)
             .add_observer(on_change_item_filter)
-            .add_observer(on_equip_prosthetic)
-            .add_observer(on_unequip_prosthetic)
+            //.add_observer(on_equip_prosthetic)
+            //.add_observer(on_unequip_prosthetic)
             .add_observer(on_reload_items)
             .add_observer(on_use_consumable_item);
     }

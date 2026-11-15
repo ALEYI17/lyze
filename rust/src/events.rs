@@ -8,6 +8,7 @@ pub mod dialogue;
 pub mod effects;
 pub mod experience;
 pub mod heal;
+pub mod prosthetic;
 pub mod stat_modifier;
 pub mod upgrade_convictions;
 
@@ -24,6 +25,7 @@ impl Plugin for EventPlugins {
             .add_plugins(upgrade_convictions::UpgradeConvictionPlugin)
             .add_plugins(experience::ExperiencePlugin)
             .add_plugins(dialogue::DialogueEventPlugin)
-            .add_plugins(consumable::ConsumablePlugin);
+            .add_plugins(consumable::ConsumablePlugin)
+            .add_plugins(prosthetic::ProstheticPlugin);
     }
 }
