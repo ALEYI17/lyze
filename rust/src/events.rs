@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 pub mod abilities;
 pub mod combat;
+pub mod consumable;
 pub mod damage;
 pub mod dialogue;
 pub mod effects;
@@ -22,6 +23,7 @@ impl Plugin for EventPlugins {
             .add_plugins(stat_modifier::StatModifierPlugin)
             .add_plugins(upgrade_convictions::UpgradeConvictionPlugin)
             .add_plugins(experience::ExperiencePlugin)
-            .add_plugins(dialogue::DialogueEventPlugin);
+            .add_plugins(dialogue::DialogueEventPlugin)
+            .add_plugins(consumable::ConsumablePlugin);
     }
 }

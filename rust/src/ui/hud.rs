@@ -8,6 +8,7 @@ use crate::characters::inventories::convictions::ConvictionPoints;
 use crate::characters::inventories::items::ItemInventory;
 use crate::characters::player_3d::Player3DNode;
 use crate::events::abilities::LearnAbilityEvent;
+use crate::events::consumable::ConsumableEvent;
 use crate::events::upgrade_convictions::UpgradeConvictionEvent;
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use crate::items::definition::{ItemId, ItemKind, ProstheticSlot};
@@ -764,10 +765,8 @@ fn populate_all_items(
         return;
     };
 
-    let mut displayed = std::collections::HashSet::new();
-
-    for item_id in &item_inventory.items {
-        if !displayed.insert(*item_id) {
+    for (item_id, quantity) in &item_inventory.items {
+        if *quantity == 0 {
             continue;
         }
 
@@ -847,12 +846,6 @@ fn populate_all_items(
         };
 
         upgrade_button.set_visible(false);
-
-        let quantity = item_inventory
-            .items
-            .iter()
-            .filter(|owned_id| **owned_id == *item_id)
-            .count();
 
         quantity_label.set_text(&format!("Quantity: {quantity}"));
 
@@ -1668,8 +1661,15 @@ fn on_equip_prosthetic(
     }
 }
 
-fn on_use_consumable_item(trigger: On<UseConsumableItem>) {
+fn on_use_consumable_item(
+    trigger: On<UseConsumableItem>,
+    mut commands: Commands,
+) {
     godot_print!("Get use onsumable item event {:?}", trigger.item);
+
+    commands.trigger(ConsumableEvent { item: trigger.item });
+
+    commands.trigger(ReloadItemListEvent);
 }
 
 fn on_unequip_prosthetic(

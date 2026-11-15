@@ -30,8 +30,12 @@ fn on_upgrade_conviction(
         return;
     };
 
-    let selected = trigger.conviction;
+    apply_conviction_upgrade(&mut convictions, trigger.conviction);
 
+    conviction_points.avaible_points -= UPGRADE_COST;
+}
+
+pub fn apply_conviction_upgrade(convictions: &mut Convictions, selected: ConvictionType) {
     let stats = convictions.get_mut(selected);
 
     stats.attack += PRIMARY_UPGRADE;
@@ -43,8 +47,6 @@ fn on_upgrade_conviction(
         stats.attack += SYNTHESIS_UPGRADE;
         stats.defense += SYNTHESIS_UPGRADE;
     }
-
-    conviction_points.avaible_points -= UPGRADE_COST;
 }
 
 pub struct UpgradeConvictionPlugin;

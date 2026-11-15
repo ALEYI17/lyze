@@ -25,6 +25,14 @@ impl Default for ItemRegistry {
     fn default() -> Self {
         let definitions = [
             ItemDefinition {
+                id: ItemId::SekhemSerum,
+                name: "Sekhem Serum",
+                description: "A bioengineered serum that triggers a Sekhem conviction upgrade. Requires and spends one conviction point.",
+                kind: ItemKind::Consumable(ConsumableEffect::UpgrdeConviction {
+                    conviction: ConvictionType::Sekhem,
+                }),
+            },
+            ItemDefinition {
                 id: ItemId::RegenerativeSerum,
                 name: "Regenerative Serum",
                 description: "A bioengineered serum that accelerates tissue regeneration and restores health.",
@@ -62,6 +70,44 @@ impl Default for ItemRegistry {
                                 conviction: ConvictionType::Sekhem,
                                 attack: 8.0,
                                 defense: 3.0,
+                            }],
+                        },
+                    ],
+                    max_level: 3,
+                }),
+            },
+            ItemDefinition {
+                id: ItemId::NeurostrideLeg,
+                name: "Neurostride Leg",
+                description: "A neural-linked prosthetic leg that enhances movement, coordination, and reflexes.",
+                kind: ItemKind::Prosthetic(ProstheticDefinition {
+                    slot: ProstheticSlot::RightLeg,
+                    bonuses: vec![ConvictionsBonus {
+                        conviction: ConvictionType::Ananke,
+                        attack: 2.0,
+                        defense: 2.0,
+                    }],
+                    upgrades: vec![
+                        ProstheticUpgrade {
+                            requirements: vec![UpgradeRequirements {
+                                material: ItemId::Biomass,
+                                quantity: 3,
+                            }],
+                            bonuses: vec![ConvictionsBonus {
+                                conviction: ConvictionType::Ananke,
+                                attack: 4.0,
+                                defense: 3.0,
+                            }],
+                        },
+                        ProstheticUpgrade {
+                            requirements: vec![UpgradeRequirements {
+                                material: ItemId::Biomass,
+                                quantity: 6,
+                            }],
+                            bonuses: vec![ConvictionsBonus {
+                                conviction: ConvictionType::Ananke,
+                                attack: 6.0,
+                                defense: 5.0,
                             }],
                         },
                     ],

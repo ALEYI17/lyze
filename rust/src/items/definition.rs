@@ -1,4 +1,4 @@
-use crate::abilities::definition::{AbilityId, ConvictionType};
+use crate::abilities::definition::ConvictionType;
 
 #[derive(Debug, Clone)]
 pub enum ItemKind {
@@ -43,19 +43,16 @@ pub struct ProstheticUpgrade {
 #[derive(Debug, Clone, Copy)]
 pub enum ConsumableEffect {
     Heal(f32),
-    UpgrdeConviction {
-        conviction: ConvictionType,
-        attack: f32,
-        defense: f32,
-    },
-    GrantAbility(AbilityId),
+    UpgrdeConviction { conviction: ConvictionType },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ItemId {
     RegenerativeSerum,
     MyofiberArm,
+    NeurostrideLeg,
     Biomass,
+    SekhemSerum,
 }
 
 #[derive(Debug, Clone)]
