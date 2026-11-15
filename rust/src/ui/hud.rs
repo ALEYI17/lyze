@@ -659,6 +659,7 @@ fn populate_prosthetic_slot(
     equipped_item: Option<ItemId>,
     slot_name: &str,
     item_registry: &ItemRegistry,
+    item_inventory: &ItemInventory,
 ) {
     let base_path = "MarginContainer/VBoxContainer";
 
@@ -713,13 +714,13 @@ fn populate_prosthetic_slot(
         return;
     };
 
-    let ItemKind::Prosthetic(prosthetic) = &definition.kind else {
+    item_name.set_text(definition.name);
+
+    let Some(levels) = item_inventory.get_prosthetic_level(item_id, item_registry) else{
         return;
     };
 
-    item_name.set_text(definition.name);
-
-    let bonuses = prosthetic
+    let bonuses = levels
         .bonuses
         .iter()
         .map(|bonus| {
@@ -756,12 +757,16 @@ fn populate_all_items(
         return;
     };
 
-    for (item_id, quantity) in &item_inventory.items {
-        if *quantity == 0 {
-            continue;
-        }
+    let item_ids = item_inventory
+        .items
+        .iter()
+        .filter(|(_, quantity)| **quantity > 0)
+        .map(|(id, _)| *id)
+        .chain(item_inventory.prosthetics.keys().copied());
 
-        let Some(definition) = item_registry.get(*item_id) else {
+    for item_id in item_ids {
+
+        let Some(definition) = item_registry.get(item_id) else {
             continue;
         };
 
@@ -838,17 +843,17 @@ fn populate_all_items(
 
         upgrade_button.set_visible(false);
 
-        quantity_label.set_text(&format!("Quantity: {quantity}"));
-
         match &definition.kind {
             ItemKind::Consumable(effect) => {
+                let quantity = item_inventory.items.get(&item_id).copied().unwrap_or(0);
+                quantity_label.set_text(&format!("Quantity: {quantity}"));
                 status_label.set_text("Consumable");
                 info_label.set_text(&format!("{effect:?}"));
 
                 primary_button.set_text("Use");
                 primary_button.set_visible(true);
 
-                let selected_item = *item_id;
+                let selected_item = item_id;
 
                 signal_use_item.connect(
                     primary_button.into(),
@@ -862,13 +867,17 @@ fn populate_all_items(
                 );
             }
 
-            ItemKind::Prosthetic(prosthetic) => {
-                let equipped = item_inventory.left_arm == Some(*item_id)
-                    || item_inventory.right_leg == Some(*item_id);
+            ItemKind::Prosthetic(_prosthetic) => {
+                let equipped = item_inventory.left_arm == Some(item_id)
+                    || item_inventory.right_leg == Some(item_id);
 
                 status_label.set_text(if equipped { "Equipped" } else { "Prosthetic" });
 
-                let bonuses = prosthetic
+                let Some(levels) = item_inventory.get_prosthetic_level(item_id, item_registry) else {
+                    continue;
+                };
+                quantity_label.set_text(&format!("Level: {}", levels.level));
+                let bonuses = levels
                     .bonuses
                     .iter()
                     .map(|bonus| {
@@ -890,7 +899,7 @@ fn populate_all_items(
                 } else {
                     primary_button.set_text("Equip");
                     primary_button.set_disabled(false);
-                    let selected_item = *item_id;
+                    let selected_item = item_id;
                     signal_equip.connect(
                         primary_button.into(),
                         BaseButtonSignals::PRESSED,
@@ -905,6 +914,8 @@ fn populate_all_items(
             }
 
             ItemKind::Materials => {
+                let quantity = item_inventory.items.get(&item_id).copied().unwrap_or(0);
+                quantity_label.set_text(&format!("Quantity: {quantity}"));
                 status_label.set_text("Material");
                 info_label.set_text("Crafting material");
                 primary_button.set_visible(false);
@@ -1277,6 +1288,7 @@ fn set_prosthetics_slots(
         item_inventory.left_arm,
         "LEFT ARM",
         &item_registry,
+        &item_inventory,
     );
 
     populate_prosthetic_slot(
@@ -1284,6 +1296,7 @@ fn set_prosthetics_slots(
         item_inventory.right_leg,
         "RIGHT LEG",
         &item_registry,
+        &item_inventory,
     );
 
     hud_assets.prosthetic_slots_initialized = true;
@@ -1580,6 +1593,7 @@ fn on_reload_items(
         item_inventory.left_arm,
         "LEFT ARM",
         &item_registry,
+        &item_inventory,
     );
 
     populate_prosthetic_slot(
@@ -1587,6 +1601,7 @@ fn on_reload_items(
         item_inventory.right_leg,
         "RIGHT LEG",
         &item_registry,
+        &item_inventory,
     );
 }
 

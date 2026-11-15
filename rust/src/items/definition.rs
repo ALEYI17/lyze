@@ -10,15 +10,20 @@ pub enum ItemKind {
 #[derive(Debug, Clone)]
 pub struct ProstheticDefinition {
     pub slot: ProstheticSlot,
-    pub bonuses: Vec<ConvictionsBonus>,
-    pub upgrades: Vec<ProstheticUpgrade>,
-    pub max_level: u32,
+    pub levels: Vec<ProstheticLevels>,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum ProstheticSlot {
     LeftArm,
     RightLeg,
+}
+
+#[derive(Debug, Clone)]
+pub struct ProstheticLevels{
+    pub level: u32,
+    pub bonuses: Vec<ConvictionsBonus>,
+    pub upgrades: Vec<ProstheticUpgrade>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -37,7 +42,6 @@ pub struct UpgradeRequirements {
 #[derive(Debug, Clone)]
 pub struct ProstheticUpgrade {
     pub requirements: Vec<UpgradeRequirements>,
-    pub bonuses: Vec<ConvictionsBonus>,
 }
 
 #[derive(Debug, Clone, Copy)]

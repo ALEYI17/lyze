@@ -36,6 +36,10 @@ fn on_equip_prosthetic(
     };
 
     if let ItemKind::Prosthetic(definition) = &item_definition.kind {
+        let Some(level) = item_inventory.get_prosthetic_level(item_definition.id, &item_registry) else {
+            return;
+        };
+
         let slot = match definition.slot {
             ProstheticSlot::LeftArm => &mut item_inventory.left_arm,
             ProstheticSlot::RightLeg => &mut item_inventory.right_leg,
@@ -46,7 +50,8 @@ fn on_equip_prosthetic(
         }
 
         *slot = Some(item_definition.id);
-        for bonus in &definition.bonuses{
+        
+        for bonus in &level.bonuses{
             let stats = convictions.get_mut(bonus.conviction);
             stats.attack += bonus.attack;
             stats.defense += bonus.defense;
@@ -66,11 +71,11 @@ fn on_unequip_prosthetic(
     godot_print!("Get unequip item event");
     
     let equipped_item = match trigger.slot {
-        ProstheticSlot::LeftArm => &mut item_inventory.left_arm,
-        ProstheticSlot::RightLeg => &mut item_inventory.right_leg,
+        ProstheticSlot::LeftArm => item_inventory.left_arm,
+        ProstheticSlot::RightLeg => item_inventory.right_leg,
     };
 
-    let Some(item_id) = *equipped_item else {
+    let Some(item_id) = equipped_item else {
         return;
     };
     let Ok(mut convictions) = query.single_mut() else {
@@ -80,18 +85,21 @@ fn on_unequip_prosthetic(
     let Some(item_definition) = item_registry.get(item_id) else {
         return;
     };
-    
-    let ItemKind::Prosthetic(definition) = &item_definition.kind else {
+
+    let Some(level) = item_inventory.get_prosthetic_level(item_definition.id, &item_registry) else {
         return;
     };
     
-    for bonus in &definition.bonuses{
+    for bonus in &level.bonuses{
         let stats = convictions.get_mut(bonus.conviction);
         stats.attack -= bonus.attack;
         stats.defense -= bonus.defense;
     }
 
-    *equipped_item = None;
+    match trigger.slot {
+        ProstheticSlot::LeftArm => item_inventory.left_arm = None,
+        ProstheticSlot::RightLeg => item_inventory.right_leg = None,
+    }
 
     commands.trigger(ReloadItemListEvent);
 }

@@ -6,7 +6,7 @@ use crate::{
     abilities::definition::ConvictionType,
     items::definition::{
         ConsumableEffect, ConvictionsBonus, ItemDefinition, ItemId, ItemKind, ProstheticDefinition,
-        ProstheticSlot, ProstheticUpgrade, UpgradeRequirements,
+        ProstheticLevels, ProstheticSlot, ProstheticUpgrade, UpgradeRequirements,
     },
 };
 
@@ -44,36 +44,45 @@ impl Default for ItemRegistry {
                 description: "A prosthetic arm woven from synthetic muscle fibers, enhancing physical strength through biological augmentation.",
                 kind: ItemKind::Prosthetic(ProstheticDefinition {
                     slot: ProstheticSlot::LeftArm,
-                    bonuses: vec![ConvictionsBonus {
-                        conviction: ConvictionType::Sekhem,
-                        attack: 3.0,
-                        defense: 1.0,
-                    }],
-                    upgrades: vec![
-                        ProstheticUpgrade {
-                            requirements: vec![UpgradeRequirements {
-                                material: ItemId::Biomass,
-                                quantity: 3,
+                    levels: vec![
+                        ProstheticLevels {
+                            level: 1,
+                            bonuses: vec![ConvictionsBonus {
+                                conviction: ConvictionType::Sekhem,
+                                attack: 3.0,
+                                defense: 1.0,
                             }],
+                            upgrades: vec![],
+                        },
+                        ProstheticLevels {
+                            level: 2,
                             bonuses: vec![ConvictionsBonus {
                                 conviction: ConvictionType::Sekhem,
                                 attack: 5.0,
                                 defense: 2.0,
                             }],
-                        },
-                        ProstheticUpgrade {
-                            requirements: vec![UpgradeRequirements {
-                                material: ItemId::Biomass,
-                                quantity: 6,
+                            upgrades: vec![ProstheticUpgrade {
+                                requirements: vec![UpgradeRequirements {
+                                    material: ItemId::Biomass,
+                                    quantity: 3,
+                                }],
                             }],
+                        },
+                        ProstheticLevels {
+                            level: 3,
                             bonuses: vec![ConvictionsBonus {
                                 conviction: ConvictionType::Sekhem,
                                 attack: 8.0,
                                 defense: 3.0,
                             }],
+                            upgrades: vec![ProstheticUpgrade {
+                                requirements: vec![UpgradeRequirements {
+                                    material: ItemId::Biomass,
+                                    quantity: 6,
+                                }],
+                            }],
                         },
                     ],
-                    max_level: 3,
                 }),
             },
             ItemDefinition {
@@ -82,36 +91,45 @@ impl Default for ItemRegistry {
                 description: "A neural-linked prosthetic leg that enhances movement, coordination, and reflexes.",
                 kind: ItemKind::Prosthetic(ProstheticDefinition {
                     slot: ProstheticSlot::RightLeg,
-                    bonuses: vec![ConvictionsBonus {
-                        conviction: ConvictionType::Ananke,
-                        attack: 2.0,
-                        defense: 2.0,
-                    }],
-                    upgrades: vec![
-                        ProstheticUpgrade {
-                            requirements: vec![UpgradeRequirements {
-                                material: ItemId::Biomass,
-                                quantity: 3,
+                    levels: vec![
+                        ProstheticLevels {
+                            level: 1,
+                            bonuses: vec![ConvictionsBonus {
+                                conviction: ConvictionType::Ananke,
+                                attack: 2.0,
+                                defense: 2.0,
                             }],
+                            upgrades: vec![],
+                        },
+                        ProstheticLevels {
+                            level: 2,
                             bonuses: vec![ConvictionsBonus {
                                 conviction: ConvictionType::Ananke,
                                 attack: 4.0,
                                 defense: 3.0,
                             }],
-                        },
-                        ProstheticUpgrade {
-                            requirements: vec![UpgradeRequirements {
-                                material: ItemId::Biomass,
-                                quantity: 6,
+                            upgrades: vec![ProstheticUpgrade {
+                                requirements: vec![UpgradeRequirements {
+                                    material: ItemId::Biomass,
+                                    quantity: 3,
+                                }],
                             }],
+                        },
+                        ProstheticLevels {
+                            level: 3,
                             bonuses: vec![ConvictionsBonus {
                                 conviction: ConvictionType::Ananke,
                                 attack: 6.0,
                                 defense: 5.0,
                             }],
+                            upgrades: vec![ProstheticUpgrade {
+                                requirements: vec![UpgradeRequirements {
+                                    material: ItemId::Biomass,
+                                    quantity: 6,
+                                }],
+                            }],
                         },
                     ],
-                    max_level: 3,
                 }),
             },
             ItemDefinition {
