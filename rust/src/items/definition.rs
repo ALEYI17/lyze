@@ -20,7 +20,7 @@ pub enum ProstheticSlot {
 }
 
 #[derive(Debug, Clone)]
-pub struct ProstheticLevels{
+pub struct ProstheticLevels {
     pub level: u32,
     pub bonuses: Vec<ConvictionsBonus>,
     pub upgrades: Vec<ProstheticUpgrade>,

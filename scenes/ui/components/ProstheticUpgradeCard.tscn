@@ -1,0 +1,198 @@
+[gd_scene format=3]
+
+[sub_resource type="StyleBoxFlat" id="Card"]
+bg_color = Color(0.075, 0.065, 0.075, 1)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.52, 0.37, 0.22, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
+content_margin_left = 18.0
+content_margin_right = 18.0
+content_margin_top = 16.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="ItemButton"]
+bg_color = Color(0.16, 0.13, 0.1, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.78, 0.55, 0.24, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="ItemButtonPressed"]
+bg_color = Color(0.1, 0.08, 0.07, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="ItemButtonHover"]
+bg_color = Color(0.29, 0.21, 0.12, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.75, 0.35, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="ItemButtonDisabled"]
+bg_color = Color(0.12, 0.1, 0.1, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="ProstheticUpgradeCard" type="PanelContainer"]
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Content" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ItemName" type="Label" parent="Content/Header"]
+layout_mode = 2
+text = "Myofiber Arm"
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.94, 0.77, 0.51, 1)
+size_flags_horizontal = 3
+
+[node name="Level" type="Label" parent="Content/Header"]
+layout_mode = 2
+text = "LEVEL 1 / 3"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.67, 0.6, 0.54, 1)
+
+
+[node name="Slot" type="Label" parent="Content"]
+layout_mode = 2
+text = "LEFT ARM  /  SEKHEM"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.67, 0.6, 0.54, 1)
+
+
+[node name="Comparison" type="GridContainer" parent="Content"]
+layout_mode = 2
+columns = 3
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 6
+
+[node name="StatHeading" type="Label" parent="Content/Comparison"]
+layout_mode = 2
+text = "BONUS"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.67, 0.6, 0.54, 1)
+size_flags_horizontal = 3
+
+[node name="CurrentHeading" type="Label" parent="Content/Comparison"]
+layout_mode = 2
+text = "CURRENT"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.67, 0.6, 0.54, 1)
+
+
+[node name="NextHeading" type="Label" parent="Content/Comparison"]
+layout_mode = 2
+text = "LEVEL 2"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.67, 0.6, 0.54, 1)
+
+
+[node name="AttackName" type="Label" parent="Content/Comparison"]
+layout_mode = 2
+text = "Attack"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.82, 0.76, 0.69, 1)
+size_flags_horizontal = 3
+
+[node name="AttackCurrent" type="Label" parent="Content/Comparison"]
+layout_mode = 2
+text = "+3"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.82, 0.76, 0.69, 1)
+
+
+[node name="AttackNext" type="Label" parent="Content/Comparison"]
+layout_mode = 2
+text = "+5"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.59, 0.81, 0.65, 1)
+
+
+[node name="DefenseName" type="Label" parent="Content/Comparison"]
+layout_mode = 2
+text = "Defense"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.82, 0.76, 0.69, 1)
+size_flags_horizontal = 3
+
+[node name="DefenseCurrent" type="Label" parent="Content/Comparison"]
+layout_mode = 2
+text = "+1"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.82, 0.76, 0.69, 1)
+
+
+[node name="DefenseNext" type="Label" parent="Content/Comparison"]
+layout_mode = 2
+text = "+2"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.59, 0.81, 0.65, 1)
+
+
+[node name="Separator" type="HSeparator" parent="Content"]
+layout_mode = 2
+modulate = Color(0.5, 0.4, 0.3, 0.5)
+
+[node name="Footer" type="HBoxContainer" parent="Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Requirements" type="VBoxContainer" parent="Content/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="Materials" type="Label" parent="Content/Footer/Requirements"]
+layout_mode = 2
+text = "Biomass  1 / 3"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.9, 0.7, 0.45, 1)
+
+
+[node name="Status" type="Label" parent="Content/Footer/Requirements"]
+layout_mode = 2
+text = "2 more needed"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.67, 0.6, 0.54, 1)
+
+
+[node name="UpgradeButton" type="Button" parent="Content/Footer"]
+layout_mode = 2
+custom_minimum_size = Vector2(90, 30)
+size_flags_vertical = 4
+text = "Upgrade"
+disabled = true
+theme_override_colors/font_disabled_color = Color(0.58, 0.52, 0.45, 1)
+theme_override_colors/font_color = Color(0.94, 0.83, 0.65, 1)
+theme_override_styles/normal = SubResource("ItemButton")
+theme_override_styles/hover = SubResource("ItemButtonHover")
+theme_override_styles/pressed = SubResource("ItemButtonPressed")
+theme_override_styles/disabled = SubResource("ItemButtonDisabled")
+

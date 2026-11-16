@@ -262,7 +262,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_tab_panel")
 theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_tab_unselected")
 theme_override_styles/tab_hovered = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
-current_tab = 3
+current_tab = 4
 
 [node name="Convictions" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=1313707353]
 visible = false
@@ -501,6 +501,7 @@ theme_override_constants/v_separation = 10
 columns = 2
 
 [node name="Items" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=235867914]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 3
 
@@ -578,3 +579,38 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
+
+[node name="Upgrades" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=1873196927]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+metadata/_tab_index = 4
+
+[node name="Content" type="VBoxContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Upgrades" unique_id=1642247823]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Upgrades/Content" unique_id=1464350880]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.77, 0.51, 1)
+theme_override_font_sizes/font_size = 22
+text = "Prosthetic upgrades"
+
+[node name="Description" type="Label" parent="Control/CharacterMenu/VBoxContainer/Tabs/Upgrades/Content" unique_id=1987614401]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.67, 0.6, 0.54, 1)
+theme_override_font_sizes/font_size = 14
+text = "Reinforce your prosthetics with recovered materials."
+autowrap_mode = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Upgrades/Content" unique_id=1136996439]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ProstheticList" type="VBoxContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs/Upgrades/Content/ScrollContainer" unique_id=1639370056]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12

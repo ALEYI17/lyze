@@ -9,7 +9,7 @@ use crate::characters::inventories::items::ItemInventory;
 use crate::characters::player_3d::Player3DNode;
 use crate::events::abilities::LearnAbilityEvent;
 use crate::events::consumable::ConsumableEvent;
-use crate::events::prosthetic::{EquipProstheticEvent, UnEquipProstheticEvent};
+use crate::events::prosthetic::{EquipProstheticEvent, UnEquipProstheticEvent, UpgradeProsthetic};
 use crate::events::upgrade_convictions::UpgradeConvictionEvent;
 use crate::godot_utils::nodes::get_custom_canvas_layer;
 use crate::items::definition::{ItemId, ItemKind, ProstheticSlot};
@@ -45,6 +45,7 @@ struct HudAssets {
     pub items_list_initialized: bool,
     pub connect_items_filter_button: bool,
     pub prosthetic_buttons_connected: bool,
+    pub prosthetic_upgrade_list: bool,
 }
 
 #[derive(Resource, Debug, Default)]
@@ -423,6 +424,20 @@ fn get_item_list(canvas: &Gd<CanvasLayer>) -> Option<Gd<VBoxContainer>> {
     Some(container)
 }
 
+fn get_prosthetic_upgrade_list(canvas: &Gd<CanvasLayer>) -> Option<Gd<VBoxContainer>> {
+    let path = concat!(
+        "Control/CharacterMenu/VBoxContainer/Tabs/",
+        "Upgrades/Content/ScrollContainer/ProstheticList"
+    );
+
+    let node = canvas.get_node_or_null(path)?;
+    let Ok(container) = node.try_cast::<VBoxContainer>() else {
+        return None;
+    };
+
+    Some(container)
+}
+
 fn populate_ability_list(
     ability_list: &mut Gd<VBoxContainer>,
     ability_registry: &AbilityRegistry,
@@ -716,9 +731,12 @@ fn populate_prosthetic_slot(
 
     item_name.set_text(definition.name);
 
-    let Some(levels) = item_inventory.get_prosthetic_level(item_id, item_registry) else{
+    let Some(levels) = item_inventory.get_prosthetic_level(item_id, item_registry) else {
         return;
     };
+
+    level_label.set_text(&format!("LV {}", levels.level));
+    level_label.set_visible(true);
 
     let bonuses = levels
         .bonuses
@@ -765,7 +783,6 @@ fn populate_all_items(
         .chain(item_inventory.prosthetics.keys().copied());
 
     for item_id in item_ids {
-
         let Some(definition) = item_registry.get(item_id) else {
             continue;
         };
@@ -834,15 +851,6 @@ fn populate_all_items(
             continue;
         };
 
-        let Some(mut upgrade_button) = row
-            .get_node_or_null(&format!("{base_path}/Footer/Actions/UpgradeButton"))
-            .and_then(|node| node.try_cast::<Button>().ok())
-        else {
-            continue;
-        };
-
-        upgrade_button.set_visible(false);
-
         match &definition.kind {
             ItemKind::Consumable(effect) => {
                 let quantity = item_inventory.items.get(&item_id).copied().unwrap_or(0);
@@ -873,7 +881,8 @@ fn populate_all_items(
 
                 status_label.set_text(if equipped { "Equipped" } else { "Prosthetic" });
 
-                let Some(levels) = item_inventory.get_prosthetic_level(item_id, item_registry) else {
+                let Some(levels) = item_inventory.get_prosthetic_level(item_id, item_registry)
+                else {
                     continue;
                 };
                 quantity_label.set_text(&format!("Level: {}", levels.level));
@@ -926,6 +935,209 @@ fn populate_all_items(
     }
 }
 
+fn populate_upgrade_list(
+    prosthetic_list: &mut Gd<VBoxContainer>,
+    item_registry: &ItemRegistry,
+    item_inventory: &ItemInventory,
+    signal_upgrade_prosthetic: &GodotSignals<UpgradeProsthetic>,
+) {
+    let Some(scene) = ResourceLoader::singleton()
+        .load("res://scenes/ui/components/ProstheticUpgradeCard.tscn")
+        .and_then(|resource| resource.try_cast::<PackedScene>().ok())
+    else {
+        godot_print!("ERROR: ProstheticUpgradeCard.tscn not found");
+        return;
+    };
+
+    for mut child in prosthetic_list.get_children().iter_shared() {
+        prosthetic_list.remove_child(&child);
+        child.queue_free();
+    }
+
+    for (item_id, current_level) in &item_inventory.prosthetics {
+        let Some(item) = item_registry.get(*item_id) else {
+            continue;
+        };
+        let ItemKind::Prosthetic(definition) = &item.kind else {
+            continue;
+        };
+        let Some(current) = definition
+            .levels
+            .iter()
+            .find(|level| level.level == *current_level)
+        else {
+            continue;
+        };
+        let next = current_level.checked_add(1).and_then(|next_level| {
+            definition
+                .levels
+                .iter()
+                .find(|level| level.level == next_level)
+        });
+        let max_level = definition
+            .levels
+            .iter()
+            .map(|level| level.level)
+            .max()
+            .unwrap_or(1);
+        let Some(row) = scene.instantiate() else {
+            continue;
+        };
+
+        let set_label = |path: &str, text: &str| {
+            if let Some(mut label) = row
+                .get_node_or_null(path)
+                .and_then(|node| node.try_cast::<Label>().ok())
+            {
+                label.set_text(text);
+            }
+        };
+        set_label("Content/Header/ItemName", item.name);
+        set_label(
+            "Content/Header/Level",
+            &format!("LEVEL {current_level} / {max_level}"),
+        );
+        set_label(
+            "Content/Slot",
+            match definition.slot {
+                ProstheticSlot::LeftArm => "LEFT ARM",
+                ProstheticSlot::RightLeg => "RIGHT LEG",
+            },
+        );
+        set_label(
+            "Content/Comparison/NextHeading",
+            &next.map_or_else(
+                || "MAXIMUM".to_string(),
+                |level| format!("LEVEL {}", level.level),
+            ),
+        );
+
+        let mut convictions = Vec::new();
+        for bonus in current
+            .bonuses
+            .iter()
+            .chain(next.into_iter().flat_map(|level| &level.bonuses))
+        {
+            if !convictions.contains(&bonus.conviction) {
+                convictions.push(bonus.conviction);
+            }
+        }
+        let mut names = Vec::new();
+        let mut current_attacks = Vec::new();
+        let mut current_defenses = Vec::new();
+        let mut next_attacks = Vec::new();
+        let mut next_defenses = Vec::new();
+        for conviction in convictions {
+            names.push(format!("{conviction:?}"));
+            let totals = |bonuses: &[crate::items::definition::ConvictionsBonus]| {
+                bonuses
+                    .iter()
+                    .filter(|bonus| bonus.conviction == conviction)
+                    .fold((0.0, 0.0), |(attack, defense), bonus| {
+                        (attack + bonus.attack, defense + bonus.defense)
+                    })
+            };
+            let (attack, defense) = totals(&current.bonuses);
+            current_attacks.push(format!("{attack:+}"));
+            current_defenses.push(format!("{defense:+}"));
+            if let Some(next) = next {
+                let (attack, defense) = totals(&next.bonuses);
+                next_attacks.push(format!("{attack:+}"));
+                next_defenses.push(format!("{defense:+}"));
+            } else {
+                next_attacks.push("".to_string());
+                next_defenses.push("".to_string());
+            }
+        }
+        set_label(
+            "Content/Comparison/AttackName",
+            &names
+                .iter()
+                .map(|name| format!("{name} Attack"))
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+        set_label(
+            "Content/Comparison/DefenseName",
+            &names
+                .iter()
+                .map(|name| format!("{name} Defense"))
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+        set_label(
+            "Content/Comparison/AttackCurrent",
+            &current_attacks.join("\n"),
+        );
+        set_label(
+            "Content/Comparison/DefenseCurrent",
+            &current_defenses.join("\n"),
+        );
+        set_label("Content/Comparison/AttackNext", &next_attacks.join("\n"));
+        set_label("Content/Comparison/DefenseNext", &next_defenses.join("\n"));
+
+        if let Some(next) = next {
+            let mut requirements = std::collections::BTreeMap::<ItemId, u32>::new();
+            for requirement in next
+                .upgrades
+                .iter()
+                .flat_map(|upgrade| &upgrade.requirements)
+            {
+                let quantity = requirements.entry(requirement.material).or_default();
+                *quantity = quantity.saturating_add(requirement.quantity);
+            }
+            let mut affordable = true;
+            let mut materials = Vec::new();
+            for (material, required) in requirements {
+                let owned = item_inventory.items.get(&material).copied().unwrap_or(0);
+                affordable &= owned >= required;
+                let name = item_registry
+                    .get(material)
+                    .map_or("Unknown material", |item| item.name);
+                materials.push(format!("{name}  {owned} / {required}"));
+            }
+            set_label(
+                "Content/Footer/Requirements/Materials",
+                &if materials.is_empty() {
+                    "No materials required".to_string()
+                } else {
+                    materials.join("\n")
+                },
+            );
+            set_label(
+                "Content/Footer/Requirements/Status",
+                if affordable {
+                    "Materials available"
+                } else {
+                    "Not enough materials"
+                },
+            );
+        } else {
+            set_label("Content/Footer/Requirements/Materials", "Maximum level");
+            set_label("Content/Footer/Requirements/Status", "Fully upgraded");
+        }
+        if let Some(mut button) = row
+            .get_node_or_null("Content/Footer/UpgradeButton")
+            .and_then(|node| node.try_cast::<Button>().ok())
+        {
+            button.set_disabled(!item_inventory.check_prosthetic_upgrade(*item_id, item_registry));
+            button.set_visible(next.is_some());
+            let selected_item = *item_id;
+            signal_upgrade_prosthetic.connect(
+                button.into(),
+                BaseButtonSignals::PRESSED,
+                None,
+                move |_args, _node_handle, _ent| {
+                    Some(UpgradeProsthetic {
+                        item: selected_item,
+                    })
+                },
+            );
+        }
+        prosthetic_list.add_child(&row);
+    }
+}
+
 fn reset_hud_assets(
     mut hud_assets: ResMut<HudAssets>,
     previous_state: Res<PreviousState<GameState>>,
@@ -945,6 +1157,7 @@ fn reset_hud_assets(
     hud_assets.convictions_upgrade_buttons_connected = false;
     hud_assets.prosthetic_slots_initialized = false;
     hud_assets.items_list_initialized = false;
+    hud_assets.prosthetic_upgrade_list = false;
 }
 
 fn initialized_hud(mut hud_assets: ResMut<HudAssets>, mut scene_tree: SceneTreeRef) {
@@ -1462,6 +1675,35 @@ fn connect_prosthetic_buttons(
     hud_assets.prosthetic_buttons_connected = true;
 }
 
+fn set_upgrade_list(
+    mut hud_assets: ResMut<HudAssets>,
+    item_registry: Res<ItemRegistry>,
+    item_inventory: Res<ItemInventory>,
+    mut godot: GodotAccess,
+    signal_upgrade_prosthetic: GodotSignals<UpgradeProsthetic>,
+) {
+    let Some(hud_handle) = hud_assets.hud else {
+        return;
+    };
+
+    let Some(canvas) = get_custom_canvas_layer(&hud_handle, &mut godot) else {
+        return;
+    };
+
+    let Some(mut prosthetic_list) = get_prosthetic_upgrade_list(&canvas) else {
+        godot_print!("ERROR: prosthetic upgrade list not found");
+        return;
+    };
+
+    populate_upgrade_list(
+        &mut prosthetic_list,
+        &item_registry,
+        &item_inventory,
+        &signal_upgrade_prosthetic,
+    );
+    hud_assets.prosthetic_upgrade_list = true;
+}
+
 fn on_learn_ability_select(trigger: On<LearnAbilitySelect>, mut commands: Commands) {
     godot_print!("Learn Pressed");
     commands.trigger(LearnAbilityEvent {
@@ -1553,6 +1795,7 @@ fn on_reload_items(
     mut godot: GodotAccess,
     signal_equip_prosthetic: GodotSignals<EquipProstheticEvent>,
     signal_use_item: GodotSignals<UseConsumableItem>,
+    signal_upgrade_prosthetic: GodotSignals<UpgradeProsthetic>,
 ) {
     let Some(hud_handle) = hud_assets.hud else {
         return;
@@ -1574,8 +1817,17 @@ fn on_reload_items(
         return;
     };
 
+    let Some(mut upgrade_list) = get_prosthetic_upgrade_list(&canvas) else {
+        return;
+    };
+
     for mut child in item_list.get_children().iter_shared() {
         item_list.remove_child(&child);
+        child.queue_free();
+    }
+
+    for mut child in upgrade_list.get_children().iter_shared() {
+        upgrade_list.remove_child(&child);
         child.queue_free();
     }
 
@@ -1602,6 +1854,13 @@ fn on_reload_items(
         "RIGHT LEG",
         &item_registry,
         &item_inventory,
+    );
+
+    populate_upgrade_list(
+        &mut upgrade_list,
+        &item_registry,
+        &item_inventory,
+        &signal_upgrade_prosthetic,
     );
 }
 
@@ -1733,6 +1992,10 @@ fn prosthetic_buttons_not_connected(hud_assets: Res<HudAssets>) -> bool {
     hud_assets.initialized && !hud_assets.prosthetic_buttons_connected
 }
 
+fn prosthetic_upgrade_list_not_initialized(hud_assets: Res<HudAssets>) -> bool {
+    !hud_assets.prosthetic_upgrade_list
+}
+
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
@@ -1792,6 +2055,12 @@ impl Plugin for HudPlugin {
                 Update,
                 connect_prosthetic_buttons.run_if(
                     in_state(GameState::Ingame3D).and_then(prosthetic_buttons_not_connected),
+                ),
+            )
+            .add_systems(
+                Update,
+                set_upgrade_list.run_if(
+                    in_state(GameState::Ingame3D).and_then(prosthetic_upgrade_list_not_initialized),
                 ),
             )
             .add_systems(OnEnter(GameState::Ingame3D), reset_hud_assets)
