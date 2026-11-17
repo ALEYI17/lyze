@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://cpmuu16x0nkwu"]
+
+[sub_resource type="StyleBoxFlat" id="Panel"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.075, 0.055, 0.065, 0.96)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.78, 0.55, 0.24, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="LootNotification" type="PanelContainer" unique_id=781612968]
+visible = false
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="Label" type="Label" parent="." unique_id=2143247923]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.83, 0.65, 1)
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1

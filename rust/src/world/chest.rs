@@ -6,8 +6,8 @@ use godot::{
 use godot_bevy::prelude::*;
 
 use crate::{
-    characters::components::state::Initialized, godot_utils::nodes::get_custom_area_3d,
-    state::GameState,
+    characters::components::state::Initialized, events::chest_loot::ChestLootEvent,
+    godot_utils::nodes::get_custom_area_3d, state::GameState,
 };
 
 use godot::classes::Input;
@@ -19,7 +19,7 @@ use godot::classes::Input;
 pub struct ChestInteractionNode;
 
 #[derive(Component)]
-struct Opened(pub bool);
+pub struct Opened(pub bool);
 
 #[derive(Resource, Default)]
 pub struct ChestInteraction {
@@ -142,7 +142,7 @@ fn on_exit_chest_area(
 fn process_chest_event(
     chest_resource: ResMut<ChestInteraction>,
     mut godot: GodotAccess,
-    mut query: Query<&mut Opened, With<ChestInteractionNode>>,
+    mut commands: Commands,
 ) {
     let Some(handle) = chest_resource.chest_handle else {
         return;
@@ -163,12 +163,11 @@ fn process_chest_event(
             return;
         };
 
-        let Ok(mut open) = query.get_mut(entity) else {
-            return;
-        };
-
         animation.play_ex().name("CACHE_Open_Close").done();
-        open.0 = true;
+
+        commands.trigger(ChestLootEvent {
+            chest_entity: entity,
+        });
     }
 }
 

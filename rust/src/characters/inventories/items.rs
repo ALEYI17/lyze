@@ -113,6 +113,15 @@ impl ItemInventory {
 
         true
     }
+
+    pub fn add_item(&mut self, item_id: ItemId, ammount: u32) {
+        if ammount == 0 {
+            return;
+        }
+
+        let owned = self.items.entry(item_id).or_default();
+        *owned = owned.saturating_add(ammount);
+    }
 }
 
 pub struct ItemPlugin;

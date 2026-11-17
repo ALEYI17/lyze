@@ -141,10 +141,18 @@ fn on_upgrade_prosthetic(
     let ItemKind::Prosthetic(definition) = &item.kind else {
         return;
     };
-    let Some(current) = definition.levels.iter().find(|level| level.level == *current_level) else {
+    let Some(current) = definition
+        .levels
+        .iter()
+        .find(|level| level.level == *current_level)
+    else {
         return;
     };
-    let Some(next) = definition.levels.iter().find(|level| level.level == next_level) else {
+    let Some(next) = definition
+        .levels
+        .iter()
+        .find(|level| level.level == next_level)
+    else {
         return;
     };
 

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cf0lhf2dibm1w"]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/components/ProstheticSlot.tscn" id="1_prosthetic"]
+[ext_resource type="PackedScene" uid="uid://cpmuu16x0nkwu" path="res://scenes/ui/components/LootNotification.tscn" id="2_loot_notification"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
 content_margin_left = 0.0
@@ -217,6 +218,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "CHARACTER"
 
 [node name="CharacterMenu" type="PanelContainer" parent="Control" unique_id=1100756309]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -262,10 +264,9 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_tab_panel")
 theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_tab_unselected")
 theme_override_styles/tab_hovered = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
-current_tab = 4
+current_tab = 0
 
 [node name="Convictions" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=1313707353]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -581,6 +582,7 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
 [node name="Upgrades" type="MarginContainer" parent="Control/CharacterMenu/VBoxContainer/Tabs" unique_id=1873196927]
+visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
@@ -614,3 +616,23 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
+
+[node name="LootNotifications" type="VBoxContainer" parent="Control" unique_id=1421754677]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -260.0
+offset_right = 200.0
+offset_bottom = -100.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="Notification1" parent="Control/LootNotifications" unique_id=2006198330 instance=ExtResource("2_loot_notification")]
+layout_mode = 2

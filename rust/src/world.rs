@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-mod chest;
+pub mod chest;
 mod transport_node;
 mod world_manager;
 

@@ -92,6 +92,12 @@ pub struct UseConsumableItem {
     item: ItemId,
 }
 
+#[derive(Event, Debug, Clone)]
+pub struct LootReceivedEvent {
+    pub item: ItemId,
+    pub quantity: u32,
+}
+
 #[derive(Event, Debug, Clone, Copy, Default)]
 pub enum ChangeItemListFilter {
     #[default]
@@ -422,6 +428,17 @@ fn get_item_list(canvas: &Gd<CanvasLayer>) -> Option<Gd<VBoxContainer>> {
     };
 
     Some(container)
+}
+
+fn get_loot_notification(canvas: &Gd<CanvasLayer>) -> Option<Gd<PanelContainer>> {
+    let path = "Control/LootNotifications/Notification1";
+
+    let node = canvas.get_node_or_null(path)?;
+    let Ok(panel) = node.try_cast::<PanelContainer>() else {
+        return None;
+    };
+
+    Some(panel)
 }
 
 fn get_prosthetic_upgrade_list(canvas: &Gd<CanvasLayer>) -> Option<Gd<VBoxContainer>> {
@@ -1157,6 +1174,8 @@ fn reset_hud_assets(
     hud_assets.convictions_upgrade_buttons_connected = false;
     hud_assets.prosthetic_slots_initialized = false;
     hud_assets.items_list_initialized = false;
+    hud_assets.connect_items_filter_button = false;
+    hud_assets.prosthetic_buttons_connected = false;
     hud_assets.prosthetic_upgrade_list = false;
 }
 
@@ -1934,6 +1953,54 @@ fn on_use_consumable_item(trigger: On<UseConsumableItem>, mut commands: Commands
     commands.trigger(ReloadItemListEvent);
 }
 
+fn on_loot_received(
+    trigger: On<LootReceivedEvent>,
+    registry: Res<ItemRegistry>,
+    hud_assets: Res<HudAssets>,
+    mut godot: GodotAccess,
+) {
+    let Some(item) = registry.get(trigger.item) else {
+        return;
+    };
+    let Some(handle) = hud_assets.hud else {
+        return;
+    };
+    let Some(canvas) = get_custom_canvas_layer(&handle, &mut godot) else {
+        return;
+    };
+    let Some(mut panel) = get_loot_notification(&canvas) else {
+        return;
+    };
+    let Some(mut label) = panel
+        .get_node_or_null("Label")
+        .and_then(|node| node.try_cast::<Label>().ok())
+    else {
+        return;
+    };
+
+    if panel.has_meta("loot_fade")
+        && let Ok(mut tween) = panel
+            .get_meta("loot_fade")
+            .try_to::<Gd<godot::classes::Tween>>()
+    {
+        tween.kill();
+    }
+
+    label.set_text(&format!("+{} {}", trigger.quantity, item.name));
+    panel.set_modulate(Color::from_rgba(1.0, 1.0, 1.0, 1.0));
+    panel.set_visible(true);
+    let mut tween = panel.create_tween();
+    tween.tween_interval(2.4);
+    tween.tween_property(
+        &panel.clone().upcast::<godot::classes::Object>(),
+        "modulate:a",
+        &0.0_f64.to_variant(),
+        0.6,
+    );
+    tween.tween_callback(&panel.callable("hide"));
+    panel.set_meta("loot_fade", &tween.to_variant());
+}
+
 // fn on_unequip_prosthetic(
 //     trigger: On<UnequipProsthetic>,
 //     mut item_inventory: ResMut<ItemInventory>,
@@ -2002,6 +2069,7 @@ impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<HudAssets>()
             .init_resource::<ItemListFilter>()
+            .add_observer(on_loot_received)
             .add_systems(Update, set_player_health)
             .add_systems(Update, initialized_hud.run_if(hud_is_not_initialized))
             .add_systems(

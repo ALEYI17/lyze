@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 pub mod abilities;
+pub mod chest_loot;
 pub mod combat;
 pub mod consumable;
 pub mod damage;
@@ -26,6 +27,7 @@ impl Plugin for EventPlugins {
             .add_plugins(experience::ExperiencePlugin)
             .add_plugins(dialogue::DialogueEventPlugin)
             .add_plugins(consumable::ConsumablePlugin)
-            .add_plugins(prosthetic::ProstheticPlugin);
+            .add_plugins(prosthetic::ProstheticPlugin)
+            .add_plugins(chest_loot::ChestLootPlugin);
     }
 }

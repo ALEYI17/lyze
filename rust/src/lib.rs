@@ -8,6 +8,7 @@ mod events;
 mod godot_utils;
 mod interactions;
 mod items;
+mod loot;
 mod progression;
 mod state;
 mod ui;
@@ -26,5 +27,6 @@ fn build_app(app: &mut App) {
         .add_plugins(GodotCollisionsPlugin)
         .add_plugins(combat::CombatPlugin)
         .add_plugins(world::WorldPlugin)
-        .add_plugins(interactions::InteractionPlugin);
+        .add_plugins(interactions::InteractionPlugin)
+        .add_plugins(loot::LootPlugin);
 }
