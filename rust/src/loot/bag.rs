@@ -6,13 +6,14 @@ use rand::random_range;
 
 use crate::{
     items::definition::ItemId,
-    loot::definition::{LootEntry, LootReward},
+    loot::definition::{LootEntry, LootReward, ProstheticLootEntry},
     state::GameState,
 };
 
 #[derive(Resource)]
 pub struct LootBag {
     pub remaining: BTreeMap<ItemId, LootEntry>,
+    pub remaining_prosthetic: BTreeMap<ItemId, ProstheticLootEntry>,
     pub reset_timer: Timer,
 }
 
@@ -45,10 +46,21 @@ fn initial_entries() -> BTreeMap<ItemId, LootEntry> {
     ])
 }
 
+fn initial_prosthetic_entries() -> BTreeMap<ItemId, ProstheticLootEntry> {
+    BTreeMap::from([(
+        ItemId::CarapaceArm,
+        ProstheticLootEntry {
+            weight: 1,
+            granted: false,
+        },
+    )])
+}
+
 impl Default for LootBag {
     fn default() -> Self {
         Self {
             remaining: initial_entries(),
+            remaining_prosthetic: initial_prosthetic_entries(),
             reset_timer: Timer::from_seconds(300.0, TimerMode::Once),
         }
     }
@@ -87,6 +99,37 @@ impl LootBag {
     pub fn refill_bag(&mut self) {
         self.remaining = initial_entries();
         self.reset_timer.reset();
+    }
+
+    pub fn draw_one_prosthetic(&mut self) -> Option<LootReward> {
+        let total = self
+            .remaining_prosthetic
+            .values()
+            .filter(|entry| !entry.granted)
+            .map(|entry| entry.weight)
+            .sum();
+        if total == 0 {
+            return None;
+        }
+
+        let mut roll = rand::random_range(0..total);
+
+        for (item_id, entry) in &mut self.remaining_prosthetic {
+            if entry.granted {
+                continue;
+            }
+
+            if roll < entry.weight {
+                entry.granted = true;
+                return Some(LootReward {
+                    item: *item_id,
+                    ammount: 1,
+                });
+            }
+
+            roll -= entry.weight
+        }
+        None
     }
 }
 

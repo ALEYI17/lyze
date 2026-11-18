@@ -57,6 +57,7 @@ pub enum ItemId {
     NeurostrideLeg,
     Biomass,
     SekhemSerum,
+    CarapaceArm,
 }
 
 #[derive(Debug, Clone)]

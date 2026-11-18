@@ -16,10 +16,14 @@ use godot::classes::Input;
 #[gdbevy(base = Area3D, class_name = ChestNode)]
 #[gdbevy(require(initialized:Initialized, as = bool, default = false))]
 #[gdbevy(require(opened:Opened, as = bool, default = false))]
+#[gdbevy(require(prosthetic_chest:ProstheticChest, as = bool, default = false))]
 pub struct ChestInteractionNode;
 
 #[derive(Component)]
 pub struct Opened(pub bool);
+
+#[derive(Component)]
+pub struct ProstheticChest(pub bool);
 
 #[derive(Resource, Default)]
 pub struct ChestInteraction {

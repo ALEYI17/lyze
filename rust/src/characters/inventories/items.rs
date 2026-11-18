@@ -122,6 +122,9 @@ impl ItemInventory {
         let owned = self.items.entry(item_id).or_default();
         *owned = owned.saturating_add(ammount);
     }
+    pub fn add_prosthetic(&mut self, item_id: ItemId) {
+        self.prosthetics.entry(item_id).or_insert(1);
+    }
 }
 
 pub struct ItemPlugin;

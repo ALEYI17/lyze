@@ -86,6 +86,53 @@ impl Default for ItemRegistry {
                 }),
             },
             ItemDefinition {
+                id: ItemId::CarapaceArm,
+                name: "Carapace Arm",
+                description: "A prosthetic arm reinforced with living carapace, strengthening Aeternum conviction through protective biological plating.",
+                kind: ItemKind::Prosthetic(ProstheticDefinition {
+                    slot: ProstheticSlot::LeftArm,
+                    levels: vec![
+                        ProstheticLevels {
+                            level: 1,
+                            bonuses: vec![ConvictionsBonus {
+                                conviction: ConvictionType::Aeternum,
+                                attack: 1.0,
+                                defense: 3.0,
+                            }],
+                            upgrades: vec![],
+                        },
+                        ProstheticLevels {
+                            level: 2,
+                            bonuses: vec![ConvictionsBonus {
+                                conviction: ConvictionType::Aeternum,
+                                attack: 2.0,
+                                defense: 5.0,
+                            }],
+                            upgrades: vec![ProstheticUpgrade {
+                                requirements: vec![UpgradeRequirements {
+                                    material: ItemId::Biomass,
+                                    quantity: 3,
+                                }],
+                            }],
+                        },
+                        ProstheticLevels {
+                            level: 3,
+                            bonuses: vec![ConvictionsBonus {
+                                conviction: ConvictionType::Aeternum,
+                                attack: 3.0,
+                                defense: 8.0,
+                            }],
+                            upgrades: vec![ProstheticUpgrade {
+                                requirements: vec![UpgradeRequirements {
+                                    material: ItemId::Biomass,
+                                    quantity: 6,
+                                }],
+                            }],
+                        },
+                    ],
+                }),
+            },
+            ItemDefinition {
                 id: ItemId::NeurostrideLeg,
                 name: "Neurostride Leg",
                 description: "A neural-linked prosthetic leg that enhances movement, coordination, and reflexes.",

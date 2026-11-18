@@ -8,6 +8,12 @@ pub struct LootEntry {
 }
 
 #[derive(Debug, Clone, Copy)]
+pub struct ProstheticLootEntry {
+    pub weight: u32,
+    pub granted: bool,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct LootReward {
     pub item: ItemId,
     pub ammount: u32,
