@@ -10,7 +10,7 @@
 [node name="main_isometric" type="Node3D" unique_id=1895004924]
 
 [node name="Player3D" parent="." unique_id=383785677 instance=ExtResource("2_2nldp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4110746, 1.5059953, 5.353391)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4110746, 0.76825666, 5.353391)
 
 [node name="DialogueHud" parent="." unique_id=173181493 instance=ExtResource("4_a55pu")]
 visible = false

@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://bhpeqm6h5nfi7" path="res://scenes/3d/first_map.tscn" id="1_luxtp"]
 [ext_resource type="PackedScene" uid="uid://dycrpavd0cpf6" path="res://scenes/3d/girl_npc.tscn" id="2_756dp"]
-[ext_resource type="MeshLibrary" uid="uid://cv6jlyj8ijxov" path="res://assets/3d_assets/Reclaim_Street_Kit.res" id="2_oc4kc"]
+[ext_resource type="MeshLibrary" uid="uid://bk0xjcisvmtdv" path="res://assets/3d_assets/Reclaim_Street_Kit.res" id="2_oc4kc"]
 [ext_resource type="PackedScene" uid="uid://c6yxa7whisfrg" path="res://scenes/enemies/cape_enemy_3d.tscn" id="3_lc0ey"]
 [ext_resource type="PackedScene" uid="uid://daxh1s0qboux8" path="res://scenes/enemies/enemy_Encounter.tscn" id="4_5cho4"]
 [ext_resource type="PackedScene" uid="uid://k0q0sc3dij36" path="res://scenes/levels/level_change.tscn" id="5_6761a"]
@@ -16,6 +16,22 @@ cell_size = Vector3(8, 2, 8)
 cell_center_y = false
 data = {
 "cells": PackedInt32Array(65535, 65535, 0, 65535, 0, 0, 65535, 1, 0, 65535, 2, 1048576, 4, 0, 0, 4, 1, 0, 4, 2, 0, 4, 3, 0, 4, 4, 655363, 2, 1, 2, 2, 2, 4, 2, 0, 4, 3, 1, 1048579, 3, 2, 1048576, 3, 0, 1048576, 2, 3, 4, 2, 4, 4, 2, 5, 6, 1, 5, 1441796, 3, 5, 1441796, 4, 5, 1048577, 3, 3, 655360, 3, 4, 655360, 1, 1, 1441796, 0, 1, 1441795, 1, 2, 1441792, 1, 3, 1441792, 1, 4, 1441792, 0, 2, 1441792, 0, 3, 1441792, 0, 4, 1441792, 1, 0, 1441792, 0, 0, 1441792, 0, 65535, 655360, 65535, 3, 655360, 65535, 4, 655360, 0, 5, 1441796, 65535, 5, 1441796, 65534, 5, 1, 65534, 4, 4, 65534, 3, 655363, 65534, 2, 1048576, 65534, 1, 1048576, 65534, 0, 1048576, 65534, 65535, 1048576, 1, 65535, 0, 2, 65534, 2, 2, 65535, 4)
+}
+metadata/_editor_floor_ = Vector3(0, 1, 0)
+
+[node name="Props" type="GridMap" parent="." unique_id=1423812835]
+mesh_library = ExtResource("2_oc4kc")
+cell_center_y = false
+data = {
+"cells": PackedInt32Array(7, 8, 17, 5, 8, 17, 7, 10, 17, 7, 12, 17, 11, 16, 16, 7, 20, 16, 11, 8, 1441806, 0, 5, 18, 0, 6, 18, 65530, 12, 19)
+}
+
+[node name="walls" type="GridMap" parent="." unique_id=591965163]
+mesh_library = ExtResource("2_oc4kc")
+cell_size = Vector3(4, 2, 4)
+cell_center_y = false
+data = {
+"cells": PackedInt32Array(65533, 12, 11, 65532, 11, 1048586, 65534, 12, 7, 65535, 12, 7, 0, 12, 7, 1, 12, 7, 2, 12, 7, 3, 12, 12, 4, 12, 12, 5, 12, 12, 6, 12, 12, 7, 12, 12, 8, 12, 12, 9, 12, 12, 10, 11, 1048584)
 }
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=972145743]
@@ -35,10 +51,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.67276955, -3.1569061)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.07051, 0.92871046, 0)
 
 [node name="CollisionShape3D" parent="EnemyEncounter" index="0" unique_id=2134172080]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25689483, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06685257, -0.25689483, 0)
 
 [node name="player_position" parent="EnemyEncounter" index="1" unique_id=1493014604]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5519638, 0, 0.44086456)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5519638, -0.4486289, 0.44086456)
 
 [node name="CapeEnemy3d" parent="EnemyEncounter" unique_id=492072302 instance=ExtResource("3_lc0ey")]
 personality = "aggressive"
@@ -60,7 +76,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.392683, -0.09057665, 18.50
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.804096, 3.4175167)
 
 [node name="player_position" parent="EnemyEncounter2" index="1" unique_id=1493014604]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8141785, 1.459244, 3.0936947)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8141785, 0.4797449, 3.0936947)
 
 [node name="CapeEnemy3d" parent="EnemyEncounter2" unique_id=1423648350 instance=ExtResource("3_lc0ey")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6700845, 3.3729076)
