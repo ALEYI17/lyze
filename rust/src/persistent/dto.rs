@@ -57,7 +57,7 @@ pub struct SavedPosition {
 }
 
 pub fn write_save_data(data: &SaveData) -> Result<String, serde_json::Error> {
-    let json = serde_json::to_string(data)?;
+    let json = serde_json::to_string_pretty(data)?;
 
     Ok(json)
 }

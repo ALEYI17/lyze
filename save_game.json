@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "player_state": {
+    "health": 50.0,
+    "max_health": 50.0,
+    "level": 1,
+    "current_experience": 0,
+    "name": "ALEYI"
+  },
+  "player_convictions": {
+    "convictions": {
+      "aeternum": {
+        "attack": 1.0,
+        "defense": 1.0
+      },
+      "alligatio": {
+        "attack": 1.0,
+        "defense": 1.0
+      },
+      "ananke": {
+        "attack": 1.0,
+        "defense": 1.0
+      },
+      "sekhem": {
+        "attack": 1.0,
+        "defense": 1.0
+      },
+      "ataraxia": {
+        "attack": 1.0,
+        "defense": 1.0
+      }
+    },
+    "avaible_points": 4
+  },
+  "player_item": {
+    "items": {
+      "RegenerativeSerum": 3,
+      "Biomass": 8,
+      "SekhemSerum": 1
+    },
+    "prosthetics": {
+      "MyofiberArm": 1,
+      "NeurostrideLeg": 1
+    },
+    "left_arm": null,
+    "right_leg": null,
+    "granted_prosthetics": []
+  },
+  "player_ability": {
+    "learned_abilities": [
+      "Strike",
+      "Kick",
+      "Weaken",
+      "Fortify",
+      "Heal",
+      "Slash"
+    ],
+    "equiped_abilities": [
+      "Slash",
+      "Kick",
+      "Heal",
+      "Fortify",
+      "Weaken"
+    ],
+    "avaible_points": 4
+  },
+  "player_position": {
+    "x": 7.661531925201416,
+    "y": 2.0346271991729736,
+    "z": 14.866776466369629,
+    "scene_path": "res://scenes/levels/level_1.tscn"
+  }
+}

@@ -1,5 +1,7 @@
+use std::io::Write;
+
 use bevy::prelude::*;
-use godot::global::godot_print;
+use godot::{classes::file_access::ModeFlags, global::godot_print, tools::GFile};
 use godot_bevy::interop::{GodotAccess, GodotNodeHandle};
 
 use crate::{
@@ -22,7 +24,8 @@ use crate::{
         PlayerAbility, PlayerConvictions, PlayerItems, PlayerState, SaveData, SavedPosition,
         write_save_data,
     },
-    state::GameState, world::world_manager::WorldAssets,
+    state::GameState,
+    world::world_manager::WorldAssets,
 };
 
 #[allow(clippy::too_many_arguments)]
@@ -110,10 +113,15 @@ fn save_data(
     let data = write_save_data(&save_data);
 
     if let Ok(d) = data {
-        godot_print!("Save data:{}", d);
+        let result = save_to_file(&d);
+        godot_print!("Save data:{}, result: {:?}", d, result);
     }
 }
 
+fn save_to_file(content: &str) -> std::io::Result<()> {
+    let mut file = GFile::open("res://save_game.json", ModeFlags::WRITE)?;
+    file.write_all(content.as_bytes())
+}
 pub struct SaveDataPlugin;
 
 impl Plugin for SaveDataPlugin {
