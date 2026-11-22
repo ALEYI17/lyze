@@ -17,11 +17,20 @@ use crate::{
 #[derive(Message, Debug, Clone)]
 pub struct WorldOperationMessage {
     pub scene: Handle<GodotResource>,
+    pub scene_path: String,
     pub destination: Vector3,
 }
 impl WorldOperationMessage {
-    pub fn change_level(scene: Handle<GodotResource>, destination: Vector3) -> Self {
-        Self { scene, destination }
+    pub fn change_level(
+        scene: Handle<GodotResource>,
+        scene_path: String,
+        destination: Vector3,
+    ) -> Self {
+        Self {
+            scene,
+            scene_path,
+            destination,
+        }
     }
 }
 
@@ -29,8 +38,11 @@ impl WorldOperationMessage {
 pub struct WorldAssets {
     pub world: Option<GodotNodeHandle>,
     pub level: Option<GodotNodeHandle>,
+    pub level_scene_path: Option<String>,
     pub initialized: bool,
 }
+
+const BASE_LEVEL_SCENE_PATH: &str = "res://scenes/levels/level_1.tscn";
 
 #[derive(NodeTreeView)]
 pub struct WorldNodes {
@@ -41,6 +53,7 @@ pub struct WorldNodes {
 fn reset_world_assets(mut world_assets: ResMut<WorldAssets>) {
     world_assets.world = None;
     world_assets.level = None;
+    world_assets.level_scene_path = None;
     world_assets.initialized = false;
 }
 
@@ -57,7 +70,10 @@ fn initialized_world(
             && let Some(world_node) = godot.try_get::<Node>(*world)
             && let Some(level) = world_node.get_child(0)
         {
-            world_assets.level = Some(level.into())
+            world_assets.level = Some(level.into());
+            if world_assets.level_scene_path.is_none() {
+                world_assets.level_scene_path = Some(BASE_LEVEL_SCENE_PATH.to_string());
+            }
         }
         world_assets.initialized = true;
     }
@@ -125,6 +141,7 @@ fn process_world_operation(
         world.add_child(&new_level);
 
         world_assets.level = Some(new_level.clone().into());
+        world_assets.level_scene_path = Some(operation.scene_path.clone());
 
         player.set_global_position(operation.destination);
     }

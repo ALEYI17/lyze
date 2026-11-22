@@ -63,6 +63,7 @@ fn get_interaction_label(area: &Gd<Area3D>) -> Option<Gd<Label3D>> {
 #[derive(Resource, Default)]
 pub struct PendingLevelChange {
     pub scene: Option<Handle<GodotResource>>,
+    pub scene_path: Option<String>,
     pub destination: Option<Vector3>,
 }
 
@@ -137,6 +138,7 @@ fn on_enter_level_transition(
     label.set_visible(true);
 
     pending.scene = Some(asset_server.load(trigger.scene_path.clone()));
+    pending.scene_path = Some(trigger.scene_path.clone());
     pending.destination = Some(trigger.destination);
 }
 
@@ -156,6 +158,7 @@ fn on_exit_level_transition(
 
     label.set_visible(false);
     pending.scene = None;
+    pending.scene_path = None;
     pending.destination = None;
 }
 
@@ -166,6 +169,9 @@ fn wait_for_level_load(
     mut godot: GodotAccess,
 ) {
     let Some(scene) = pending.scene.as_ref() else {
+        return;
+    };
+    let Some(scene_path) = pending.scene_path.as_ref() else {
         return;
     };
     let Some(destination) = pending.destination else {
@@ -181,15 +187,20 @@ fn wait_for_level_load(
 
                 operations.write(WorldOperationMessage::change_level(
                     scene.clone(),
+                    scene_path.clone(),
                     destination,
                 ));
 
                 pending.scene = None;
+                pending.scene_path = None;
+                pending.destination = None;
             }
             Some(LoadState::Failed(error)) => {
                 godot_print!("Failed to load level: {:?}", error);
 
                 pending.scene = None;
+                pending.scene_path = None;
+                pending.destination = None;
             }
             Some(LoadState::Loading) => {
                 // Still loading; check again next frame.

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 pub mod chest;
 mod transport_node;
-mod world_manager;
+pub mod world_manager;
 
 pub struct WorldPlugin;
 

@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::abilities::definition::ConvictionType;
 
 #[derive(Debug, Clone)]
@@ -50,7 +52,7 @@ pub enum ConsumableEffect {
     UpgrdeConviction { conviction: ConvictionType },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum ItemId {
     RegenerativeSerum,
     MyofiberArm,

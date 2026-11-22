@@ -1,4 +1,5 @@
 use godot::global::godot_print;
+use serde::{Deserialize, Serialize};
 
 use crate::characters::components::convictions::{ConvictionStats, Convictions};
 
@@ -46,6 +47,7 @@ pub struct ConvictionScaling {
     pub rate: f32,
 }
 
+#[derive(Debug)]
 pub struct AbilityDefinition {
     pub id: AbilityId,
     pub name: &'static str,
@@ -54,7 +56,7 @@ pub struct AbilityDefinition {
     pub point_cost: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum AbilityId {
     Strike,
     Kick,

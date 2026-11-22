@@ -9,6 +9,7 @@ mod godot_utils;
 mod interactions;
 mod items;
 mod loot;
+mod persistent;
 mod progression;
 mod state;
 mod ui;
@@ -28,5 +29,6 @@ fn build_app(app: &mut App) {
         .add_plugins(combat::CombatPlugin)
         .add_plugins(world::WorldPlugin)
         .add_plugins(interactions::InteractionPlugin)
-        .add_plugins(loot::LootPlugin);
+        .add_plugins(loot::LootPlugin)
+        .add_plugins(persistent::PersistentPlugin);
 }

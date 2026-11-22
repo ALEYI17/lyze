@@ -1,15 +1,16 @@
 use bevy::prelude::*;
 use godot::classes::class_macros::private::virtuals::ZipReader::Vector2;
+use serde::{Deserialize, Serialize};
 
 use crate::abilities::definition::ConvictionType;
 
-#[derive(Debug, Clone, Copy, Default, Reflect)]
+#[derive(Debug, Clone, Copy, Default, Reflect, Serialize, Deserialize)]
 pub struct ConvictionStats {
     pub attack: f32,
     pub defense: f32,
 }
 
-#[derive(Component, Debug, Clone, Default, Reflect)]
+#[derive(Component, Debug, Clone, Default, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Convictions {
     pub aeternum: ConvictionStats,
