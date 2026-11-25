@@ -82,7 +82,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8141785, 0.4797449, 3.0936
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6700845, 3.3729076)
 
 [node name="ChestNode" parent="." unique_id=1323888917 instance=ExtResource("6_sk5k4")]
-prosthetic_chest = true
 transform = Transform3D(0.048244175, 0, -0.99883556, 0, 1, 0, 0.99883556, 0, 0.048244175, 24.173845, 0.24256063, 6.980133)
 
 [editable path="EnemyEncounter"]

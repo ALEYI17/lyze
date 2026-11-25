@@ -2,6 +2,7 @@
 
 [ext_resource type="MeshLibrary" uid="uid://bk0xjcisvmtdv" path="res://assets/3d_assets/Reclaim_Street_Kit.res" id="1_g2h2n"]
 [ext_resource type="PackedScene" uid="uid://k0q0sc3dij36" path="res://scenes/levels/level_change.tscn" id="2_g2h2n"]
+[ext_resource type="PackedScene" uid="uid://dkxm4y8fb6d2v" path="res://scenes/objects/chest.tscn" id="3_ra442"]
 
 [node name="Level2" type="Node3D" unique_id=1394972506]
 
@@ -36,5 +37,10 @@ transform = Transform3D(1, 0, 0, 0, 0.795881, 0.60545313, 0, -0.60545313, 0.7958
 target_scene = "res://scenes/levels/level_1.tscn"
 coordinates = Vector3(0, 2, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.4933577, 0.12382507, 1.4362184)
+
+[node name="ChestNode" parent="." unique_id=1323888917 instance=ExtResource("3_ra442")]
+prosthetic_chest = true
+chest_id = 1
+transform = Transform3D(-0.0106829, 0, -0.99994296, 0, 1, 0, 0.99994296, 0, -0.0106829, 19.301231, 0, -20.408644)
 
 [editable path="LevelChange"]

@@ -34,25 +34,28 @@
   },
   "player_item": {
     "items": {
-      "RegenerativeSerum": 3,
-      "Biomass": 8,
+      "RegenerativeSerum": 4,
+      "Biomass": 17,
       "SekhemSerum": 1
     },
     "prosthetics": {
       "MyofiberArm": 1,
-      "NeurostrideLeg": 1
+      "NeurostrideLeg": 1,
+      "CarapaceArm": 1
     },
     "left_arm": null,
     "right_leg": null,
-    "granted_prosthetics": []
+    "granted_prosthetics": [
+      "CarapaceArm"
+    ]
   },
   "player_ability": {
     "learned_abilities": [
-      "Strike",
-      "Kick",
       "Weaken",
       "Fortify",
       "Heal",
+      "Kick",
+      "Strike",
       "Slash"
     ],
     "equiped_abilities": [
@@ -65,9 +68,13 @@
     "avaible_points": 4
   },
   "player_position": {
-    "x": 7.661531925201416,
-    "y": 2.0346271991729736,
-    "z": 14.866776466369629,
-    "scene_path": "res://scenes/levels/level_1.tscn"
-  }
+    "x": 8.254927635192871,
+    "y": 0.5008784532546997,
+    "z": -19.765329360961914,
+    "scene_path": "res://scenes/levels/level_2.tscn"
+  },
+  "open_chest": [
+    0,
+    1
+  ]
 }

@@ -17,6 +17,7 @@ use godot::classes::Input;
 #[gdbevy(require(initialized:Initialized, as = bool, default = false))]
 #[gdbevy(require(opened:Opened, as = bool, default = false))]
 #[gdbevy(require(prosthetic_chest:ProstheticChest, as = bool, default = false))]
+#[gdbevy(require(chest_id:ChestID, as = u32, default = 0))]
 pub struct ChestInteractionNode;
 
 #[derive(Component)]
@@ -24,6 +25,9 @@ pub struct Opened(pub bool);
 
 #[derive(Component)]
 pub struct ProstheticChest(pub bool);
+
+#[derive(Component)]
+pub struct ChestID(pub u32);
 
 #[derive(Resource, Default)]
 pub struct ChestInteraction {
