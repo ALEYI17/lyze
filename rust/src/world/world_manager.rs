@@ -11,25 +11,34 @@ use godot_bevy::{
 
 use crate::{
     characters::player_3d::Player3DNode, godot_utils::nodes::get_custom_character_body_3d,
-    state::GameState,
+    state::GameState, world::save_point::ChangeSavepointEvent,
 };
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum WorldOperationKind {
+    RestoreData,
+    Transport,
+}
 
 #[derive(Message, Debug, Clone)]
 pub struct WorldOperationMessage {
     pub scene: Handle<GodotResource>,
     pub scene_path: String,
     pub destination: Vector3,
+    pub kind: WorldOperationKind,
 }
 impl WorldOperationMessage {
     pub fn change_level(
         scene: Handle<GodotResource>,
         scene_path: String,
         destination: Vector3,
+        kind: WorldOperationKind,
     ) -> Self {
         Self {
             scene,
             scene_path,
             destination,
+            kind,
         }
     }
 }
@@ -89,6 +98,7 @@ fn process_world_operation(
     mut world_assets: ResMut<WorldAssets>,
     query_player: Query<&GodotNodeHandle, With<Player3DNode>>,
     mut godot: GodotAccess,
+    mut commands: Commands,
 ) {
     for operation in operations.read() {
         godot_print!("receive message");
@@ -144,6 +154,13 @@ fn process_world_operation(
         world_assets.level_scene_path = Some(operation.scene_path.clone());
 
         player.set_global_position(operation.destination);
+
+        if operation.kind == WorldOperationKind::Transport {
+            commands.trigger(ChangeSavepointEvent {
+                scene_path: operation.scene_path.clone(),
+                position: operation.destination,
+            });
+        }
     }
 }
 

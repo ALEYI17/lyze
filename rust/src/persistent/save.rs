@@ -25,7 +25,7 @@ use crate::{
         save_to_file, write_save_data,
     },
     state::GameState,
-    world::world_manager::WorldAssets,
+    world::{save_point::SavePoint, world_manager::WorldAssets},
 };
 
 #[derive(Resource, Default)]
@@ -35,6 +35,9 @@ pub struct OpenedChests(pub BTreeSet<u32>);
 pub struct SaveChestEvent {
     pub chest_id: u32,
 }
+
+#[derive(Event, Debug)]
+pub struct SaveRequestedEvent;
 
 #[allow(clippy::too_many_arguments)]
 fn save_current_game(
@@ -57,6 +60,7 @@ fn save_current_game(
     bag: &LootBag,
     world_assets: &WorldAssets,
     opened_chests: &OpenedChests,
+    save_point: &SavePoint,
     godot: &mut GodotAccess,
 ) {
     let Ok((health, max_health, level, current_experience, convictions, name, handle)) =
@@ -116,6 +120,12 @@ fn save_current_game(
             scene_path: world_assets.level_scene_path.clone(),
         },
         open_chest: opened_chests.0.iter().copied().collect(),
+        last_save_point: SavedPosition {
+            x: f64::from(save_point.position.x),
+            y: f64::from(save_point.position.y),
+            z: f64::from(save_point.position.z),
+            scene_path: save_point.scene_path.clone(),
+        },
     };
 
     match write_save_data(&save_data) {
@@ -148,6 +158,7 @@ fn save_data(
     bag: Res<LootBag>,
     world_assets: Res<WorldAssets>,
     opened_chests: Res<OpenedChests>,
+    last_save_point: Res<SavePoint>,
     mut godot: GodotAccess,
 ) {
     save_current_game(
@@ -159,6 +170,7 @@ fn save_data(
         &bag,
         &world_assets,
         &opened_chests,
+        &last_save_point,
         &mut godot,
     );
 }
@@ -185,6 +197,7 @@ fn on_save_chest_event(
     ability_registry: Res<AbilityRegistry>,
     bag: Res<LootBag>,
     world_assets: Res<WorldAssets>,
+    last_save_point: Res<SavePoint>,
     mut godot: GodotAccess,
 ) {
     opened_chests.0.insert(trigger.chest_id);
@@ -198,6 +211,46 @@ fn on_save_chest_event(
         &bag,
         &world_assets,
         &opened_chests,
+        &last_save_point,
+        &mut godot,
+    );
+}
+
+#[allow(clippy::too_many_arguments)]
+fn on_save_request_event(
+    _trigger: On<SaveRequestedEvent>,
+    opened_chests: Res<OpenedChests>,
+    query_player_state: Query<
+        (
+            &Health,
+            &MaxHealth,
+            &Level,
+            &Experience,
+            &Convictions,
+            &Name,
+            &GodotNodeHandle,
+        ),
+        With<Player3DNode>,
+    >,
+    conviction_inventory: Res<ConvictionPoints>,
+    item_inventory: Res<ItemInventory>,
+    ability_inventory: Res<AbilityInventory>,
+    ability_registry: Res<AbilityRegistry>,
+    bag: Res<LootBag>,
+    world_assets: Res<WorldAssets>,
+    last_save_point: Res<SavePoint>,
+    mut godot: GodotAccess,
+) {
+    save_current_game(
+        &query_player_state,
+        &conviction_inventory,
+        &item_inventory,
+        &ability_inventory,
+        &ability_registry,
+        &bag,
+        &world_assets,
+        &opened_chests,
+        &last_save_point,
         &mut godot,
     );
 }
@@ -208,6 +261,7 @@ impl Plugin for SaveDataPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<OpenedChests>()
             .add_systems(OnEnter(GameState::PauseMenu), save_data)
-            .add_observer(on_save_chest_event);
+            .add_observer(on_save_chest_event)
+            .add_observer(on_save_request_event);
     }
 }

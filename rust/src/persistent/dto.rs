@@ -9,6 +9,8 @@ use crate::{
 
 use godot::{classes::file_access::ModeFlags, tools::GFile};
 
+pub const SAVE_FILE_PATH: &str = "res://save_game.json";
+
 #[derive(Debug)]
 pub enum SaveLoadError {
     Io(std::io::Error),
@@ -36,6 +38,7 @@ pub struct SaveData {
     pub player_ability: PlayerAbility,
     pub player_position: SavedPosition,
     pub open_chest: Vec<u32>,
+    pub last_save_point: SavedPosition,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -84,12 +87,12 @@ pub fn write_save_data(data: &SaveData) -> Result<String, serde_json::Error> {
 }
 
 pub fn save_to_file(content: &str) -> std::io::Result<()> {
-    let mut file = GFile::open("res://save_game.json", ModeFlags::WRITE)?;
+    let mut file = GFile::open(SAVE_FILE_PATH, ModeFlags::WRITE)?;
     file.write_all(content.as_bytes())
 }
 
 pub fn load_from_file() -> Result<SaveData, SaveLoadError> {
-    let mut file = GFile::open("res://save_game.json", ModeFlags::READ)?;
+    let mut file = GFile::open(SAVE_FILE_PATH, ModeFlags::READ)?;
     let mut string_save = String::new();
     file.read_to_string(&mut string_save)?;
     Ok(serde_json::from_str(&string_save)?)

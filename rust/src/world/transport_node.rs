@@ -15,7 +15,7 @@ use crate::{
     characters::components::{identity::from_godot_string, state::Initialized},
     godot_utils::nodes::get_custom_area_3d,
     state::GameState,
-    world::world_manager::WorldOperationMessage,
+    world::world_manager::{WorldOperationKind, WorldOperationMessage},
 };
 
 use godot::classes::Input;
@@ -189,6 +189,7 @@ fn wait_for_level_load(
                     scene.clone(),
                     scene_path.clone(),
                     destination,
+                    WorldOperationKind::Transport,
                 ));
 
                 pending.scene = None;

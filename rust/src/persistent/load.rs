@@ -22,15 +22,21 @@ use crate::{
     godot_utils::nodes::get_custom_character_body_3d,
     loot::bag::LootBag,
     persistent::{
-        dto::{SaveLoadError, load_from_file},
-        save::OpenedChests,
+        dto::{SAVE_FILE_PATH, SaveLoadError, load_from_file},
+        save::{OpenedChests, SaveRequestedEvent},
     },
     state::GameState,
-    world::world_manager::{WorldAssets, WorldOperationMessage},
+    world::{
+        save_point::SavePoint,
+        world_manager::{WorldAssets, WorldOperationKind, WorldOperationMessage},
+    },
 };
 
 #[derive(Resource, Default)]
 struct LoadComplete(bool);
+
+#[derive(Resource, Default)]
+struct InitialSavePending(bool);
 
 struct PendingLevelRestore {
     scene: Handle<GodotResource>,
@@ -60,10 +66,12 @@ fn load_save_data(
     mut ability_inventory: ResMut<AbilityInventory>,
     mut ability_registry: ResMut<AbilityRegistry>,
     mut complete: ResMut<LoadComplete>,
+    mut initial_save_pending: ResMut<InitialSavePending>,
     mut bag: ResMut<LootBag>,
     asset_server: Res<AssetServer>,
     mut pending_level: ResMut<PendingLevelRestoreResource>,
     mut opened_chests: ResMut<OpenedChests>,
+    mut last_save_point: ResMut<SavePoint>,
 ) {
     if *prev_state.get() != GameState::MainMenu || complete.0 {
         return;
@@ -80,6 +88,13 @@ fn load_save_data(
     else {
         return;
     };
+
+    if !godot::classes::FileAccess::file_exists(SAVE_FILE_PATH) {
+        godot_print!("No save file found; scheduling the initial save");
+        initial_save_pending.0 = true;
+        complete.0 = true;
+        return;
+    }
 
     let save_data = match load_from_file() {
         Ok(save_data) => save_data,
@@ -142,6 +157,13 @@ fn load_save_data(
         z: save_data.player_position.z as f32,
     };
 
+    last_save_point.scene_path = save_data.last_save_point.scene_path;
+    last_save_point.position = Vector3 {
+        x: save_data.last_save_point.x as f32,
+        y: save_data.last_save_point.y as f32,
+        z: save_data.last_save_point.z as f32,
+    };
+
     pending_level.0 = Some(PendingLevelRestore {
         scene: asset_server.load(scene_path.clone()),
         scene_path,
@@ -149,6 +171,33 @@ fn load_save_data(
     });
 
     complete.0 = true;
+}
+
+fn save_initial_game_when_ready(
+    mut initial_save_pending: ResMut<InitialSavePending>,
+    world_assets: Res<WorldAssets>,
+    player_query: Query<&GodotNodeHandle, With<Player3DNode>>,
+    mut godot: GodotAccess,
+    mut commands: Commands,
+) {
+    if !initial_save_pending.0
+        || !world_assets.initialized
+        || world_assets.level.is_none()
+        || world_assets.level_scene_path.is_none()
+    {
+        return;
+    }
+
+    let Ok(player_handle) = player_query.single() else {
+        return;
+    };
+
+    if get_custom_character_body_3d(player_handle, &mut godot).is_none() {
+        return;
+    }
+
+    initial_save_pending.0 = false;
+    commands.trigger(SaveRequestedEvent);
 }
 
 fn restore_level_when_loaded(
@@ -185,6 +234,7 @@ fn restore_level_when_loaded(
                 pending.scene.clone(),
                 pending.scene_path.clone(),
                 pending.destination,
+                WorldOperationKind::RestoreData,
             ));
             pending_level.0 = None;
         }
@@ -199,9 +249,11 @@ fn restore_level_when_loaded(
 
 fn reset_load_state(
     mut complete: ResMut<LoadComplete>,
+    mut initial_save_pending: ResMut<InitialSavePending>,
     mut pending_level: ResMut<PendingLevelRestoreResource>,
 ) {
     complete.0 = false;
+    initial_save_pending.0 = false;
     pending_level.0 = None;
 }
 
@@ -214,6 +266,7 @@ pub struct LoadPlugin;
 impl Plugin for LoadPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<LoadComplete>()
+            .init_resource::<InitialSavePending>()
             .init_resource::<PendingLevelRestoreResource>()
             .add_systems(
                 Update,
@@ -222,6 +275,10 @@ impl Plugin for LoadPlugin {
             .add_systems(
                 Update,
                 restore_level_when_loaded.run_if(in_state(GameState::Ingame3D)),
+            )
+            .add_systems(
+                Update,
+                save_initial_game_when_ready.run_if(in_state(GameState::Ingame3D)),
             )
             .add_systems(OnEnter(GameState::MainMenu), reset_load_state);
     }
