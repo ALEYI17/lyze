@@ -31,7 +31,7 @@ use crate::state::GameState;
 pub struct HudNode;
 
 #[derive(Resource, Default)]
-struct HudAssets {
+pub struct HudAssets {
     pub hud: Option<GodotNodeHandle>,
     pub menu_button: Option<GodotNodeHandle>,
     pub close_button: Option<GodotNodeHandle>,
@@ -121,6 +121,16 @@ fn get_health_bar(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {
     };
 
     Some(health_bar)
+}
+
+pub fn get_you_die_label(canvas: &Gd<CanvasLayer>) -> Option<Gd<Label>> {
+    let node = canvas.get_node_or_null("Control/DieLabel")?;
+
+    let Ok(die_label) = node.try_cast::<Label>() else {
+        return None;
+    };
+
+    Some(die_label)
 }
 
 fn get_experience_bar(canvas: &Gd<CanvasLayer>) -> Option<Gd<ProgressBar>> {

@@ -42,7 +42,7 @@ fn on_combat_visual_result(
         return;
     };
 
-    let Some(mut sprite) = get_sprite(body) else {
+    let Some(mut sprite) = get_sprite(&body) else {
         return;
     };
 
@@ -81,7 +81,7 @@ fn process_visual_effect(
             return;
         };
 
-        let Some(mut sprite) = get_sprite(body) else {
+        let Some(mut sprite) = get_sprite(&body) else {
             return;
         };
 

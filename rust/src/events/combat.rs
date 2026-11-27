@@ -8,7 +8,7 @@ use crate::{
         enemies::enemy_encounter::{EnemyEncounterNode, get_player_starting_position},
         player_3d::Player3DNode,
     },
-    events::experience::GainExperienceEvent,
+    events::{experience::GainExperienceEvent, respawn::RespawnEvent},
     godot_utils::nodes::{get_custom_area_3d, get_custom_character_body_3d},
     state::GameState,
 };
@@ -265,17 +265,21 @@ fn on_end_combat(
             commands.entity(encounter).despawn();
         }
     } else if let Some(player) = combat_resource.player {
-        commands.entity(player).despawn();
+        commands.trigger(RespawnEvent {
+            player: Some(player),
+        });
     }
 
     let Some(player) = combat_resource.player else {
         return;
     };
 
-    commands.trigger(GainExperienceEvent {
-        target: player,
-        experience: combat_resource.given_experience,
-    });
+    if trigger.event().win {
+        commands.trigger(GainExperienceEvent {
+            target: player,
+            experience: combat_resource.given_experience,
+        });
+    }
 
     if let Some(original) = combat_convictions.player.take()
         && let Some(player) = combat_resource.player

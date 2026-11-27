@@ -67,17 +67,21 @@ use godot::classes::class_macros::private::virtuals::ZipReader::Vector2;
 pub struct Player3DNode;
 
 fn move_player_3d_node(
-    query: Query<(&GodotNodeHandle, &Speed, &JumpVelocity, &Gravity), With<Player3DNode>>,
+    query: Query<(&GodotNodeHandle, &Speed, &JumpVelocity, &Gravity, &Alive), With<Player3DNode>>,
     mut godot: GodotAccess,
     time: Res<Time>,
 ) {
-    let Ok((node_handle, speed, jump_velocity, gravity)) = query.single() else {
+    let Ok((node_handle, speed, jump_velocity, gravity, alive)) = query.single() else {
         return;
     };
 
     let Some(mut body) = get_custom_character_body_3d(node_handle, &mut godot) else {
         return;
     };
+
+    if !alive.0 {
+        return;
+    }
 
     let input = godot.singleton::<Input>();
 
@@ -153,7 +157,7 @@ fn is_target(
         return;
     };
 
-    let Some(mut sprite) = get_sprite(body) else {
+    let Some(mut sprite) = get_sprite(&body) else {
         return;
     };
 

@@ -10,6 +10,7 @@ pub mod effects;
 pub mod experience;
 pub mod heal;
 pub mod prosthetic;
+pub mod respawn;
 pub mod stat_modifier;
 pub mod upgrade_convictions;
 
@@ -28,6 +29,7 @@ impl Plugin for EventPlugins {
             .add_plugins(dialogue::DialogueEventPlugin)
             .add_plugins(consumable::ConsumablePlugin)
             .add_plugins(prosthetic::ProstheticPlugin)
-            .add_plugins(chest_loot::ChestLootPlugin);
+            .add_plugins(chest_loot::ChestLootPlugin)
+            .add_plugins(respawn::RespawnPlugin);
     }
 }

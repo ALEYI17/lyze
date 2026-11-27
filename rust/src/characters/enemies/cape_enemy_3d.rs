@@ -195,7 +195,7 @@ fn is_target(
             return;
         };
 
-        let Some(mut sprite) = get_sprite(body) else {
+        let Some(mut sprite) = get_sprite(&body) else {
             return;
         };
 

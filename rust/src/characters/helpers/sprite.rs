@@ -3,7 +3,7 @@ use godot::{
     prelude::*,
 };
 
-pub fn get_sprite(body: Gd<CharacterBody3D>) -> Option<Gd<Sprite3D>> {
+pub fn get_sprite(body: &Gd<CharacterBody3D>) -> Option<Gd<Sprite3D>> {
     let sprite_handle = body.get_node_or_null("Sprite3D")?;
 
     let Ok(sprite) = sprite_handle.try_cast::<Sprite3D>() else {

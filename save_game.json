@@ -3,57 +3,58 @@
   "player_state": {
     "health": 50.0,
     "max_health": 50.0,
-    "level": 1,
-    "current_experience": 0,
+    "level": 2,
+    "current_experience": 80,
     "name": "ALEYI"
   },
   "player_convictions": {
     "convictions": {
       "aeternum": {
-        "attack": 1.0,
-        "defense": 1.0
+        "attack": 8.0,
+        "defense": 8.0
       },
       "alligatio": {
         "attack": 1.0,
         "defense": 1.0
       },
       "ananke": {
-        "attack": 1.0,
-        "defense": 1.0
+        "attack": 10.0,
+        "defense": 10.0
       },
       "sekhem": {
-        "attack": 1.0,
-        "defense": 1.0
+        "attack": 30.0,
+        "defense": 25.0
       },
       "ataraxia": {
         "attack": 1.0,
         "defense": 1.0
       }
     },
-    "avaible_points": 4
+    "avaible_points": 0
   },
   "player_item": {
     "items": {
       "RegenerativeSerum": 3,
-      "Biomass": 8,
+      "Biomass": 1,
       "SekhemSerum": 1
     },
     "prosthetics": {
-      "MyofiberArm": 1,
+      "MyofiberArm": 3,
       "NeurostrideLeg": 1
     },
-    "left_arm": null,
-    "right_leg": null,
+    "left_arm": "MyofiberArm",
+    "right_leg": "NeurostrideLeg",
     "granted_prosthetics": []
   },
   "player_ability": {
     "learned_abilities": [
-      "Heal",
-      "Kick",
-      "Weaken",
-      "Strike",
       "Slash",
-      "Fortify"
+      "Kick",
+      "Heal",
+      "Weaken",
+      "Fortify",
+      "Vigor",
+      "Strike"
     ],
     "equiped_abilities": [
       "Slash",
@@ -62,19 +63,21 @@
       "Fortify",
       "Weaken"
     ],
-    "avaible_points": 4
+    "avaible_points": 3
   },
   "player_position": {
-    "x": 5.6407365798950195,
-    "y": 0.5009258985519409,
-    "z": -17.42207908630371,
-    "scene_path": "res://scenes/levels/level_2.tscn"
+    "x": 11.233182907104492,
+    "y": 0.6499753594398499,
+    "z": 7.34144401550293,
+    "scene_path": "res://scenes/levels/level_1.tscn"
   },
-  "open_chest": [],
+  "open_chest": [
+    0
+  ],
   "last_save_point": {
-    "x": -2.0,
+    "x": 0.0,
     "y": 2.0,
-    "z": -2.0,
-    "scene_path": "res://scenes/levels/level_2.tscn"
+    "z": 0.0,
+    "scene_path": "res://scenes/levels/level_1.tscn"
   }
 }
